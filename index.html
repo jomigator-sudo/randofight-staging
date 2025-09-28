@@ -1840,36 +1840,56 @@ function confirmRename() {
     var newName = document.getElementById('newFighterName').value.trim();
     var fighter = gameState.currentFighter;
     
+    // Get the rename button and disable it immediately
+    var renameButton = document.querySelector('#renameModal .btn-primary');
+    if (renameButton.disabled) {
+        return; // Already processing
+    }
+    renameButton.disabled = true;
+    renameButton.textContent = 'Processing...';
+    
     if (!fighter) {
         alert('No fighter selected!');
+        renameButton.disabled = false;
+        renameButton.textContent = 'Rename (25 💎)';
         return;
     }
     
     // Check if player has enough diamonds
     if (gameState.diamonds < 25) {
         alert('You need 25 diamonds to rename your fighter! You currently have ' + gameState.diamonds + ' diamonds.');
+        renameButton.disabled = false;
+        renameButton.textContent = 'Rename (25 💎)';
         return;
     }
     
     // Validate new name (same validation as createFighter)
     if (!newName) {
         alert('Please enter a new name!');
+        renameButton.disabled = false;
+        renameButton.textContent = 'Rename (25 💎)';
         return;
     }
     
     if (newName.length < 3) {
         alert('Fighter name must be at least 3 characters long!');
+        renameButton.disabled = false;
+        renameButton.textContent = 'Rename (25 💎)';
         return;
     }
     
     if (newName.length > 20) {
         alert('Fighter name must be 20 characters or less!');
+        renameButton.disabled = false;
+        renameButton.textContent = 'Rename (25 💎)';
         return;
     }
     
     // Check if it's the same name
     if (newName.toLowerCase() === fighter.name.toLowerCase()) {
         alert('That\'s already your fighter\'s name!');
+        renameButton.disabled = false;
+        renameButton.textContent = 'Rename (25 💎)';
         return;
     }
     
@@ -1901,6 +1921,8 @@ function confirmRename() {
     for (var i = 0; i < inappropriateTerms.length; i++) {
         if (nameLower.includes(inappropriateTerms[i]) || nameNoSpaces.includes(inappropriateTerms[i])) {
             alert('That name contains inappropriate content. Please choose a different name.');
+            renameButton.disabled = false;
+            renameButton.textContent = 'Rename (25 💎)';
             return;
         }
     }
@@ -1919,6 +1941,8 @@ function confirmRename() {
     for (var i = 0; i < inappropriateTerms.length; i++) {
         if (leetSpeakName.includes(inappropriateTerms[i])) {
             alert('That name contains inappropriate content. Please choose a different name.');
+            renameButton.disabled = false;
+            renameButton.textContent = 'Rename (25 💎)';
             return;
         }
     }
@@ -1926,6 +1950,8 @@ function confirmRename() {
     // Check for all numbers or all special characters
     if (!/[a-zA-Z]/.test(newName)) {
         alert('Fighter name must contain at least one letter!');
+        renameButton.disabled = false;
+        renameButton.textContent = 'Rename (25 💎)';
         return;
     }
     
@@ -1933,12 +1959,16 @@ function confirmRename() {
     var specialCharCount = (newName.match(/[^a-zA-Z0-9\s]/g) || []).length;
     if (specialCharCount > 3) {
         alert('Fighter name can only contain up to 3 special characters!');
+        renameButton.disabled = false;
+        renameButton.textContent = 'Rename (25 💎)';
         return;
     }
     
     // Check for spam patterns
     if (/(.)\1{4,}/.test(newName)) {
         alert('Fighter name cannot contain more than 4 repeated characters in a row!');
+        renameButton.disabled = false;
+        renameButton.textContent = 'Rename (25 💎)';
         return;
     }
     
@@ -1947,6 +1977,8 @@ function confirmRename() {
         .then(function(isAvailable) {
             if (!isAvailable) {
                 alert('Fighter name "' + newName + '" is already taken. Please choose a different name.');
+                renameButton.disabled = false;
+                renameButton.textContent = 'Rename (25 💎)';
                 return;
             }
             
@@ -1967,6 +1999,8 @@ function confirmRename() {
         .catch(function(error) {
             console.error('Error checking name availability:', error);
             alert('Unable to verify name availability. Please try again.');
+            renameButton.disabled = false;
+            renameButton.textContent = 'Rename (25 💎)';
         });
 }
 function showWeeklyTournamentFromFighter() {
