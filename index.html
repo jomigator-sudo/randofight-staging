@@ -1767,6 +1767,208 @@ function showLeaderboard() {
                 return true;
             });
         }
+        
+function showRenameModal() {
+    var fighter = gameState.currentFighter;
+    if (!fighter) return;
+    
+    var existingModal = document.getElementById('renameModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    var modalHTML = 
+        '<div id="renameModal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000;">' +
+            '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; padding: 30px; border-radius: 10px; border: 2px solid #4ecdc4; max-width: 400px; width: 90%; text-align: center;">' +
+                '<h3 style="color: #4ecdc4; margin-bottom: 20px;">Rename Fighter</h3>' +
+                '<p style="color: #ffd93d; margin-bottom: 10px;">Cost: 25 💎</p>' +
+                '<p style="color: #888; font-size: 0.9em; margin-bottom: 20px;">Current name: <span style="color: #fff;">' + fighter.name + '</span></p>' +
+                '<div style="margin-bottom: 20px;">' +
+                    '<input type="text" id="newFighterName" placeholder="Enter new name" maxlength="20" ' +
+                    'style="width: 100%; padding: 10px; border: 1px solid #4ecdc4; border-radius: 4px; background: rgba(0,0,0,0.3); color: #fff; font-family: inherit;" ' +
+                    'oninput="validateRenameInput()">' +
+                    '<div style="margin-top: 10px; font-size: 0.85em; color: #888; text-align: left;">' +
+                        '<p>• 3-20 characters required</p>' +
+                        '<p>• Must contain at least one letter</p>' +
+                        '<p>• Inappropriate names will be blocked</p>' +
+                    '</div>' +
+                '</div>' +
+                '<div style="display: flex; gap: 15px; justify-content: center;">' +
+                    '<button class="btn btn-primary" onclick="confirmRename()">Rename (25 💎)</button>' +
+                    '<button class="btn btn-secondary" onclick="closeRenameModal()">Cancel</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Focus the input field
+    setTimeout(function() {
+        var input = document.getElementById('newFighterName');
+        if (input) {
+            input.focus();
+        }
+    }, 100);
+}
+
+function closeRenameModal() {
+    var modal = document.getElementById('renameModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function validateRenameInput() {
+    var input = document.getElementById('newFighterName');
+    var value = input.value;
+    
+    // Remove any numbers at the beginning
+    value = value.replace(/^\d+/, '');
+    
+    // Limit to 20 characters
+    if (value.length > 20) {
+        value = value.substring(0, 20);
+    }
+    
+    // Remove excessive special characters as they type
+    value = value.replace(/[^a-zA-Z0-9\s\-_]/g, '');
+    
+    input.value = value;
+}
+
+function confirmRename() {
+    var newName = document.getElementById('newFighterName').value.trim();
+    var fighter = gameState.currentFighter;
+    
+    if (!fighter) {
+        alert('No fighter selected!');
+        return;
+    }
+    
+    // Check if player has enough diamonds
+    if (gameState.diamonds < 25) {
+        alert('You need 25 diamonds to rename your fighter! You currently have ' + gameState.diamonds + ' diamonds.');
+        return;
+    }
+    
+    // Validate new name (same validation as createFighter)
+    if (!newName) {
+        alert('Please enter a new name!');
+        return;
+    }
+    
+    if (newName.length < 3) {
+        alert('Fighter name must be at least 3 characters long!');
+        return;
+    }
+    
+    if (newName.length > 20) {
+        alert('Fighter name must be 20 characters or less!');
+        return;
+    }
+    
+    // Check if it's the same name
+    if (newName.toLowerCase() === fighter.name.toLowerCase()) {
+        alert('That\'s already your fighter\'s name!');
+        return;
+    }
+    
+    // List of inappropriate terms to block (same as createFighter)
+    var inappropriateTerms = [
+        // Sexual terms
+        'sex', 'porn', 'xxx', 'nude', 'naked', 'penis', 'vagina', 'dick', 'cock', 'pussy',
+        'boob', 'tit', 'ass', 'anal', 'oral', 'cum', 'jizz', 'fap', 'dildo', 'vibrator',
+        'orgasm', 'erect', 'nipple', 'horny', 'slut', 'whore', 'bitch', 'hoe', 'pimp',
+        
+        // Racist terms and slurs
+        'nigger', 'nigga', 'negro', 'coon', 'spic', 'wetback', 'beaner', 'chink', 
+        'gook', 'jap', 'kike', 'jew', 'faggot', 'fag', 'dyke', 'tranny', 'shemale',
+        'retard', 'midget', 'cripple', 'spastic', 'mongo',
+        
+        // Offensive terms
+        'fuck', 'shit', 'piss', 'bastard', 'damn', 'hell', 'cunt', 'twat', 'douche',
+        'rape', 'molest', 'pedo', 'nazi', 'hitler', 'isis', 'terrorist', 'suicide',
+        'kill', 'murder', 'genocide', 'holocaust',
+        
+        // Drug references
+        'cocaine', 'heroin', 'meth', 'crack', 'weed', 'marijuana', 'drug'
+    ];
+    
+    // Check for inappropriate content
+    var nameLower = newName.toLowerCase();
+    var nameNoSpaces = nameLower.replace(/[^a-z0-9]/gi, '');
+    
+    for (var i = 0; i < inappropriateTerms.length; i++) {
+        if (nameLower.includes(inappropriateTerms[i]) || nameNoSpaces.includes(inappropriateTerms[i])) {
+            alert('That name contains inappropriate content. Please choose a different name.');
+            return;
+        }
+    }
+    
+    // Check for leetspeak variations
+    var leetSpeakName = nameLower
+        .replace(/0/g, 'o')
+        .replace(/1/g, 'i')
+        .replace(/3/g, 'e')
+        .replace(/4/g, 'a')
+        .replace(/5/g, 's')
+        .replace(/7/g, 't')
+        .replace(/@/g, 'a')
+        .replace(/\$/g, 's');
+    
+    for (var i = 0; i < inappropriateTerms.length; i++) {
+        if (leetSpeakName.includes(inappropriateTerms[i])) {
+            alert('That name contains inappropriate content. Please choose a different name.');
+            return;
+        }
+    }
+    
+    // Check for all numbers or all special characters
+    if (!/[a-zA-Z]/.test(newName)) {
+        alert('Fighter name must contain at least one letter!');
+        return;
+    }
+    
+    // Check for excessive special characters
+    var specialCharCount = (newName.match(/[^a-zA-Z0-9\s]/g) || []).length;
+    if (specialCharCount > 3) {
+        alert('Fighter name can only contain up to 3 special characters!');
+        return;
+    }
+    
+    // Check for spam patterns
+    if (/(.)\1{4,}/.test(newName)) {
+        alert('Fighter name cannot contain more than 4 repeated characters in a row!');
+        return;
+    }
+    
+    // Check name availability
+    checkNameAvailability(newName)
+        .then(function(isAvailable) {
+            if (!isAvailable) {
+                alert('Fighter name "' + newName + '" is already taken. Please choose a different name.');
+                return;
+            }
+            
+            // All validations passed - perform the rename
+            var oldName = fighter.name;
+            fighter.name = newName;
+            gameState.diamonds -= 25;
+            
+            // Save changes
+            saveToSupabase();
+            updateDiamondDisplay();
+            updateFighterDisplay();
+            
+            // Close modal and show success
+            closeRenameModal();
+            alert('Fighter renamed from "' + oldName + '" to "' + newName + '"!');
+        })
+        .catch(function(error) {
+            console.error('Error checking name availability:', error);
+            alert('Unable to verify name availability. Please try again.');
+        });
+}
 function showWeeklyTournamentFromFighter() {
     showWeeklyTournament();
 }
@@ -2556,7 +2758,7 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
     }
 
     var statsHTML = 
-        '<div class="stat-row"><span>Name:</span> <span>' + fighter.name + '</span></div>' +
+        '<div class="stat-row"><span>Name:</span> <span style="color: #4ecdc4; cursor: pointer; text-decoration: underline;" onclick="showRenameModal()" title="Click to rename (25 💎)">' + fighter.name + '</span></div>' +
         '<div class="stat-row"><span>Level:</span> <span>' + fighter.level + '</span></div>' +
         '<div class="stat-row"><span>EXP:</span> <span>' + fighter.exp + '/' + fighter.expRequired + '</span></div>' +
         '<div class="stat-row"><span>Wins:</span> <span class="fighter-wins">' + fighter.wins + '</span></div>' +
