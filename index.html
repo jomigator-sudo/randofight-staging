@@ -3227,7 +3227,7 @@ function fightWithoutRest() {
     var opponentLevel = Math.max(1, level + Math.floor(Math.random() * 3) - 1);
     var opponentMaxHp = Math.floor(100 + (opponentLevel - 1) * 20);
     
-    // Weapon variety based on level
+    // Weapon variety based on level - UPDATED POWER SCALING
     var weaponOptions = {
         low: [ // Levels 1-5
             { name: 'Rusty Sword', power: 5, rarity: 'common' },
@@ -3244,18 +3244,25 @@ function fightWithoutRest() {
             { name: 'Fine Spear', power: 11, rarity: 'uncommon' }
         ],
         high: [ // Levels 11-15
-            { name: 'Knight\'s Blade', power: 18, rarity: 'uncommon' },
-            { name: 'Tempered Sword', power: 20, rarity: 'rare' },
-            { name: 'Warlord\'s Axe', power: 22, rarity: 'rare' },
-            { name: 'Crystal Staff', power: 19, rarity: 'rare' },
-            { name: 'Assassin\'s Edge', power: 21, rarity: 'rare' }
+            { name: 'Knight\'s Blade', power: 20, rarity: 'uncommon' },
+            { name: 'Tempered Sword', power: 25, rarity: 'rare' },
+            { name: 'Warlord\'s Axe', power: 28, rarity: 'rare' },
+            { name: 'Crystal Staff', power: 23, rarity: 'rare' },
+            { name: 'Assassin\'s Edge', power: 26, rarity: 'rare' }
         ],
-        elite: [ // Levels 16+
-            { name: 'Dragonslayer', power: 28, rarity: 'epic' },
-            { name: 'Void Crusher', power: 30, rarity: 'epic' },
-            { name: 'Phoenix Talon', power: 32, rarity: 'epic' },
-            { name: 'Shadowmourne', power: 35, rarity: 'legendary' },
-            { name: 'Thunderfury', power: 33, rarity: 'epic' }
+        elite: [ // Levels 16-20
+            { name: 'Dragonslayer', power: 35, rarity: 'epic' },
+            { name: 'Void Crusher', power: 40, rarity: 'epic' },
+            { name: 'Phoenix Talon', power: 38, rarity: 'epic' },
+            { name: 'Shadowmourne', power: 45, rarity: 'legendary' },
+            { name: 'Thunderfury', power: 42, rarity: 'epic' }
+        ],
+        legendary: [ // Levels 21+
+            { name: 'Apocalypse', power: 50, rarity: 'legendary' },
+            { name: 'Ragnarok', power: 55, rarity: 'legendary' },
+            { name: 'Godslayer', power: 60, rarity: 'mythic' },
+            { name: 'Eternal Flame', power: 58, rarity: 'legendary' },
+            { name: 'Cosmic Reaper', power: 65, rarity: 'mythic' }
         ]
     };
     
@@ -3267,26 +3274,77 @@ function fightWithoutRest() {
         weaponTier = weaponOptions.mid;
     } else if (opponentLevel <= 15) {
         weaponTier = weaponOptions.high;
-    } else {
+    } else if (opponentLevel <= 20) {
         weaponTier = weaponOptions.elite;
+    } else {
+        weaponTier = weaponOptions.legendary;
     }
     
     // Random weapon from appropriate tier
     var selectedWeapon = weaponTier[Math.floor(Math.random() * weaponTier.length)];
     
-    // Chance for better weapon at higher levels (20% chance to get weapon from next tier)
-    if (Math.random() < 0.2) {
-        if (opponentLevel > 5 && opponentLevel <= 10 && Math.random() < 0.5) {
-            selectedWeapon = weaponOptions.high[Math.floor(Math.random() * weaponOptions.high.length)];
-        } else if (opponentLevel > 10 && opponentLevel <= 15) {
-            selectedWeapon = weaponOptions.elite[Math.floor(Math.random() * weaponOptions.elite.length)];
+    // Better weapon scaling for high levels
+    var weaponPowerBonus = Math.floor(opponentLevel * 0.8); // Increased from 0.5
+    selectedWeapon.power = selectedWeapon.power + weaponPowerBonus;
+    
+    // Generate armor for bots (especially important at higher levels)
+    var botEquipment = {
+        weapon: {
+            name: selectedWeapon.name,
+            rarity: selectedWeapon.rarity,
+            power: selectedWeapon.power,
+            statType: 'Damage'
+        }
+    };
+    
+    // Add defensive equipment for higher level bots
+    if (opponentLevel >= 5) {
+        // Add some armor pieces
+        var armorPower = Math.floor(5 + opponentLevel * 1.5); // Scale armor with level
+        
+        if (opponentLevel >= 10) {
+            botEquipment.chest = {
+                name: 'Battle Armor',
+                rarity: opponentLevel >= 15 ? 'rare' : 'uncommon',
+                power: armorPower,
+                statType: 'Defense'
+            };
+        }
+        
+        if (opponentLevel >= 15) {
+            botEquipment.helmet = {
+                name: 'War Helm',
+                rarity: opponentLevel >= 20 ? 'epic' : 'rare',
+                power: Math.floor(armorPower * 0.7),
+                statType: 'Defense'
+            };
+            
+            botEquipment.offhand = {
+                name: 'Tower Shield',
+                rarity: opponentLevel >= 20 ? 'epic' : 'rare',
+                power: Math.floor(armorPower * 0.8),
+                statType: 'Defense'
+            };
+        }
+        
+        if (opponentLevel >= 20) {
+            botEquipment.boots = {
+                name: 'Plated Boots',
+                rarity: 'epic',
+                power: Math.floor(armorPower * 0.5),
+                statType: 'Defense'
+            };
+            
+            botEquipment.gloves = {
+                name: 'Gauntlets',
+                rarity: 'epic',
+                power: Math.floor(armorPower * 0.5),
+                statType: 'Defense'
+            };
         }
     }
     
-    // Scale weapon power slightly based on exact level
-    selectedWeapon.power = Math.floor(selectedWeapon.power + (opponentLevel * 0.5));
-    
-    // More balanced stat distribution for bots
+    // More balanced stat distribution for bots - scale better with level
     var stats = {
         strength: 1,
         toughness: 1,
@@ -3295,13 +3353,25 @@ function fightWithoutRest() {
         speed: 1
     };
     
-    // Distribute the extra stat points (same as player would have)
+    // Distribute the extra stat points
     var extraPoints = opponentLevel - 1;
     var statNames = ['strength', 'toughness', 'agility', 'luck', 'speed'];
     
+    // For high-level bots, ensure minimum stats
+    if (opponentLevel >= 15) {
+        // Give base stats first
+        stats.strength = Math.min(5, Math.floor(opponentLevel / 4));
+        stats.toughness = Math.min(5, Math.floor(opponentLevel / 4));
+        extraPoints -= (stats.strength - 1) + (stats.toughness - 1);
+    }
+    
+    // Distribute remaining points
     for (var i = 0; i < extraPoints; i++) {
-        // Random distribution with slight preference for strength and toughness
-        var weights = [30, 30, 15, 15, 10]; // Strength and toughness weighted higher
+        // Weighted distribution changes at higher levels
+        var weights = opponentLevel >= 15 
+            ? [25, 35, 15, 15, 10] // More toughness at high levels
+            : [30, 30, 15, 15, 10]; // Original distribution
+            
         var totalWeight = weights.reduce(function(sum, w) { return sum + w; }, 0);
         var random = Math.random() * totalWeight;
         
@@ -3324,14 +3394,7 @@ function fightWithoutRest() {
         currentHp: opponentMaxHp,
         wins: Math.floor(opponentLevel * 3),
         stats: stats,
-        equipment: {
-            weapon: {
-                name: selectedWeapon.name,
-                rarity: selectedWeapon.rarity,
-                power: selectedWeapon.power,
-                statType: 'Damage'
-            }
-        },
+        equipment: botEquipment,
         specialAttack: opponentLevel >= 10 ? {
             name: generateSpecialAttackName()
         } : null,
