@@ -1767,6 +1767,50 @@ function showLeaderboard() {
                 return true;
             });
         }
+function updateWeeklyLeaderboardName(oldName, newName) {
+    if (!gameState.currentUser || gameState.currentUser.isGuest) {
+        return; // Don't update for guests
+    }
+    
+    var userId = getUserId();
+    var weekStart = getWeekStartDate();
+    var weekStartStr = weekStart.toISOString().split('T')[0];
+    
+    // Update current week's entry if it exists
+    fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?user_id=eq.' + userId + '&fighter_name=eq.' + encodeURIComponent(oldName) + '&week_start=eq.' + weekStartStr, {
+        method: 'GET',
+        headers: {
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U'
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.length > 0) {
+            // Update the fighter name in the weekly scores
+            return fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?id=eq.' + data[0].id, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U'
+                },
+                body: JSON.stringify({
+                    fighter_name: newName,
+                    updated_at: new Date().toISOString()
+                })
+            });
+        }
+    })
+    .then(function() {
+        console.log('Weekly leaderboard name updated');
+    })
+    .catch(function(error) {
+        console.error('Error updating weekly leaderboard name:', error);
+    });
+}
         
 function showRenameModal() {
     var fighter = gameState.currentFighter;
@@ -1983,18 +2027,21 @@ function confirmRename() {
             }
             
             // All validations passed - perform the rename
-            var oldName = fighter.name;
-            fighter.name = newName;
-            gameState.diamonds -= 25;
-            
-            // Save changes
-            saveToSupabase();
-            updateDiamondDisplay();
-            updateFighterDisplay();
-            
-            // Close modal and show success
-            closeRenameModal();
-            alert('Fighter renamed from "' + oldName + '" to "' + newName + '"!');
+var oldName = fighter.name;
+fighter.name = newName;
+gameState.diamonds -= 25;
+
+// Update weekly leaderboard entry
+updateWeeklyLeaderboardName(oldName, newName);
+
+// Save changes
+saveToSupabase();
+updateDiamondDisplay();
+updateFighterDisplay();
+
+// Close modal and show success
+closeRenameModal();
+alert('Fighter renamed from "' + oldName + '" to "' + newName + '"!');
         })
         .catch(function(error) {
             console.error('Error checking name availability:', error);
