@@ -15,17 +15,17 @@
     <meta property="og:url" content="https://randofight.com/" />
     <meta property="og:title" content="Randofight" />
     <meta property="og:description" content="Randofight is a PvP text-based fighting game with loot, level-ups, and tournaments." />
-    <meta property="og:image" content="https://raw.githubusercontent.com/jomigator-sudo/randofight-staging/refs/heads/main/Randofight%20thumbnail.png" />
+    <meta property="og:image" content="https://randofight.com/randofight%20new%20thumbnail.png" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://randofight.com/" />
     <meta property="twitter:title" content="Randofight" />
     <meta property="twitter:description" content="Randofight is a PvP text-based fighting game with loot, level-ups, and tournaments." />
-    <meta property="twitter:image" content="https://raw.githubusercontent.com/jomigator-sudo/randofight-staging/refs/heads/main/Randofight%20thumbnail.png" />
+    <meta property="twitter:image" content="https://randofight.com/randofight%20new%20thumbnail.png" />
 
     <!-- Optional: Favicon -->
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/jomigator-sudo/randofight-staging/refs/heads/main/randofight%20header.png" />
+    <link rel="icon" type="image/png" href="https://randofight.com/randofight%20header.png" />
 
     <script src="https://www.paypal.com/sdk/js?client-id=AdSlJbETclTcEvT1E_8m2VuaNbtIvVvaPdAZEDRzMmwS1k8wJV2yhLaMNJ-B0zRLCC9PZrzEq2bFzzsu&currency=USD"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -194,9 +194,20 @@
 #fighterScreen:not([style*="display: block"]) .fighter-details {
     display: none !important;
 }
+        .company-logo {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  width: 80px;   /* adjust size */
+  opacity: 0.8;  /* slightly transparent */
+  z-index: 1000; /* stays on top */
+}
     </style>
 </head>
 <body>
+        <img src="https://randofight.com/ninja%20roo%20logo%20white.png" 
+     alt="Ninja Roo Games" 
+     class="company-logo">
     <div class="container">
     <!-- Navigation header with back button and title -->
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
@@ -205,7 +216,7 @@
     
     <h1 class="title" style="margin: 0; flex-grow: 1; text-align: center;">
       <img 
-        src="https://raw.githubusercontent.com/jomigator-sudo/randofight-staging/refs/heads/main/randofight%20header.png" 
+        src="https://randofight.com/randofight%20header.png" 
         alt="Randofight" 
         style="max-width: 400px; width: 100%; height: auto;" />
     </h1>
@@ -2933,11 +2944,66 @@ function fightWithoutRest() {
     var opponentLevel = Math.max(1, level + Math.floor(Math.random() * 3) - 1);
     var opponentMaxHp = Math.floor(100 + (opponentLevel - 1) * 20);
     
-    // More balanced stat distribution for bots
-    // Start with base stats of 1 each (5 total)
-    var totalStatPoints = 5 + (opponentLevel - 1); // Same as players: 1 point per level
+    // Weapon variety based on level
+    var weaponOptions = {
+        low: [ // Levels 1-5
+            { name: 'Rusty Sword', power: 5, rarity: 'common' },
+            { name: 'Wooden Club', power: 4, rarity: 'common' },
+            { name: 'Stone Axe', power: 6, rarity: 'common' },
+            { name: 'Copper Dagger', power: 5, rarity: 'common' },
+            { name: 'Training Staff', power: 4, rarity: 'common' }
+        ],
+        mid: [ // Levels 6-10
+            { name: 'Iron Sword', power: 10, rarity: 'common' },
+            { name: 'Steel Mace', power: 12, rarity: 'uncommon' },
+            { name: 'Battle Axe', power: 11, rarity: 'common' },
+            { name: 'War Hammer', power: 13, rarity: 'uncommon' },
+            { name: 'Fine Spear', power: 11, rarity: 'uncommon' }
+        ],
+        high: [ // Levels 11-15
+            { name: 'Knight\'s Blade', power: 18, rarity: 'uncommon' },
+            { name: 'Tempered Sword', power: 20, rarity: 'rare' },
+            { name: 'Warlord\'s Axe', power: 22, rarity: 'rare' },
+            { name: 'Crystal Staff', power: 19, rarity: 'rare' },
+            { name: 'Assassin\'s Edge', power: 21, rarity: 'rare' }
+        ],
+        elite: [ // Levels 16+
+            { name: 'Dragonslayer', power: 28, rarity: 'epic' },
+            { name: 'Void Crusher', power: 30, rarity: 'epic' },
+            { name: 'Phoenix Talon', power: 32, rarity: 'epic' },
+            { name: 'Shadowmourne', power: 35, rarity: 'legendary' },
+            { name: 'Thunderfury', power: 33, rarity: 'epic' }
+        ]
+    };
     
-    // Distribute the extra points randomly among stats
+    // Select weapon tier based on level
+    var weaponTier;
+    if (opponentLevel <= 5) {
+        weaponTier = weaponOptions.low;
+    } else if (opponentLevel <= 10) {
+        weaponTier = weaponOptions.mid;
+    } else if (opponentLevel <= 15) {
+        weaponTier = weaponOptions.high;
+    } else {
+        weaponTier = weaponOptions.elite;
+    }
+    
+    // Random weapon from appropriate tier
+    var selectedWeapon = weaponTier[Math.floor(Math.random() * weaponTier.length)];
+    
+    // Chance for better weapon at higher levels (20% chance to get weapon from next tier)
+    if (Math.random() < 0.2) {
+        if (opponentLevel > 5 && opponentLevel <= 10 && Math.random() < 0.5) {
+            selectedWeapon = weaponOptions.high[Math.floor(Math.random() * weaponOptions.high.length)];
+        } else if (opponentLevel > 10 && opponentLevel <= 15) {
+            selectedWeapon = weaponOptions.elite[Math.floor(Math.random() * weaponOptions.elite.length)];
+        }
+    }
+    
+    // Scale weapon power slightly based on exact level
+    selectedWeapon.power = Math.floor(selectedWeapon.power + (opponentLevel * 0.5));
+    
+    // More balanced stat distribution for bots
     var stats = {
         strength: 1,
         toughness: 1,
@@ -2976,16 +3042,16 @@ function fightWithoutRest() {
         wins: Math.floor(opponentLevel * 3),
         stats: stats,
         equipment: {
-            weapon: { 
-                name: 'Iron Sword', 
-                rarity: 'common',
-                power: Math.floor(5 + opponentLevel * 1.5), // Scale weapon power with level
+            weapon: {
+                name: selectedWeapon.name,
+                rarity: selectedWeapon.rarity,
+                power: selectedWeapon.power,
                 statType: 'Damage'
             }
         },
         specialAttack: opponentLevel >= 10 ? {
-    name: generateSpecialAttackName()
-} : null, // Only level 10+ bots get special attacks
+            name: generateSpecialAttackName()
+        } : null,
         isRealPlayer: false,
         isBot: true
     };
