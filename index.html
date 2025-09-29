@@ -2584,6 +2584,7 @@ function updateWeeklyLeaderboard() {
                 maxHp: 100,
                 wins: 0,
                 lossStreak: 0,
+                winStreak: 0,
                 totalFights: 0,
                 recentOpponents: [],
                 stats: { strength: 1, toughness: 1, agility: 1, luck: 1, speed: 1 },
@@ -3051,6 +3052,9 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
     if (gameState.currentFighter.lossStreak === undefined) {
         gameState.currentFighter.lossStreak = 0;
     }
+    if (gameState.currentFighter.winStreak === undefined) {
+        gameState.currentFighter.winStreak = 0;
+    }
     if (gameState.currentFighter.totalFights === undefined) {
         gameState.currentFighter.totalFights = 0;
     }
@@ -3058,11 +3062,19 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
     // First 6 fights are guaranteed wins
     var guaranteedWin = gameState.currentFighter.totalFights < 6;
     
+    // Calculate level adjustment based on win streak
+    var levelAdjustment = 0;
+    if (gameState.currentFighter.winStreak >= 5) {
+        // After 5 wins, each additional win increases opponent level
+        levelAdjustment = gameState.currentFighter.winStreak - 4;
+        console.log('Win streak:', gameState.currentFighter.winStreak, '- Increasing opponent level by', levelAdjustment);
+    }
+    
     // Check for lose streak protection (4+ losses in a row) - but not during first 6 fights
     if (!guaranteedWin && gameState.currentFighter.lossStreak >= 4) {
         console.log('Player has lost', gameState.currentFighter.lossStreak, 'times in a row - providing easier opponent');
         var easierLevel = Math.max(1, gameState.currentFighter.level - 3);
-        var botOpponent = generateOpponent(easierLevel, true); // Pass true for guaranteed loss
+        var botOpponent = generateOpponentWithLevelAdjustment(easierLevel, true, 0); // No level adjustment for lose streak protection
         startFight(gameState.currentFighter, botOpponent, false);
         return;
     }
@@ -3070,25 +3082,25 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
     // For first 6 fights or levels 1-5, always fight bots
     if (guaranteedWin || gameState.currentFighter.level <= 5) {
         console.log(guaranteedWin ? 'Guaranteed win fight #' + (gameState.currentFighter.totalFights + 1) : 'Level ' + gameState.currentFighter.level + ' fighter - matching with bot opponent');
-        var botOpponent = generateOpponent(gameState.currentFighter.level, guaranteedWin);
+        var botOpponent = generateOpponentWithLevelAdjustment(gameState.currentFighter.level, guaranteedWin, levelAdjustment);
         startFight(gameState.currentFighter, botOpponent, false);
     } else {
         // Level 6+ can fight real players after first 6 fights
         console.log('Looking for real opponents for level', gameState.currentFighter.level, 'fighter...');
-        findOpponentFromSupabase(gameState.currentFighter.level)
+        findOpponentFromSupabaseWithLevelAdjustment(gameState.currentFighter.level, levelAdjustment)
             .then(function(opponent) {
                 if (opponent) {
                     console.log('Found real player opponent:', opponent.name, 'Level', opponent.level);
                     startFight(gameState.currentFighter, opponent, false);
                 } else {
                     console.log('No real players found, generating AI opponent');
-                    var botOpponent = generateOpponent(gameState.currentFighter.level, false);
+                    var botOpponent = generateOpponentWithLevelAdjustment(gameState.currentFighter.level, false, levelAdjustment);
                     startFight(gameState.currentFighter, botOpponent, false);
                 }
             })
             .catch(function(error) {
                 console.error('Matchmaking error, using AI opponent:', error);
-                var botOpponent = generateOpponent(gameState.currentFighter.level, false);
+                var botOpponent = generateOpponentWithLevelAdjustment(gameState.currentFighter.level, false, levelAdjustment);
                 startFight(gameState.currentFighter, botOpponent, false);
             });
     }
@@ -3107,12 +3119,22 @@ function fightWithoutRest() {
     if (gameState.currentFighter.lossStreak === undefined) {
         gameState.currentFighter.lossStreak = 0;
     }
+    if (gameState.currentFighter.winStreak === undefined) {
+        gameState.currentFighter.winStreak = 0;
+    }
     if (gameState.currentFighter.totalFights === undefined) {
         gameState.currentFighter.totalFights = 0;
     }
     
     // First 6 fights are guaranteed wins
     var guaranteedWin = gameState.currentFighter.totalFights < 6;
+    // Calculate level adjustment based on win streak
+    var levelAdjustment = 0;
+    if (gameState.currentFighter.winStreak >= 5) {
+        // After 5 wins, each additional win increases opponent level
+        levelAdjustment = gameState.currentFighter.winStreak - 4;
+        console.log('Win streak:', gameState.currentFighter.winStreak, '- Increasing opponent level by', levelAdjustment);
+    }
     
     // Check for lose streak protection (4+ losses in a row) - but not during first 6 fights
     if (!guaranteedWin && gameState.currentFighter.lossStreak >= 4) {
@@ -3150,12 +3172,15 @@ function fightWithoutRest() {
             });
     }
 }
-
-        function findOpponentFromSupabase(playerLevel) {
-    // Only look for real players if the current fighter is level 6+ (but not level 9)
-    if (playerLevel <= 5 || playerLevel === 9) {
-        return Promise.resolve(null); // Force bot opponents for these levels
-    }
+function generateOpponentWithLevelAdjustment(baseLevel, guaranteedLoss, levelAdjustment) {
+    var adjustedLevel = baseLevel + levelAdjustment;
+    console.log('Generating opponent - Base level:', baseLevel, 'Adjustment:', levelAdjustment, 'Final level:', adjustedLevel);
+    return generateOpponent(adjustedLevel, guaranteedLoss);
+}
+        function findOpponentFromSupabaseWithLevelAdjustment(playerLevel, levelAdjustment) {
+    var adjustedLevel = playerLevel + levelAdjustment;
+    return findOpponentFromSupabase(adjustedLevel);
+}
     
     // Initialize recent opponents list if it doesn't exist
     if (!gameState.currentFighter.recentOpponents) {
@@ -3868,11 +3893,23 @@ function fightWithoutRest() {
         player.totalFights = 0;
     }
     player.totalFights++;
-    
-    if (playerWon) {
-        // Reset loss streak on win
+                
+if (playerWon) {
+        // Update streaks
         player.lossStreak = 0;
+        if (player.winStreak === undefined) {
+            player.winStreak = 0;
+        }
+        player.winStreak++;
         
+        // Show win streak message if on a streak
+        if (player.winStreak >= 5) {
+            addToFightLog('<span class="special">🔥 Win Streak: ' + player.winStreak + ' victories in a row! 🔥</span>');
+            if (player.winStreak === 5) {
+                addToFightLog('<span class="exp-gain">Opponents will now be tougher to match your skill!</span>');
+            }
+        }               
+    
         var victoryTexts = [
             '<span class="victory">🎉 ' + player.name + ' emerges victorious from the battle! 🎉</span>',
             '<span class="victory">🎉 Victory belongs to ' + player.name + '! 🎉</span>',
@@ -3915,11 +3952,19 @@ function fightWithoutRest() {
         }
         
     } else {
-        // Increment loss streak on loss
+        // Update streaks
         if (player.lossStreak === undefined) {
             player.lossStreak = 0;
         }
         player.lossStreak++;
+        
+        // Reset win streak on loss
+        if (player.winStreak > 0) {
+            if (player.winStreak >= 5) {
+                addToFightLog('<span class="defeat">Win streak of ' + player.winStreak + ' ended!</span>');
+            }
+            player.winStreak = 0;
+        }
         
         var defeatTexts = [
             '<span class="defeat">💀 ' + player.name + ' has been defeated in battle! 💀</span>',
