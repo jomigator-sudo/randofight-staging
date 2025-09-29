@@ -2621,7 +2621,7 @@ function updateWeeklyLeaderboard() {
                 unallocatedStats: 0,
                 specialAttack: null,
                 equipment: {
-                    weapon: { name: 'Wooden Stick', type: 'weapon', slot: 'weapon', power: 5, level: 1, rarity: 'common', statType: 'Damage' },
+                    weapon: { name: 'Wooden Stick', type: 'weapon', slot: 'weapon', power: 5, level: 1, itemLevel: 1, rarity: 'common', statType: 'Damage' },
                     offHand: null, helmet: null, shoulders: null, gloves: null, chest: null, greaves: null, boots: null
                 }
             };
@@ -2924,13 +2924,17 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
     slotDiv.className = 'equipment-slot';
     
     if (item && item.statType) {
-        // Add rarity to the item name display
+        // Add item level and rarity to display
+        var itemLevelText = item.itemLevel ? 'Lv.' + item.itemLevel + ' ' : '';
         var rarityText = item.rarity ? ' (' + item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1) + ')' : '';
+        
         slotDiv.innerHTML = 
             '<div class="slot-name">' + slot + '</div>' +
             '<div class="item-content">' +
                 '<div class="item-power">+' + item.power + ' ' + item.statType + '</div>' +
-                '<div class="item-name ' + item.rarity + '">' + item.name + rarityText + '</div>' +
+                '<div class="item-name ' + item.rarity + '" style="font-size: 0.75em;">' + 
+                    itemLevelText + item.name + rarityText + 
+                '</div>' +
             '</div>';
     } else {
         slotDiv.innerHTML = 
@@ -3931,17 +3935,21 @@ function fightWithoutRest() {
         }
         
         // Equipment drop system (25% chance)
-        var equipmentDropChance = 25;
+var equipmentDropChance = 25;
 if (Math.random() * 100 < equipmentDropChance) {
     var droppedItem = generateUpgradeItem(player, opponent.level);
     if (droppedItem) {
-        // Add rarity in parentheses to the drop message
+        // Show item level in drop message
+        var itemLevelText = droppedItem.itemLevel ? 'Lv.' + droppedItem.itemLevel + ' ' : '';
         var rarityText = droppedItem.rarity ? ' (' + droppedItem.rarity.charAt(0).toUpperCase() + droppedItem.rarity.slice(1) + ')' : '';
-        addToFightLog('<span class="' + droppedItem.rarity + '">🎁 ' + opponent.name + ' dropped: ' + droppedItem.name + rarityText + ' (+' + droppedItem.power + ' ' + droppedItem.statType + ')!</span>');
+        
+        addToFightLog('<span class="' + droppedItem.rarity + '">🎁 ' + opponent.name + ' dropped: ' + 
+            itemLevelText + droppedItem.name + rarityText + 
+            ' (+' + droppedItem.power + ' ' + droppedItem.statType + ')!</span>');
         
         // Always equip since it's guaranteed to be better
         player.equipment[droppedItem.slot] = droppedItem;
-        addToFightLog('<span class="exp-gain">🔧 ' + droppedItem.name + rarityText + ' equipped automatically!</span>');
+        addToFightLog('<span class="exp-gain">🔧 ' + itemLevelText + droppedItem.name + rarityText + ' equipped automatically!</span>');
     }
 }
         
@@ -3981,108 +3989,143 @@ if (Math.random() * 100 < equipmentDropChance) {
             
             // Generate upgrade items that are always better than current gear
             function generateUpgradeItem(player, opponentLevel) {
-                var itemTypes = [
-                    { slot: 'weapon', statType: 'Damage', names: ['Sword', 'Axe', 'Mace', 'Spear', 'Dagger', 'Hammer', 'Staff', 'Blade'] },
-                    { slot: 'helmet', statType: 'Defense', names: ['Helmet', 'Crown', 'Cap', 'Hood', 'Circlet', 'Mask', 'Headband'] },
-                    { slot: 'chest', statType: 'Defense', names: ['Armor', 'Vest', 'Robe', 'Tunic', 'Mail', 'Plate', 'Garb'] },
-                    { slot: 'gloves', statType: 'Defense', names: ['Gloves', 'Gauntlets', 'Mitts', 'Wraps', 'Grips'] },
-                    { slot: 'boots', statType: 'Defense', names: ['Boots', 'Shoes', 'Sandals', 'Greaves', 'Treads'] },
-                    { slot: 'offhand', statType: 'Defense', names: ['Shield', 'Buckler', 'Guard', 'Protector', 'Ward'] },
-                    { slot: 'shoulders', statType: 'Defense', names: ['Pauldrons', 'Guards', 'Plates', 'Pads'] },
-                    { slot: 'greaves', statType: 'Defense', names: ['Greaves', 'Guards', 'Plates', 'Protectors'] }
-                ];
-                
-                // Find slots that need upgrades, prioritizing empty slots and weakest gear
-                var upgradeableSlots = [];
-                
-                for (var i = 0; i < itemTypes.length; i++) {
-                    var itemType = itemTypes[i];
-                    var currentItem = player.equipment[itemType.slot];
-                    
-                    if (!currentItem) {
-                        // Empty slot - highest priority
-                        upgradeableSlots.push({
-                            type: itemType,
-                            currentPower: 0,
-                            priority: 100
-                        });
-                    } else {
-                        // Has item - add with current power as priority (lower power = higher priority)
-                        upgradeableSlots.push({
-                            type: itemType,
-                            currentPower: currentItem.power || 0,
-                            priority: 50 - (currentItem.power || 0) // Lower power = higher priority
-                        });
-                    }
-                }
-                
-                // Sort by priority (highest first), then by current power (lowest first)
-                upgradeableSlots.sort(function(a, b) {
-                    if (a.priority !== b.priority) {
-                        return b.priority - a.priority; // Higher priority first
-                    }
-                    return a.currentPower - b.currentPower; // Lower power first
-                });
-                
-                // Select from top 3 priority slots for some variety
-                var topSlots = upgradeableSlots.slice(0, Math.min(3, upgradeableSlots.length));
-                var selectedSlot = topSlots[Math.floor(Math.random() * topSlots.length)];
-                var itemType = selectedSlot.type;
-                
-                var rarities = [
-                    { name: 'common', weight: 50, multiplier: 1.0, prefix: '' },
-                    { name: 'uncommon', weight: 30, multiplier: 1.2, prefix: 'Fine ' },
-                    { name: 'rare', weight: 15, multiplier: 1.5, prefix: 'Superior ' },
-                    { name: 'epic', weight: 4, multiplier: 2.0, prefix: 'Masterwork ' },
-                    { name: 'legendary', weight: 1, multiplier: 3.0, prefix: 'Legendary ' }
-                ];
-                
-                // Determine rarity based on weights
-                var totalWeight = rarities.reduce(function(sum, rarity) { return sum + rarity.weight; }, 0);
-                var randomWeight = Math.random() * totalWeight;
-                var selectedRarity = rarities[0];
-                
-                var currentWeight = 0;
-                for (var i = 0; i < rarities.length; i++) {
-                    currentWeight += rarities[i].weight;
-                    if (randomWeight <= currentWeight) {
-                        selectedRarity = rarities[i];
-                        break;
-                    }
-                }
-                
-                // Calculate item power - ensure it's always better than current
-                var basePower = Math.floor(3 + opponentLevel * 2);
-                var minimumPower = selectedSlot.currentPower + 1; // Always at least 1 better
-                var suggestedPower = Math.floor(basePower * selectedRarity.multiplier);
-                var finalPower = Math.max(minimumPower, suggestedPower);
-                
-                // Generate item name
-                var baseName = itemType.names[Math.floor(Math.random() * itemType.names.length)];
-                var fullName = selectedRarity.prefix + baseName;
-                
-                // Add material suffix for higher rarities
-                if (selectedRarity.name === 'rare') {
-                    var materials = ['Steel', 'Iron', 'Bronze', 'Silver'];
-                    fullName += ' of ' + materials[Math.floor(Math.random() * materials.length)];
-                } else if (selectedRarity.name === 'epic') {
-                    var epicMaterials = ['Power', 'Might', 'Fury', 'Strength', 'Valor'];
-                    fullName += ' of ' + epicMaterials[Math.floor(Math.random() * epicMaterials.length)];
-                } else if (selectedRarity.name === 'legendary') {
-                    var legendaryNames = ['Dragonslayer', 'Stormbringer', 'Soulrender', 'Flamestrike', 'Frostbite'];
-                    fullName = legendaryNames[Math.floor(Math.random() * legendaryNames.length)];
-                }
-                
-                return {
-                    name: fullName,
-                    type: itemType.slot,
-                    slot: itemType.slot,
-                    power: finalPower,
-                    level: opponentLevel,
-                    rarity: selectedRarity.name,
-                    statType: itemType.statType
-                };
-            }
+    var itemTypes = [
+        { slot: 'weapon', statType: 'Damage', names: ['Sword', 'Axe', 'Mace', 'Spear', 'Dagger', 'Hammer', 'Staff', 'Blade'] },
+        { slot: 'helmet', statType: 'Defense', names: ['Helmet', 'Crown', 'Cap', 'Hood', 'Circlet', 'Mask', 'Headband'] },
+        { slot: 'chest', statType: 'Defense', names: ['Armor', 'Vest', 'Robe', 'Tunic', 'Mail', 'Plate', 'Garb'] },
+        { slot: 'gloves', statType: 'Defense', names: ['Gloves', 'Gauntlets', 'Mitts', 'Wraps', 'Grips'] },
+        { slot: 'boots', statType: 'Defense', names: ['Boots', 'Shoes', 'Sandals', 'Greaves', 'Treads'] },
+        { slot: 'offhand', statType: 'Defense', names: ['Shield', 'Buckler', 'Guard', 'Protector', 'Ward'] },
+        { slot: 'shoulders', statType: 'Defense', names: ['Pauldrons', 'Guards', 'Plates', 'Pads'] },
+        { slot: 'greaves', statType: 'Defense', names: ['Greaves', 'Guards', 'Plates', 'Protectors'] }
+    ];
+    
+    // Find slots that need upgrades
+    var upgradeableSlots = [];
+    
+    for (var i = 0; i < itemTypes.length; i++) {
+        var itemType = itemTypes[i];
+        var currentItem = player.equipment[itemType.slot];
+        
+        if (!currentItem) {
+            upgradeableSlots.push({
+                type: itemType,
+                currentPower: 0,
+                currentItemLevel: 0,
+                priority: 100
+            });
+        } else {
+            upgradeableSlots.push({
+                type: itemType,
+                currentPower: currentItem.power || 0,
+                currentItemLevel: currentItem.itemLevel || 1,
+                priority: 50 - (currentItem.power || 0)
+            });
+        }
+    }
+    
+    upgradeableSlots.sort(function(a, b) {
+        if (a.priority !== b.priority) {
+            return b.priority - a.priority;
+        }
+        return a.currentPower - b.currentPower;
+    });
+    
+    var topSlots = upgradeableSlots.slice(0, Math.min(3, upgradeableSlots.length));
+    var selectedSlot = topSlots[Math.floor(Math.random() * topSlots.length)];
+    var itemType = selectedSlot.type;
+    
+    // Item level is based on opponent level with some variance
+    var itemLevel = Math.max(1, opponentLevel + Math.floor(Math.random() * 5) - 2);
+    
+    // Rarity chances scale with item level
+    var rarities;
+    if (itemLevel <= 5) {
+        rarities = [
+            { name: 'common', weight: 70, powerPerLevel: 2, prefix: '' },
+            { name: 'uncommon', weight: 25, powerPerLevel: 2.5, prefix: 'Fine ' },
+            { name: 'rare', weight: 5, powerPerLevel: 3, prefix: 'Superior ' }
+        ];
+    } else if (itemLevel <= 15) {
+        rarities = [
+            { name: 'common', weight: 50, powerPerLevel: 2, prefix: '' },
+            { name: 'uncommon', weight: 35, powerPerLevel: 2.5, prefix: 'Fine ' },
+            { name: 'rare', weight: 12, powerPerLevel: 3, prefix: 'Superior ' },
+            { name: 'epic', weight: 3, powerPerLevel: 3.5, prefix: 'Masterwork ' }
+        ];
+    } else if (itemLevel <= 30) {
+        rarities = [
+            { name: 'common', weight: 30, powerPerLevel: 2, prefix: '' },
+            { name: 'uncommon', weight: 40, powerPerLevel: 2.5, prefix: 'Fine ' },
+            { name: 'rare', weight: 20, powerPerLevel: 3, prefix: 'Superior ' },
+            { name: 'epic', weight: 8, powerPerLevel: 3.5, prefix: 'Masterwork ' },
+            { name: 'legendary', weight: 2, powerPerLevel: 4, prefix: 'Legendary ' }
+        ];
+    } else {
+        rarities = [
+            { name: 'uncommon', weight: 30, powerPerLevel: 2.5, prefix: 'Fine ' },
+            { name: 'rare', weight: 35, powerPerLevel: 3, prefix: 'Superior ' },
+            { name: 'epic', weight: 25, powerPerLevel: 3.5, prefix: 'Masterwork ' },
+            { name: 'legendary', weight: 8, powerPerLevel: 4, prefix: 'Legendary ' },
+            { name: 'mythic', weight: 2, powerPerLevel: 5, prefix: 'Mythic ' }
+        ];
+    }
+    
+    // Determine rarity
+    var totalWeight = rarities.reduce(function(sum, rarity) { return sum + rarity.weight; }, 0);
+    var randomWeight = Math.random() * totalWeight;
+    var selectedRarity = rarities[0];
+    
+    var currentWeight = 0;
+    for (var i = 0; i < rarities.length; i++) {
+        currentWeight += rarities[i].weight;
+        if (randomWeight <= currentWeight) {
+            selectedRarity = rarities[i];
+            break;
+        }
+    }
+    
+    // Calculate power based on item level and rarity
+    var basePower = Math.floor(itemLevel * selectedRarity.powerPerLevel);
+    
+    // Ensure it's better than current item if same or higher level
+    var minimumPower = selectedSlot.currentPower;
+    if (itemLevel >= selectedSlot.currentItemLevel) {
+        minimumPower = selectedSlot.currentPower + 1;
+    }
+    
+    var finalPower = Math.max(minimumPower, basePower);
+    
+    // Generate item name
+    var baseName = itemType.names[Math.floor(Math.random() * itemType.names.length)];
+    var fullName = selectedRarity.prefix + baseName;
+    
+    // Add special suffixes for higher rarities
+    if (selectedRarity.name === 'rare' && itemLevel >= 15) {
+        var materials = ['Steel', 'Mithril', 'Adamant', 'Obsidian'];
+        fullName = selectedRarity.prefix + materials[Math.floor(Math.random() * materials.length)] + ' ' + baseName;
+    } else if (selectedRarity.name === 'epic') {
+        var epicSuffixes = ['of Power', 'of Might', 'of Fury', 'of Valor', 'of Glory'];
+        fullName = selectedRarity.prefix + baseName + ' ' + epicSuffixes[Math.floor(Math.random() * epicSuffixes.length)];
+    } else if (selectedRarity.name === 'legendary') {
+        var legendaryNames = ['Dragonslayer', 'Stormbringer', 'Soulrender', 'Flamestrike', 'Frostbite'];
+        fullName = legendaryNames[Math.floor(Math.random() * legendaryNames.length)];
+    } else if (selectedRarity.name === 'mythic') {
+        var mythicNames = ['Godslayer', 'Worldbreaker', 'Eternity\'s Edge', 'Chaos Reaper', 'Divine Wrath'];
+        fullName = mythicNames[Math.floor(Math.random() * mythicNames.length)];
+    }
+    
+    return {
+        name: fullName,
+        type: itemType.slot,
+        slot: itemType.slot,
+        power: finalPower,
+        level: opponentLevel,
+        itemLevel: itemLevel,  // Add item level
+        rarity: selectedRarity.name,
+        statType: itemType.statType
+    };
+}
             
             function levelUp(fighter) {
                 fighter.level++;
