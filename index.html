@@ -198,9 +198,42 @@
   position: fixed;
   bottom: 10px;
   right: 10px;
-  width: 80px;   /* adjust size */
-  opacity: 0.8;  /* slightly transparent */
-  z-index: 1000; /* stays on top */
+  width: 80px;
+  opacity: 0.8;
+  z-index: 1000;
+  pointer-events: none; /* Prevents the logo from interfering with clicks */
+}
+
+/* Add this to fix header spacing */
+.title img {
+  display: block;
+  margin: 0 auto;
+}
+        /* Add these CSS classes to your style section */
+.player-name { 
+    color: #4ecdc4; 
+    font-weight: bold; 
+}
+.opponent-name { 
+    color: #ff6b6b; 
+    font-weight: bold; 
+}
+.critical-hit-text {
+    background: linear-gradient(90deg, #ff8c42, #ffb042);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+    font-size: 1.1em;
+    text-shadow: 0 0 10px rgba(255, 140, 66, 0.5);
+}
+.special-attack-text {
+    background: linear-gradient(90deg, #ffd93d, #ffed4d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+    font-size: 1.2em;
+    text-shadow: 0 0 15px rgba(255, 217, 61, 0.6);
+    display: inline-block;
 }
     </style>
 </head>
@@ -210,20 +243,18 @@
      class="company-logo">
     <div class="container">
     <!-- Navigation header with back button and title -->
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-        <button id="globalBackBtn" class="btn btn-secondary" onclick="handleBackButton()" style="display: none;">← Back</button>
-        
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;"> <!-- Reduced from 20px -->
+    <button id="globalBackBtn" class="btn btn-secondary" onclick="handleBackButton()" style="display: none;">← Back</button>
     
-    <h1 class="title" style="margin: 0; flex-grow: 1; text-align: center;">
+    <h1 class="title" style="margin: 0; flex-grow: 1; text-align: center; line-height: 1;">
       <img 
         src="https://randofight.com/randofight%20header.png" 
         alt="Randofight" 
-        style="max-width: 400px; width: 100%; height: auto;" />
+        style="max-width: 400px; width: 100%; height: auto; display: block; margin: 0 auto;" />
     </h1>
 
-
-        <div style="width: 80px;"></div> <!-- Spacer for centering -->
-    </div>
+    <div style="width: 80px;"></div> <!-- Spacer for centering -->
+</div>
 
         <!-- Login Screen -->
 <div id="loginScreen" class="game-screen" style="display: block;">
@@ -2887,27 +2918,29 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
     equipmentElement.innerHTML = '';
     
     for (var i = 0; i < equipmentSlots.length; i++) {
-        var slot = equipmentSlots[i];
-        var item = fighter.equipment[slot.toLowerCase().replace('-', '')];
-        var slotDiv = document.createElement('div');
-        slotDiv.className = 'equipment-slot';
-        
-        if (item && item.statType) {
-            slotDiv.innerHTML = 
-                '<div class="slot-name">' + slot + '</div>' +
-                '<div class="item-content">' +
-                    '<div class="item-power">+' + item.power + ' ' + item.statType + '</div>' +
-                    '<div class="item-name ' + item.rarity + '">' + item.name + '</div>' +
-                '</div>';
-        } else {
-            slotDiv.innerHTML = 
-                '<div class="slot-name">' + slot + '</div>' +
-                '<div class="item-content">' +
-                    '<div class="item-name">Empty</div>' +
-                '</div>';
-        }
-        equipmentElement.appendChild(slotDiv);
+    var slot = equipmentSlots[i];
+    var item = fighter.equipment[slot.toLowerCase().replace('-', '')];
+    var slotDiv = document.createElement('div');
+    slotDiv.className = 'equipment-slot';
+    
+    if (item && item.statType) {
+        // Add rarity to the item name display
+        var rarityText = item.rarity ? ' (' + item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1) + ')' : '';
+        slotDiv.innerHTML = 
+            '<div class="slot-name">' + slot + '</div>' +
+            '<div class="item-content">' +
+                '<div class="item-power">+' + item.power + ' ' + item.statType + '</div>' +
+                '<div class="item-name ' + item.rarity + '">' + item.name + rarityText + '</div>' +
+            '</div>';
+    } else {
+        slotDiv.innerHTML = 
+            '<div class="slot-name">' + slot + '</div>' +
+            '<div class="item-content">' +
+                '<div class="item-name">Empty</div>' +
+            '</div>';
     }
+    equipmentElement.appendChild(slotDiv);
+}
 }
 
         function allocateStat(statName) {
@@ -3689,34 +3722,39 @@ function fightWithoutRest() {
     var baseDamage = 10 + (attacker.stats.strength - 1) * 2;
     
     // Equipment bonus
-    var weaponName = 'fists'; // Default if no weapon
-    var weaponRarity = 'common'; // Default rarity
+    var weaponName = 'fists';
+    var weaponRarity = 'common';
     if (attacker.equipment && attacker.equipment.weapon) {
         baseDamage += attacker.equipment.weapon.power || 0;
         weaponName = attacker.equipment.weapon.name || 'weapon';
         weaponRarity = attacker.equipment.weapon.rarity || 'common';
     }
     
-    // Create colored weapon text
     var weaponText = '<span class="' + weaponRarity + '">' + weaponName + '</span>';
+    
+    // Determine name classes
+    var attackerNameClass = attackerType === 'player' ? 'player-name' : 'opponent-name';
+    var defenderNameClass = attackerType === 'player' ? 'opponent-name' : 'player-name';
+    var attackerNameText = '<span class="' + attackerNameClass + '">' + attacker.name + '</span>';
+    var defenderNameText = '<span class="' + defenderNameClass + '">' + defender.name + '</span>';
     
     // Random damage variation (±25%)
     var damage = Math.floor(baseDamage * (0.75 + Math.random() * 0.5));
     
-    // Dodge chance based on agility (fixed and working)
-    var dodgeChance = Math.min(25, (defender.stats.agility - 1) * 4); // Cap at 25% dodge
+    // Dodge chance
+    var dodgeChance = Math.min(25, (defender.stats.agility - 1) * 4);
     if (Math.random() * 100 < dodgeChance) {
-        var dodgeTexts = ['sidesteps the attack', 'ducks under the blow', 'weaves away', 'rolls to safety', 'leaps back', 'twists away', 'slips aside', 'dances away from danger', 'evades with grace', 'narrowly avoids the strike'];
+        var dodgeTexts = ['sidesteps the attack', 'ducks under the blow', 'weaves away', 'rolls to safety', 'leaps back'];
         var dodgeText = dodgeTexts[Math.floor(Math.random() * dodgeTexts.length)];
-        addToFightLog('<span class="dodge">' + defender.name + ' ' + dodgeText + '!</span>');
+        addToFightLog('<span class="dodge">' + defenderNameText + ' ' + dodgeText + '!</span>');
         return;
     }
     
-    // Critical hit chance based on luck
-    var critChance = Math.min(20, (attacker.stats.luck - 1) * 3); // Cap at 20%
+    // Critical hit chance
+    var critChance = Math.min(20, (attacker.stats.luck - 1) * 3);
     var isCrit = Math.random() * 100 < critChance;
     
-    // FIXED: Calculate total defense from equipment
+    // Calculate defense
     var totalDefense = 0;
     if (defender.equipment) {
         var equipmentSlotNames = ['offhand', 'helmet', 'shoulders', 'gloves', 'chest', 'greaves', 'boots'];
@@ -3729,53 +3767,43 @@ function fightWithoutRest() {
         }
     }
     
-    // Calculate total damage reduction from toughness AND defense
-    var toughnessReduction = Math.min(30, (defender.stats.toughness - 1) * 3); // Cap at 30% from toughness
-    var defenseReduction = Math.min(40, totalDefense * 0.5); // Defense gives 0.5% reduction per point, cap at 40%
-    var totalReduction = Math.min(60, toughnessReduction + defenseReduction); // Total cap at 60%
+    var toughnessReduction = Math.min(30, (defender.stats.toughness - 1) * 3);
+    var defenseReduction = Math.min(40, totalDefense * 0.5);
+    var totalReduction = Math.min(60, toughnessReduction + defenseReduction);
     
-    // Apply damage reduction
     damage = Math.floor(damage * (1 - totalReduction / 100));
-    
-    // Minimum damage of 1 to prevent complete immunity
     damage = Math.max(1, damage);
-    
-    // Generate varied attack text with colored weapon names
-    var attackVerbs = ['strikes with', 'swings', 'attacks with', 'wields', 'slashes with', 'thrusts', 'batters with'];
-    var bodyParts = ['chest', 'shoulder', 'arm', 'leg', 'ribs', 'side', 'back'];
-    var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles', 'cries out', 'gasps'];
     
     var attackText = '';
     
     if (isCrit) {
         damage = Math.floor(damage * 1.75);
-        damage = Math.max(2, damage); // Minimum 2 damage for crits
+        damage = Math.max(2, damage);
+        // Enhanced critical hit display
         var critTexts = [
-            '<span class="critical">' + attacker.name + ' finds a weak spot with their ' + weaponText + ' and deals ' + damage + ' critical damage!</span>',
-            '<span class="critical">' + attacker.name + ' lands a devastating blow with their ' + weaponText + ' for ' + damage + ' critical damage!</span>',
-            '<span class="critical">Critical hit! ' + attacker.name + '\'s ' + weaponText + ' strikes true for ' + damage + ' damage!</span>',
-            '<span class="critical">' + attacker.name + ' delivers a perfect strike with their ' + weaponText + ', dealing ' + damage + ' critical damage!</span>'
+            '<span class="critical-hit-text">⚡ CRITICAL HIT! ⚡</span> ' + attackerNameText + ' finds a weak spot with their ' + weaponText + ' and deals <span class="damage">' + damage + '</span> massive damage!',
+            '<span class="critical-hit-text">💥 CRITICAL STRIKE! 💥</span> ' + attackerNameText + ' lands a devastating blow with their ' + weaponText + ' for <span class="damage">' + damage + '</span> damage!',
+            '<span class="critical-hit-text">🔥 CRITICAL! 🔥</span> ' + attackerNameText + '\'s ' + weaponText + ' strikes true for <span class="damage">' + damage + '</span> crushing damage!'
         ];
         attackText = critTexts[Math.floor(Math.random() * critTexts.length)];
     } else {
-        // Regular attack variations with colored weapon names
+        // Regular attacks with highlighted names
+        var bodyParts = ['chest', 'shoulder', 'arm', 'leg', 'ribs', 'side', 'back'];
+        var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles'];
+        
         var attackVariations = [
-            attacker.name + ' strikes with their ' + weaponText + ', dealing <span class="damage">' + damage + ' damage</span> to ' + defender.name + '!',
-            attacker.name + '\'s ' + weaponText + ' hits ' + defender.name + '\'s ' + bodyParts[Math.floor(Math.random() * bodyParts.length)] + ' for <span class="damage">' + damage + ' damage</span>!',
-            defender.name + ' ' + painSounds[Math.floor(Math.random() * painSounds.length)] + ' as ' + attacker.name + '\'s ' + weaponText + ' connects for <span class="damage">' + damage + ' damage</span>!',
-            attacker.name + ' ' + attackVerbs[Math.floor(Math.random() * attackVerbs.length)] + ' their ' + weaponText + ', dealing <span class="damage">' + damage + ' damage</span>!',
-            'The ' + weaponText + ' in ' + attacker.name + '\'s hands finds its mark, causing <span class="damage">' + damage + ' damage</span>!',
-            attacker.name + ' swings their ' + weaponText + ' powerfully, inflicting <span class="damage">' + damage + ' damage</span> on ' + defender.name + '!'
+            attackerNameText + ' strikes with their ' + weaponText + ', dealing <span class="damage">' + damage + '</span> damage to ' + defenderNameText + '!',
+            attackerNameText + '\'s ' + weaponText + ' hits ' + defenderNameText + '\'s ' + bodyParts[Math.floor(Math.random() * bodyParts.length)] + ' for <span class="damage">' + damage + '</span> damage!',
+            defenderNameText + ' ' + painSounds[Math.floor(Math.random() * painSounds.length)] + ' as ' + attackerNameText + '\'s ' + weaponText + ' connects for <span class="damage">' + damage + '</span> damage!'
         ];
         attackText = attackVariations[Math.floor(Math.random() * attackVariations.length)];
     }
     
-    // Apply damage
     defender.currentHp = Math.max(0, defender.currentHp - damage);
     
     addToFightLog(attackText);
     
-    // Special attack chance for high-level fighters (10% chance if level >= 10)
+    // Special attack chance
     if (attacker.level >= 10 && attacker.specialAttack && Math.random() < 0.1) {
         setTimeout(function() {
             performSpecialAttack(attacker, defender, attackerType);
@@ -3795,25 +3823,19 @@ function fightWithoutRest() {
 }
             
             function performSpecialAttack(attacker, defender, attackerType) {
-    if (defender.currentHp <= 0) return; // Don't attack if already defeated
+    if (defender.currentHp <= 0) return;
     
-    // More balanced special damage formula:
-    // Base: level * 4 + 20 (instead of level * 8 + 15)
-    // Strength bonus: (strength - 1) * 2 (instead of * 4)
-    // This gives roughly 50-60% more damage than a regular attack instead of 200-300%
     var specialBaseDamage = attacker.level * 4 + 20;
     var specialStrengthBonus = (attacker.stats.strength - 1) * 2;
     var specialDamage = specialBaseDamage + specialStrengthBonus;
     
-    // Add weapon damage (same as regular attacks)
     if (attacker.equipment && attacker.equipment.weapon) {
         specialDamage += attacker.equipment.weapon.power || 0;
     }
     
-    // Random variation (±15% instead of fixed)
     specialDamage = Math.floor(specialDamage * (0.85 + Math.random() * 0.3));
     
-    // Calculate total defense from equipment (same as regular attacks)
+    // Calculate defense
     var totalDefense = 0;
     if (defender.equipment) {
         var equipmentSlotNames = ['offhand', 'helmet', 'shoulders', 'gloves', 'chest', 'greaves', 'boots'];
@@ -3826,24 +3848,31 @@ function fightWithoutRest() {
         }
     }
     
-    // Calculate total damage reduction from toughness AND defense
-    var toughnessReduction = Math.min(30, (defender.stats.toughness - 1) * 3); // Cap at 30% from toughness
-    var defenseReduction = Math.min(40, totalDefense * 0.5); // Defense gives 0.5% reduction per point, cap at 40%
-    var totalReduction = Math.min(60, toughnessReduction + defenseReduction); // Total cap at 60%
+    var toughnessReduction = Math.min(30, (defender.stats.toughness - 1) * 3);
+    var defenseReduction = Math.min(40, totalDefense * 0.5);
+    var totalReduction = Math.min(60, toughnessReduction + defenseReduction);
     
-    // Apply damage reduction
     specialDamage = Math.floor(specialDamage * (1 - totalReduction / 100));
-    
-    // Minimum damage of 3 for special attacks
     specialDamage = Math.max(3, specialDamage);
     
     defender.currentHp = Math.max(0, defender.currentHp - specialDamage);
     
+    // Determine name classes
+    var attackerNameClass = attackerType === 'player' ? 'player-name' : 'opponent-name';
+    var defenderNameClass = attackerType === 'player' ? 'opponent-name' : 'player-name';
+    var attackerNameText = '<span class="' + attackerNameClass + '">' + attacker.name + '</span>';
+    var defenderNameText = '<span class="' + defenderNameClass + '">' + defender.name + '</span>';
+    
+    // Enhanced special attack display
     var specialTexts = [
-        attacker.name + ' channels their energy and unleashes <span class="special">' + attacker.specialAttack.name + '</span> for <span class="damage">' + specialDamage + '</span> devastating damage!',
-        'With a battle cry, ' + attacker.name + ' executes their signature move <span class="special">' + attacker.specialAttack.name + '</span> dealing <span class="damage">' + specialDamage + '</span> damage!',
-        attacker.name + ' focuses their power and strikes with <span class="special">' + attacker.specialAttack.name + '</span> - ' + defender.name + ' reels from the <span class="damage">' + specialDamage + '</span> damage!',
-        'The air crackles with energy as ' + attacker.name + ' performs <span class="special">' + attacker.specialAttack.name + '</span> for <span class="damage">' + specialDamage + '</span> massive damage!'
+        '<span class="special-attack-text">⭐ SPECIAL ATTACK! ⭐</span><br>' + 
+        attackerNameText + ' channels their energy and unleashes <span class="special">' + attacker.specialAttack.name + '</span> for <span class="damage">' + specialDamage + '</span> devastating damage!',
+        
+        '<span class="special-attack-text">✨ ULTIMATE MOVE! ✨</span><br>' +
+        'With a battle cry, ' + attackerNameText + ' executes their signature move <span class="special">' + attacker.specialAttack.name + '</span> dealing <span class="damage">' + specialDamage + '</span> damage!',
+        
+        '<span class="special-attack-text">💫 SPECIAL TECHNIQUE! 💫</span><br>' +
+        attackerNameText + ' focuses their power and strikes with <span class="special">' + attacker.specialAttack.name + '</span> - ' + defenderNameText + ' reels from the <span class="damage">' + specialDamage + '</span> damage!'
     ];
     
     addToFightLog(specialTexts[Math.floor(Math.random() * specialTexts.length)]);
@@ -3903,16 +3932,18 @@ function fightWithoutRest() {
         
         // Equipment drop system (25% chance)
         var equipmentDropChance = 25;
-        if (Math.random() * 100 < equipmentDropChance) {
-            var droppedItem = generateUpgradeItem(player, opponent.level);
-            if (droppedItem) {
-                addToFightLog('<span class="' + droppedItem.rarity + '">🎁 ' + opponent.name + ' dropped: ' + droppedItem.name + ' (+' + droppedItem.power + ' ' + droppedItem.statType + ')!</span>');
-                
-                // Always equip since it's guaranteed to be better
-                player.equipment[droppedItem.slot] = droppedItem;
-                addToFightLog('<span class="exp-gain">🔧 ' + droppedItem.name + ' equipped automatically!</span>');
-            }
-        }
+if (Math.random() * 100 < equipmentDropChance) {
+    var droppedItem = generateUpgradeItem(player, opponent.level);
+    if (droppedItem) {
+        // Add rarity in parentheses to the drop message
+        var rarityText = droppedItem.rarity ? ' (' + droppedItem.rarity.charAt(0).toUpperCase() + droppedItem.rarity.slice(1) + ')' : '';
+        addToFightLog('<span class="' + droppedItem.rarity + '">🎁 ' + opponent.name + ' dropped: ' + droppedItem.name + rarityText + ' (+' + droppedItem.power + ' ' + droppedItem.statType + ')!</span>');
+        
+        // Always equip since it's guaranteed to be better
+        player.equipment[droppedItem.slot] = droppedItem;
+        addToFightLog('<span class="exp-gain">🔧 ' + droppedItem.name + rarityText + ' equipped automatically!</span>');
+    }
+}
         
     } else {
         // Increment loss streak on loss
