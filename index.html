@@ -2311,7 +2311,7 @@ function checkWeeklyPrizes() {
         return fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?week_start=eq.' + lastWeekStartStr + '&order=wins.desc', {
             method: 'GET',
             headers: {
-                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M08.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U',
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U',
                 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U'
             }
         })
@@ -2319,8 +2319,9 @@ function checkWeeklyPrizes() {
             return response.json();
         })
         .then(function(allScores) {
-            var prizesToClaim = 0;
+            var totalPrizesToClaim = 0;
             var fighterRanks = [];
+            var bestRankForAccount = 999; // Track the best rank across all fighters
             
             // Calculate rank for each user's fighter
             for (var i = 0; i < userScores.length; i++) {
@@ -2334,30 +2335,33 @@ function checkWeeklyPrizes() {
                     }
                 }
                 
-                var prizeAmount = 0;
-                if (rank === 1) prizeAmount = 100;
-                else if (rank === 2) prizeAmount = 50;
-                else if (rank === 3) prizeAmount = 25;
-                else if (rank >= 4 && rank <= 10) prizeAmount = 10;
-                
-                if (prizeAmount > 0) {
-                    prizesToClaim += prizeAmount;
-                    fighterRanks.push({
-                        name: userScore.fighter_name,
-                        rank: rank,
-                        prize: prizeAmount,
-                        scoreId: userScore.id
-                    });
+                // Track the best rank
+                if (rank < bestRankForAccount) {
+                    bestRankForAccount = rank;
                 }
+                
+                fighterRanks.push({
+                    name: userScore.fighter_name,
+                    rank: rank,
+                    scoreId: userScore.id,
+                    wins: userScore.wins
+                });
             }
             
-            if (prizesToClaim > 0) {
-                // Award diamonds
-                gameState.diamonds += prizesToClaim;
+            // Award prize based on BEST rank only (not for each fighter)
+            var prizeAmount = 0;
+            if (bestRankForAccount === 1) prizeAmount = 100;
+            else if (bestRankForAccount === 2) prizeAmount = 50;
+            else if (bestRankForAccount === 3) prizeAmount = 25;
+            else if (bestRankForAccount >= 4 && bestRankForAccount <= 10) prizeAmount = 10;
+            
+            if (prizeAmount > 0) {
+                // Award diamonds only once
+                gameState.diamonds += prizeAmount;
                 saveToSupabase();
                 updateDiamondDisplay();
                 
-                // Mark prizes as claimed
+                // Mark all user's entries as claimed with their respective ranks
                 var claimPromises = fighterRanks.map(function(fighter) {
                     return fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?id=eq.' + fighter.scoreId, {
                         method: 'PATCH',
@@ -2367,7 +2371,7 @@ function checkWeeklyPrizes() {
                             'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U'
                         },
                         body: JSON.stringify({
-                            prize_claimed: fighter.prize,
+                            prize_claimed: fighter.rank === bestRankForAccount ? prizeAmount : 0, // Only mark the actual prize on best rank
                             rank: fighter.rank
                         })
                     });
@@ -2376,12 +2380,28 @@ function checkWeeklyPrizes() {
                 Promise.all(claimPromises).then(function() {
                     // Show prize notification
                     var message = '🎉 Weekly Tournament Prizes Claimed! 🎉\n\n';
-                    for (var i = 0; i < fighterRanks.length; i++) {
-                        var f = fighterRanks[i];
-                        var medal = f.rank === 1 ? '🥇' : f.rank === 2 ? '🥈' : f.rank === 3 ? '🥉' : '🏅';
-                        message += medal + ' ' + f.name + ' (Rank #' + f.rank + '): +' + f.prize + ' 💎\n';
+                    
+                    // Sort fighters by rank
+                    fighterRanks.sort(function(a, b) { return a.rank - b.rank; });
+                    
+                    // Find the winning fighter
+                    var winningFighter = fighterRanks.find(function(f) { return f.rank === bestRankForAccount; });
+                    var medal = bestRankForAccount === 1 ? '🥇' : bestRankForAccount === 2 ? '🥈' : bestRankForAccount === 3 ? '🥉' : '🏅';
+                    
+                    message += medal + ' Best rank: #' + bestRankForAccount + ' (' + winningFighter.name + ')\n';
+                    message += 'Prize: +' + prizeAmount + ' 💎\n\n';
+                    
+                    // List other fighters if any
+                    if (fighterRanks.length > 1) {
+                        message += 'Other fighters:\n';
+                        for (var i = 0; i < fighterRanks.length; i++) {
+                            var f = fighterRanks[i];
+                            if (f.rank !== bestRankForAccount) {
+                                message += '• ' + f.name + ' (Rank #' + f.rank + ', ' + f.wins + ' wins)\n';
+                            }
+                        }
                     }
-                    message += '\nTotal: +' + prizesToClaim + ' 💎';
+                    
                     alert(message);
                 });
             }
@@ -2564,6 +2584,8 @@ function updateWeeklyLeaderboard() {
                 maxHp: 100,
                 wins: 0,
                 lossStreak: 0,
+                totalFights: 0,
+                recentOpponents: [],
                 stats: { strength: 1, toughness: 1, agility: 1, luck: 1, speed: 1 },
                 unallocatedStats: 0,
                 specialAttack: null,
@@ -3025,30 +3047,33 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
     saveToSupabase();
     updateFightStatus();
     
-    // Initialize loss streak if it doesn't exist
+    // Initialize fight tracking
     if (gameState.currentFighter.lossStreak === undefined) {
         gameState.currentFighter.lossStreak = 0;
     }
+    if (gameState.currentFighter.totalFights === undefined) {
+        gameState.currentFighter.totalFights = 0;
+    }
     
-    // Check for lose streak protection (4+ losses in a row)
-    if (gameState.currentFighter.lossStreak >= 4) {
+    // First 6 fights are guaranteed wins
+    var guaranteedWin = gameState.currentFighter.totalFights < 6;
+    
+    // Check for lose streak protection (4+ losses in a row) - but not during first 6 fights
+    if (!guaranteedWin && gameState.currentFighter.lossStreak >= 4) {
         console.log('Player has lost', gameState.currentFighter.lossStreak, 'times in a row - providing easier opponent');
-        // Generate a weaker bot opponent (2-3 levels lower)
         var easierLevel = Math.max(1, gameState.currentFighter.level - 3);
-        var botOpponent = generateOpponent(easierLevel);
-        botOpponent.stats.strength = Math.max(1, botOpponent.stats.strength - 1); // Also weaken their stats a bit
-        botOpponent.stats.toughness = Math.max(1, botOpponent.stats.toughness - 1);
+        var botOpponent = generateOpponent(easierLevel, true); // Pass true for guaranteed loss
         startFight(gameState.currentFighter, botOpponent, false);
         return;
     }
     
-    // Levels 1-5 always fight bots
-    if (gameState.currentFighter.level <= 5) {
-        console.log('Level', gameState.currentFighter.level, 'fighter - matching with bot opponent');
-        var botOpponent = generateOpponent(gameState.currentFighter.level);
+    // For first 6 fights or levels 1-5, always fight bots
+    if (guaranteedWin || gameState.currentFighter.level <= 5) {
+        console.log(guaranteedWin ? 'Guaranteed win fight #' + (gameState.currentFighter.totalFights + 1) : 'Level ' + gameState.currentFighter.level + ' fighter - matching with bot opponent');
+        var botOpponent = generateOpponent(gameState.currentFighter.level, guaranteedWin);
         startFight(gameState.currentFighter, botOpponent, false);
     } else {
-        // Level 6+ can fight real players
+        // Level 6+ can fight real players after first 6 fights
         console.log('Looking for real opponents for level', gameState.currentFighter.level, 'fighter...');
         findOpponentFromSupabase(gameState.currentFighter.level)
             .then(function(opponent) {
@@ -3057,13 +3082,13 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
                     startFight(gameState.currentFighter, opponent, false);
                 } else {
                     console.log('No real players found, generating AI opponent');
-                    var botOpponent = generateOpponent(gameState.currentFighter.level);
+                    var botOpponent = generateOpponent(gameState.currentFighter.level, false);
                     startFight(gameState.currentFighter, botOpponent, false);
                 }
             })
             .catch(function(error) {
                 console.error('Matchmaking error, using AI opponent:', error);
-                var botOpponent = generateOpponent(gameState.currentFighter.level);
+                var botOpponent = generateOpponent(gameState.currentFighter.level, false);
                 startFight(gameState.currentFighter, botOpponent, false);
             });
     }
@@ -3078,59 +3103,77 @@ function fightWithoutRest() {
     saveToSupabase();
     updateDiamondDisplay();
     
-    // Initialize loss streak if it doesn't exist
+    // Initialize fight tracking
     if (gameState.currentFighter.lossStreak === undefined) {
         gameState.currentFighter.lossStreak = 0;
     }
+    if (gameState.currentFighter.totalFights === undefined) {
+        gameState.currentFighter.totalFights = 0;
+    }
     
-    // Check for lose streak protection (4+ losses in a row) - even for diamond fights
-    if (gameState.currentFighter.lossStreak >= 4) {
+    // First 6 fights are guaranteed wins
+    var guaranteedWin = gameState.currentFighter.totalFights < 6;
+    
+    // Check for lose streak protection (4+ losses in a row) - but not during first 6 fights
+    if (!guaranteedWin && gameState.currentFighter.lossStreak >= 4) {
         console.log('Player has lost', gameState.currentFighter.lossStreak, 'times in a row - providing easier opponent');
         var easierLevel = Math.max(1, gameState.currentFighter.level - 3);
-        var botOpponent = generateOpponent(easierLevel);
+        var botOpponent = generateOpponent(easierLevel, true); // Pass true for guaranteed loss
         botOpponent.stats.strength = Math.max(1, botOpponent.stats.strength - 1);
         botOpponent.stats.toughness = Math.max(1, botOpponent.stats.toughness - 1);
         startFight(gameState.currentFighter, botOpponent, true);
         return;
     }
     
-    // Same logic for diamond fights - levels 1-5 fight bots only
-    if (gameState.currentFighter.level <= 5) {
-        console.log('Level', gameState.currentFighter.level, 'diamond fight - matching with bot opponent');
-        var botOpponent = generateOpponent(gameState.currentFighter.level);
-        startFight(gameState.currentFighter, botOpponent, true);
+    // For first 6 fights or levels 1-5, always fight bots
+    if (guaranteedWin || gameState.currentFighter.level <= 5) {
+        console.log(guaranteedWin ? 'Guaranteed win diamond fight #' + (gameState.currentFighter.totalFights + 1) : 'Level ' + gameState.currentFighter.level + ' diamond fight - matching with bot opponent');
+        var botOpponent = generateOpponent(gameState.currentFighter.level, guaranteedWin);
+        startFight(gameState.currentFighter, botOpponent, true); // true = diamond fight
     } else {
         console.log('Looking for opponents for diamond fight...');
         findOpponentFromSupabase(gameState.currentFighter.level)
             .then(function(opponent) {
                 if (opponent) {
                     console.log('Found real player opponent for diamond fight:', opponent.name);
-                    startFight(gameState.currentFighter, opponent, true);
+                    startFight(gameState.currentFighter, opponent, true); // true = diamond fight
                 } else {
                     console.log('No real players found for diamond fight, generating AI opponent');
-                    var botOpponent = generateOpponent(gameState.currentFighter.level);
-                    startFight(gameState.currentFighter, botOpponent, true);
+                    var botOpponent = generateOpponent(gameState.currentFighter.level, false);
+                    startFight(gameState.currentFighter, botOpponent, true); // true = diamond fight
                 }
             })
             .catch(function(error) {
                 console.error('Diamond fight matchmaking error, using AI opponent:', error);
-                var botOpponent = generateOpponent(gameState.currentFighter.level);
-                startFight(gameState.currentFighter, botOpponent, true);
+                var botOpponent = generateOpponent(gameState.currentFighter.level, false);
+                startFight(gameState.currentFighter, botOpponent, true); // true = diamond fight
             });
     }
 }
 
         function findOpponentFromSupabase(playerLevel) {
-    // Only look for real players if the current fighter is level 6+
-    if (playerLevel <= 5) {
-        return Promise.resolve(null);
+    // Only look for real players if the current fighter is level 6+ (but not level 9)
+    if (playerLevel <= 5 || playerLevel === 9) {
+        return Promise.resolve(null); // Force bot opponents for these levels
     }
     
-    var minLevel = Math.max(6, playerLevel - 3);  // Minimum level 6 for PvP
+    // Initialize recent opponents list if it doesn't exist
+    if (!gameState.currentFighter.recentOpponents) {
+        gameState.currentFighter.recentOpponents = [];
+    }
+    
+    var minLevel = Math.max(6, playerLevel - 3);
     var maxLevel = playerLevel + 3;
+    
+    // Special case for level 9: don't match with level 10+
+    if (playerLevel === 9) {
+        maxLevel = 9;
+    }
+    
     var currentUserId = getUserId();
     
     console.log('Searching for opponents between level', minLevel, 'and', maxLevel);
+    console.log('Recent opponents to avoid:', gameState.currentFighter.recentOpponents);
     
     return fetch(SUPABASE_URL + '/rest/v1/game_data?select=*', {
         method: 'GET',
@@ -3165,8 +3208,15 @@ function fightWithoutRest() {
                 var fighter = playerData.fighters[j];
                 
                 if (fighter && fighter.level >= minLevel && fighter.level <= maxLevel) {
+                    // Check if this fighter was recently fought
+                    var fighterIdentifier = playerData.user_id + '_' + fighter.name;
+                    if (gameState.currentFighter.recentOpponents.indexOf(fighterIdentifier) !== -1) {
+                        console.log('Skipping recently fought opponent:', fighter.name);
+                        continue;
+                    }
+                    
                     var opponent = {
-                        name: fighter.name,  // Removed the suffix as requested
+                        name: fighter.name,
                         birthplace: fighter.birthplace || 'Unknown',
                         level: fighter.level,
                         hp: fighter.maxHp || (100 + (fighter.level - 1) * 20),
@@ -3177,7 +3227,8 @@ function fightWithoutRest() {
                         equipment: fighter.equipment || { weapon: { name: 'Basic Weapon', rarity: 'common' } },
                         specialAttack: fighter.specialAttack || null,
                         isRealPlayer: true,
-                        originalUserId: playerData.user_id
+                        originalUserId: playerData.user_id,
+                        fighterIdentifier: fighterIdentifier
                     };
                     
                     validOpponents.push(opponent);
@@ -3185,7 +3236,7 @@ function fightWithoutRest() {
             }
         }
         
-        console.log('Found', validOpponents.length, 'valid opponents');
+        console.log('Found', validOpponents.length, 'valid opponents after filtering');
         
         if (validOpponents.length === 0) {
             return null;
@@ -3224,8 +3275,19 @@ function fightWithoutRest() {
 'FlameSnare', 'OblivionCore', 'StealthBlitz', 'ZenithGhoul', 'ZeroSnare'];
     var places = ['New York', 'London', 'Tokyo', 'Paris', 'Sydney'];
     
-    var opponentLevel = Math.max(1, level + Math.floor(Math.random() * 3) - 1);
+    var opponentLevel;
+    if (guaranteedLoss) {
+        opponentLevel = Math.max(1, level - 2); // 2 levels lower
+    } else {
+        opponentLevel = Math.max(1, level + Math.floor(Math.random() * 3) - 1);
+    }
+    
     var opponentMaxHp = Math.floor(100 + (opponentLevel - 1) * 20);
+    
+    // If guaranteed loss, reduce HP further
+    if (guaranteedLoss) {
+        opponentMaxHp = Math.floor(opponentMaxHp * 0.7); // 30% less HP
+    }
     
     // Weapon variety based on level - UPDATED POWER SCALING
     var weaponOptions = {
@@ -3286,7 +3348,12 @@ function fightWithoutRest() {
     // Better weapon scaling for high levels
     var weaponPowerBonus = Math.floor(opponentLevel * 0.8); // Increased from 0.5
     selectedWeapon.power = selectedWeapon.power + weaponPowerBonus;
-    
+
+    // Weaker weapons for guaranteed losses
+    if (guaranteedLoss && selectedWeapon.power > 5) {
+        selectedWeapon.power = Math.floor(selectedWeapon.power * 0.6);
+    }
+            
     // Generate armor for bots (especially important at higher levels)
     var botEquipment = {
         weapon: {
@@ -3352,7 +3419,11 @@ function fightWithoutRest() {
         luck: 1,
         speed: 1
     };
-    
+// For guaranteed losses, don't allocate all stat points
+    var extraPoints = guaranteedLoss 
+        ? Math.floor((opponentLevel - 1) * 0.5) // Only half the normal stats
+        : opponentLevel - 1;
+            
     // Distribute the extra stat points
     var extraPoints = opponentLevel - 1;
     var statNames = ['strength', 'toughness', 'agility', 'luck', 'speed'];
@@ -3384,7 +3455,6 @@ function fightWithoutRest() {
             }
         }
     }
-
     return {
         name: names[Math.floor(Math.random() * names.length)],
         birthplace: places[Math.floor(Math.random() * places.length)],
@@ -3520,6 +3590,23 @@ function fightWithoutRest() {
     
     // Store whether this is a diamond fight
     player.isDiamondFight = isDiamondFight;
+    
+    // Track recent opponents if it's a real player
+    if (opponent.isRealPlayer && opponent.fighterIdentifier) {
+        if (!player.recentOpponents) {
+            player.recentOpponents = [];
+        }
+        
+        // Add to recent opponents list
+        player.recentOpponents.push(opponent.fighterIdentifier);
+        
+        // Keep only the last 3 opponents
+        if (player.recentOpponents.length > 3) {
+            player.recentOpponents.shift(); // Remove the oldest
+        }
+        
+        console.log('Updated recent opponents:', player.recentOpponents);
+    }
 
     document.getElementById('player1Name').textContent = player.name + ' (Level ' + player.level + ', ' + player.wins + ' wins)';
     document.getElementById('player2Name').textContent = opponent.name + ' (Level ' + opponent.level + ', ' + opponent.wins + ' wins)';
@@ -3770,6 +3857,12 @@ function fightWithoutRest() {
             
             function endCombat() {
     var playerWon = player.currentHp > 0;
+    
+    // Increment total fights counter
+    if (player.totalFights === undefined) {
+        player.totalFights = 0;
+    }
+    player.totalFights++;
     
     if (playerWon) {
         // Reset loss streak on win
