@@ -4034,14 +4034,84 @@ if (Math.random() * 100 < equipmentDropChance) {
             // Generate upgrade items that are always better than current gear
             function generateUpgradeItem(player, opponentLevel) {
     var itemTypes = [
-        { slot: 'weapon', statType: 'Damage', names: ['Sword', 'Axe', 'Mace', 'Spear', 'Dagger', 'Hammer', 'Staff', 'Blade'] },
-        { slot: 'helmet', statType: 'Defense', names: ['Helmet', 'Crown', 'Cap', 'Hood', 'Circlet', 'Mask', 'Headband'] },
-        { slot: 'chest', statType: 'Defense', names: ['Armor', 'Vest', 'Robe', 'Tunic', 'Mail', 'Plate', 'Garb'] },
-        { slot: 'gloves', statType: 'Defense', names: ['Gloves', 'Gauntlets', 'Mitts', 'Wraps', 'Grips'] },
-        { slot: 'boots', statType: 'Defense', names: ['Boots', 'Shoes', 'Sandals', 'Greaves', 'Treads'] },
-        { slot: 'offhand', statType: 'Defense', names: ['Shield', 'Buckler', 'Guard', 'Protector', 'Ward'] },
-        { slot: 'shoulders', statType: 'Defense', names: ['Pauldrons', 'Guards', 'Plates', 'Pads'] },
-        { slot: 'greaves', statType: 'Defense', names: ['Greaves', 'Guards', 'Plates', 'Protectors'] }
+        { 
+            slot: 'weapon', 
+            statType: 'Damage', 
+            names: [
+                'Sword', 'Axe', 'Mace', 'Spear', 'Dagger', 'Hammer', 'Staff', 'Blade',
+                'Cleaver', 'Scimitar', 'Katana', 'Rapier', 'Saber', 'Falchion', 'Claymore',
+                'Halberd', 'Glaive', 'Pike', 'Trident', 'Lance', 'Javelin',
+                'Warhammer', 'Maul', 'Flail', 'Morning Star', 'Club', 'Cudgel',
+                'Scythe', 'Sickle', 'Whip', 'Chain', 'Knuckles', 'Gauntlet',
+                'Bow', 'Crossbow', 'Longbow', 'Shortbow',
+                'Wand', 'Rod', 'Scepter', 'Orb', 'Tome', 'Grimoire'
+            ]
+        },
+        { 
+            slot: 'helmet', 
+            statType: 'Defense', 
+            names: [
+                'Helmet', 'Crown', 'Cap', 'Hood', 'Circlet', 'Mask', 'Headband',
+                'Helm', 'Casque', 'Coif', 'Cowl', 'Visor', 'Diadem', 'Tiara',
+                'Skullcap', 'Bascinet', 'Sallet', 'Barbute', 'Armet', 'Great Helm',
+                'Bandana', 'Turban', 'Headdress', 'Coronet'
+            ]
+        },
+        { 
+            slot: 'chest', 
+            statType: 'Defense', 
+            names: [
+                'Armor', 'Vest', 'Robe', 'Tunic', 'Mail', 'Plate', 'Garb',
+                'Breastplate', 'Cuirass', 'Hauberk', 'Brigandine', 'Doublet',
+                'Chainmail', 'Chestplate', 'Jerkin', 'Surcoat', 'Tabard',
+                'Cloak', 'Mantle', 'Vestment', 'Harness', 'Coat'
+            ]
+        },
+        { 
+            slot: 'gloves', 
+            statType: 'Defense', 
+            names: [
+                'Gloves', 'Gauntlets', 'Mitts', 'Wraps', 'Grips',
+                'Handguards', 'Vambraces', 'Bracers', 'Cuffs', 'Handwraps',
+                'Mittens', 'Fists', 'Cestus', 'Knuckle Guards'
+            ]
+        },
+        { 
+            slot: 'boots', 
+            statType: 'Defense', 
+            names: [
+                'Boots', 'Shoes', 'Sandals', 'Greaves', 'Treads',
+                'Sabatons', 'Sollerets', 'Footguards', 'Slippers', 'Moccasins',
+                'Stompers', 'Walkers', 'Striders', 'Runners', 'Leggings'
+            ]
+        },
+        { 
+            slot: 'offhand', 
+            statType: 'Defense', 
+            names: [
+                'Shield', 'Buckler', 'Guard', 'Protector', 'Ward',
+                'Targe', 'Pavise', 'Scutum', 'Heater', 'Kite Shield',
+                'Tower Shield', 'Round Shield', 'Aspis', 'Parma', 'Deflector'
+            ]
+        },
+        { 
+            slot: 'shoulders', 
+            statType: 'Defense', 
+            names: [
+                'Pauldrons', 'Guards', 'Plates', 'Pads',
+                'Spaulders', 'Shoulderguards', 'Mantle', 'Epaulettes',
+                'Reinforcements', 'Protectors', 'Shields'
+            ]
+        },
+        { 
+            slot: 'greaves', 
+            statType: 'Defense', 
+            names: [
+                'Greaves', 'Guards', 'Plates', 'Protectors',
+                'Shin Guards', 'Leg Armor', 'Leggings', 'Cuisses',
+                'Poleyns', 'Leg Plates', 'Shinguards'
+            ]
+        }
     ];
     
     // Find slots that need upgrades
@@ -4144,18 +4214,69 @@ if (Math.random() * 100 < equipmentDropChance) {
     var baseName = itemType.names[Math.floor(Math.random() * itemType.names.length)];
     var fullName = selectedRarity.prefix + baseName;
     
+    // Expanded materials and suffixes for more variety
+    var materials = [
+        'Steel', 'Iron', 'Bronze', 'Copper', 'Silver', 'Gold', 'Platinum',
+        'Mithril', 'Adamant', 'Adamantine', 'Orichalcum', 'Titanium',
+        'Obsidian', 'Onyx', 'Ruby', 'Sapphire', 'Emerald', 'Diamond',
+        'Crystal', 'Jade', 'Ivory', 'Bone', 'Dragonbone', 'Ebony',
+        'Darksteel', 'Brightsteel', 'Starmetal', 'Moonstone', 'Sunstone',
+        'Volcanic', 'Glacial', 'Abyssal', 'Celestial', 'Infernal',
+        'Ancient', 'Elven', 'Dwarven', 'Orcish', 'Demonic', 'Angelic'
+    ];
+    
+    var epicSuffixes = [
+        'of Power', 'of Might', 'of Fury', 'of Valor', 'of Glory',
+        'of Strength', 'of Protection', 'of the Titan', 'of the Berserker',
+        'of the Guardian', 'of the Champion', 'of Conquest', 'of Victory',
+        'of Destruction', 'of Domination', 'of Excellence', 'of Perfection',
+        'of the Warrior', 'of the Hero', 'of the Legend', 'of Supremacy',
+        'of the Storm', 'of Thunder', 'of Lightning', 'of Fire', 'of Ice',
+        'of Darkness', 'of Light', 'of Shadow', 'of Radiance'
+    ];
+    
+    var legendaryNames = [
+        'Dragonslayer', 'Stormbringer', 'Soulrender', 'Flamestrike', 'Frostbite',
+        'Shadowbane', 'Lightbringer', 'Doomblade', 'Excalibur', 'Mjolnir',
+        'Gungnir', 'Durandal', 'Gram', 'Tyrfing', 'Caladbolg',
+        'Kusanagi', 'Muramasa', 'Masamune', 'Vorpal', 'Reaver',
+        'Skullcrusher', 'Heartseeker', 'Souleater', 'Worldender', 'Kingslayer',
+        'Demonbane', 'Godsend', 'Eternity', 'Infinity', 'Nemesis',
+        'Ragnarok', 'Armageddon', 'Cataclysm', 'Apocalypse', 'Requiem'
+    ];
+    
+    var mythicNames = [
+        'Godslayer', 'Worldbreaker', 'Eternity\'s Edge', 'Chaos Reaper', 'Divine Wrath',
+        'Oblivion', 'Extinction', 'Annihilation', 'Genesis', 'Omega',
+        'Alpha and Omega', 'The Destroyer', 'The Creator', 'Universe Render',
+        'Reality Splitter', 'Dimension Breaker', 'Void Caller', 'Existence Ender',
+        'The Absolution', 'The Reckoning', 'The Judgment', 'The Harbinger',
+        'Primordial Fury', 'Cosmic Terror', 'Celestial Judgment', 'Astral Devastation'
+    ];
+    
     // Add special suffixes for higher rarities
     if (selectedRarity.name === 'rare' && itemLevel >= 15) {
-        var materials = ['Steel', 'Mithril', 'Adamant', 'Obsidian'];
-        fullName = selectedRarity.prefix + materials[Math.floor(Math.random() * materials.length)] + ' ' + baseName;
+        var material = materials[Math.floor(Math.random() * materials.length)];
+        fullName = selectedRarity.prefix + material + ' ' + baseName;
     } else if (selectedRarity.name === 'epic') {
-        var epicSuffixes = ['of Power', 'of Might', 'of Fury', 'of Valor', 'of Glory'];
-        fullName = selectedRarity.prefix + baseName + ' ' + epicSuffixes[Math.floor(Math.random() * epicSuffixes.length)];
+        var suffix = epicSuffixes[Math.floor(Math.random() * epicSuffixes.length)];
+        // 50% chance for material + base name, 50% for prefix + base name + suffix
+        if (Math.random() < 0.5) {
+            var material = materials[Math.floor(Math.random() * materials.length)];
+            fullName = material + ' ' + baseName + ' ' + suffix;
+        } else {
+            fullName = selectedRarity.prefix + baseName + ' ' + suffix;
+        }
     } else if (selectedRarity.name === 'legendary') {
-        var legendaryNames = ['Dragonslayer', 'Stormbringer', 'Soulrender', 'Flamestrike', 'Frostbite'];
-        fullName = legendaryNames[Math.floor(Math.random() * legendaryNames.length)];
+        // 70% use legendary name pool, 30% use epic-style naming
+        if (Math.random() < 0.7) {
+            fullName = legendaryNames[Math.floor(Math.random() * legendaryNames.length)];
+        } else {
+            var material = materials[Math.floor(Math.random() * materials.length)];
+            var suffix = epicSuffixes[Math.floor(Math.random() * epicSuffixes.length)];
+            fullName = selectedRarity.prefix + material + ' ' + baseName + ' ' + suffix;
+        }
     } else if (selectedRarity.name === 'mythic') {
-        var mythicNames = ['Godslayer', 'Worldbreaker', 'Eternity\'s Edge', 'Chaos Reaper', 'Divine Wrath'];
         fullName = mythicNames[Math.floor(Math.random() * mythicNames.length)];
     }
     
@@ -4165,7 +4286,7 @@ if (Math.random() * 100 < equipmentDropChance) {
         slot: itemType.slot,
         power: finalPower,
         level: opponentLevel,
-        itemLevel: itemLevel,  // Add item level
+        itemLevel: itemLevel,
         rarity: selectedRarity.name,
         statType: itemType.statType
     };
