@@ -3692,25 +3692,25 @@ function fightWithoutRest() {
         }
 
         function simulateFight(player, opponent) {
-            var turnCount = 1;
-            var maxTurns = 100;
-            
-            // Arrays for varied combat text
-            var attackVerbs = ['strikes', 'slashes', 'punches', 'kicks', 'smashes', 'hammers', 'pounds', 'batters', 'thrashes', 'wallops'];
-            var dodgeTexts = ['sidesteps the attack', 'ducks under the blow', 'weaves away', 'rolls to safety', 'leaps back', 'twists away', 'slips aside', 'dances away from danger', 'evades with grace', 'narrowly avoids the strike'];
-            var critTexts = ['finds a weak spot', 'lands a devastating blow', 'strikes with perfect form', 'connects with brutal force', 'delivers a crushing hit', 'finds an opening', 'strikes with deadly precision', 'unleashes their full power'];
-            var weaponHits = ['blade cuts deep', 'weapon finds its mark', 'steel bites flesh', 'iron meets bone', 'weapon strikes true', 'blade slices through defenses'];
-            var bodyParts = ['chest', 'shoulder', 'arm', 'leg', 'ribs', 'side', 'back'];
-            var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles', 'cries out', 'gasps'];
-            
-            function fightTurn() {
+    var turnCount = 1;
+    var maxTurns = 100;
+    
+    // Arrays for varied combat text
+    var attackVerbs = ['strikes', 'slashes', 'punches', 'kicks', 'smashes', 'hammers', 'pounds', 'batters', 'thrashes', 'wallops'];
+    var dodgeTexts = ['sidesteps the attack', 'ducks under the blow', 'weaves away', 'rolls to safety', 'leaps back', 'twists away', 'slips aside', 'dances away from danger', 'evades with grace', 'narrowly avoids the strike'];
+    var critTexts = ['finds a weak spot', 'lands a devastating blow', 'strikes with perfect form', 'connects with brutal force', 'delivers a crushing hit', 'finds an opening', 'strikes with deadly precision', 'unleashes their full power'];
+    var weaponHits = ['blade cuts deep', 'weapon finds its mark', 'steel bites flesh', 'iron meets bone', 'weapon strikes true', 'blade slices through defenses'];
+    var bodyParts = ['chest', 'shoulder', 'arm', 'leg', 'ribs', 'side', 'back'];
+    var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles', 'cries out', 'gasps'];
+    
+    function fightTurn() {
         if (turnCount > maxTurns || player.currentHp <= 0 || opponent.currentHp <= 0) {
-            endCombat();
+            endCombat(player, opponent);
             return;
         }
         
         // Calculate speed-based extra attacks
-        var playerSpeedChance = Math.min(100, (player.stats.speed - 1) * 1); // 1% per point
+        var playerSpeedChance = Math.min(100, (player.stats.speed - 1) * 1);
         var playerExtraAttack = Math.random() * 100 < playerSpeedChance;
         
         var opponentSpeedChance = Math.min(100, (opponent.stats.speed - 1) * 1);
@@ -3732,7 +3732,7 @@ function fightWithoutRest() {
         
         // Check if opponent is defeated
         if (opponent.currentHp <= 0) {
-            setTimeout(endCombat, 1000);
+            setTimeout(function() { endCombat(player, opponent); }, 1000);
             return;
         }
         
@@ -3754,7 +3754,7 @@ function fightWithoutRest() {
             
             // Check if player is defeated
             if (player.currentHp <= 0) {
-                setTimeout(endCombat, 1000);
+                setTimeout(function() { endCombat(player, opponent); }, 1000);
                 return;
             }
             
@@ -3762,8 +3762,9 @@ function fightWithoutRest() {
             setTimeout(fightTurn, 1500);
         }, 800);
     }
-            fightTurn();
-        }
+    
+    fightTurn();
+}
             
             function performAttack(attacker, defender, attackerType) {
     var baseDamage = 10 + (attacker.stats.strength - 1) * 2;
@@ -3936,7 +3937,7 @@ function fightWithoutRest() {
     }
 }
             
-            function endCombat() {
+            function endCombat(player, opponent) {
     var playerWon = player.currentHp > 0;
     
     // Increment total fights counter
@@ -4203,7 +4204,6 @@ if (fighter.level === 10) {
         showSpecialAttackModal(fighter.name, fighter.specialAttack.name);
     }, 500);
 }
-                fightTurn();
             }
 
         function endFight() {
