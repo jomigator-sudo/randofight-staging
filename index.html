@@ -235,6 +235,12 @@
     text-shadow: 0 0 15px rgba(255, 217, 61, 0.6);
     display: inline-block;
 }
+        .speed-burst {
+    color: #b19cd9;
+    font-weight: bold;
+    font-size: 1.05em;
+    text-shadow: 0 0 8px rgba(177, 156, 217, 0.5);
+}
     </style>
 </head>
 <body>
@@ -2831,9 +2837,10 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
     }
 
     var strengthBonus = (fighter.stats.strength - 1) * 2;
-    var toughnessBonus = fighter.stats.toughness >= 2 ? (fighter.stats.toughness - 1) * 3 : 0;
-    var speedBonus = (fighter.stats.speed - 1) * 5;
-    var luckBonus = fighter.stats.luck >= 2 ? (fighter.stats.luck - 1) * 3 : 0;
+var toughnessBonus = fighter.stats.toughness >= 2 ? Math.min(50, (fighter.stats.toughness - 1) * 0.6) : 0; // 0.6% per point, max 50%
+var dodgeChance = Math.min(35, (fighter.stats.agility - 1) * 0.35); // 0.35% per point, max 35%
+var speedBonus = Math.min(100, (fighter.stats.speed - 1) * 1); // 1% per point, max 100% (double speed)
+var critChance = Math.min(30, (fighter.stats.luck - 1) * 0.3); // 0.3% per point, max 30%
 
     // Calculate base damage and defense
     var baseDamage = 10;
@@ -2904,10 +2911,10 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
         '<hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">' +
         unallocatedDisplay +
         '<div class="stat-row"><span>Strength <span style="color: #888; font-size: 0.8em;">(+' + strengthBonus + ' damage)</span>:</span> <span>' + fighter.stats.strength + '</span></div>' +
-        '<div class="stat-row"><span>Toughness <span style="color: #888; font-size: 0.8em;">(-' + toughnessBonus + '% damage taken)</span>:</span> <span>' + fighter.stats.toughness + '</span></div>' +
-        '<div class="stat-row"><span>Agility <span style="color: #888; font-size: 0.8em;">(dodge chance)</span>:</span> <span>' + fighter.stats.agility + '</span></div>' +
-        '<div class="stat-row"><span>Luck <span style="color: #888; font-size: 0.8em;">(+' + luckBonus + '% crit chance)</span>:</span> <span>' + fighter.stats.luck + '</span></div>' +
-        '<div class="stat-row"><span>Speed <span style="color: #888; font-size: 0.8em;">(+' + speedBonus + '% attack speed)</span>:</span> <span>' + fighter.stats.speed + '</span></div>' +
+        '<div class="stat-row"><span>Toughness <span style="color: #888; font-size: 0.8em;">(-' + toughnessBonus.toFixed(1) + '% damage taken)</span>:</span> <span>' + fighter.stats.toughness + '</span></div>' +
+        '<div class="stat-row"><span>Agility <span style="color: #888; font-size: 0.8em;">(' + dodgeChance.toFixed(1) + '% dodge chance)</span>:</span> <span>' + fighter.stats.agility + '</span></div>' +
+        '<div class="stat-row"><span>Luck <span style="color: #888; font-size: 0.8em;">(' + critChance.toFixed(1) + '% crit chance)</span>:</span> <span>' + fighter.stats.luck + '</span></div>' +
+        '<div class="stat-row"><span>Speed <span style="color: #888; font-size: 0.8em;">(' + speedBonus + '% faster attacks)</span>:</span> <span>' + fighter.stats.speed + '</span></div>' +
         resetStatsDisplay +
         '<hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">' +
         specialDisplay;
@@ -3626,7 +3633,16 @@ function fightWithoutRest() {
         function startFight(player, opponent, isDiamondFight) {
     hideAll();
     document.getElementById('fightScreen').style.display = 'block';
-    
+    // Hide the header and logo during fights
+    var headerContainer = document.querySelector('h1.title');
+    if (headerContainer) {
+        headerContainer.style.display = 'none';
+    }
+    var companyLogo = document.querySelector('.company-logo');
+    if (companyLogo) {
+        companyLogo.style.display = 'none';
+    }
+            
     player.currentHp = player.maxHp;
     opponent.currentHp = opponent.maxHp;
     
@@ -3688,39 +3704,66 @@ function fightWithoutRest() {
             var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles', 'cries out', 'gasps'];
             
             function fightTurn() {
-                if (turnCount > maxTurns || player.currentHp <= 0 || opponent.currentHp <= 0) {
-                    endCombat();
-                    return;
-                }
-                
-                // Player attacks first
-                if (player.currentHp > 0) {
-                    performAttack(player, opponent, 'player');
-                }
-                
-                // Check if opponent is defeated
-                if (opponent.currentHp <= 0) {
-                    setTimeout(endCombat, 1000);
-                    return;
-                }
-                
-                // Small delay between attacks
+        if (turnCount > maxTurns || player.currentHp <= 0 || opponent.currentHp <= 0) {
+            endCombat();
+            return;
+        }
+        
+        // Calculate speed-based extra attacks
+        var playerSpeedChance = Math.min(100, (player.stats.speed - 1) * 1); // 1% per point
+        var playerExtraAttack = Math.random() * 100 < playerSpeedChance;
+        
+        var opponentSpeedChance = Math.min(100, (opponent.stats.speed - 1) * 1);
+        var opponentExtraAttack = Math.random() * 100 < opponentSpeedChance;
+        
+        // Player attacks first
+        if (player.currentHp > 0) {
+            performAttack(player, opponent, 'player');
+            
+            // Speed-based extra attack with visible notification
+            if (playerExtraAttack && opponent.currentHp > 0) {
                 setTimeout(function() {
-                    // Opponent attacks
-                    if (opponent.currentHp > 0) {
-                        performAttack(opponent, player, 'opponent');
-                    }
-                    
-                    // Check if player is defeated
-                    if (player.currentHp <= 0) {
-                        setTimeout(endCombat, 1000);
-                        return;
-                    }
-                    
-                    turnCount++;
-                    setTimeout(fightTurn, 1500);
-                }, 800);
+                    addToFightLog('<span style="color: #b19cd9; font-weight: bold;">⚡ SPEED BURST! ' + 
+                        '<span class="player-name">' + player.name + '</span> attacks again! ⚡</span>');
+                    performAttack(player, opponent, 'player');
+                }, 400);
             }
+        }
+        
+        // Check if opponent is defeated
+        if (opponent.currentHp <= 0) {
+            setTimeout(endCombat, 1000);
+            return;
+        }
+        
+        // Small delay between attacks
+        setTimeout(function() {
+            // Opponent attacks
+            if (opponent.currentHp > 0) {
+                performAttack(opponent, player, 'opponent');
+                
+                // Opponent speed-based extra attack
+                if (opponentExtraAttack && player.currentHp > 0) {
+                    setTimeout(function() {
+                        addToFightLog('<span style="color: #b19cd9; font-weight: bold;">⚡ SPEED BURST! ' + 
+                            '<span class="opponent-name">' + opponent.name + '</span> attacks again! ⚡</span>');
+                        performAttack(opponent, player, 'opponent');
+                    }, 400);
+                }
+            }
+            
+            // Check if player is defeated
+            if (player.currentHp <= 0) {
+                setTimeout(endCombat, 1000);
+                return;
+            }
+            
+            turnCount++;
+            setTimeout(fightTurn, 1500);
+        }, 800);
+    }
+            fightTurn();
+        }
             
             function performAttack(attacker, defender, attackerType) {
     var baseDamage = 10 + (attacker.stats.strength - 1) * 2;
@@ -3746,7 +3789,7 @@ function fightWithoutRest() {
     var damage = Math.floor(baseDamage * (0.75 + Math.random() * 0.5));
     
     // Dodge chance
-    var dodgeChance = Math.min(25, (defender.stats.agility - 1) * 4);
+    var dodgeChance = Math.min(35, (defender.stats.agility - 1) * 0.35);
     if (Math.random() * 100 < dodgeChance) {
         var dodgeTexts = ['sidesteps the attack', 'ducks under the blow', 'weaves away', 'rolls to safety', 'leaps back'];
         var dodgeText = dodgeTexts[Math.floor(Math.random() * dodgeTexts.length)];
@@ -3755,7 +3798,7 @@ function fightWithoutRest() {
     }
     
     // Critical hit chance
-    var critChance = Math.min(20, (attacker.stats.luck - 1) * 3);
+    var critChance = Math.min(30, (attacker.stats.luck - 1) * 0.3);
     var isCrit = Math.random() * 100 < critChance;
     
     // Calculate defense
@@ -3771,7 +3814,7 @@ function fightWithoutRest() {
         }
     }
     
-    var toughnessReduction = Math.min(30, (defender.stats.toughness - 1) * 3);
+    var toughnessReduction = Math.min(50, (defender.stats.toughness - 1) * 0.6);
     var defenseReduction = Math.min(40, totalDefense * 0.5);
     var totalReduction = Math.min(60, toughnessReduction + defenseReduction);
     
@@ -4167,6 +4210,15 @@ if (fighter.level === 10) {
 
         function endFight() {
             document.getElementById('endFightBtn').style.display = 'none';
+            // Restore the header and logo when leaving fight screen
+            var headerContainer = document.querySelector('h1.title');
+            if (headerContainer) {
+        headerContainer.style.display = 'block';
+        }
+            var companyLogo = document.querySelector('.company-logo');
+            if (companyLogo) {
+            companyLogo.style.display = 'block';
+        }
             showFighterScreen();
         }
 
