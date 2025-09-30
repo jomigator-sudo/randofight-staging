@@ -3859,15 +3859,15 @@ function fightWithoutRest() {
     }
     
     // Update HP bars
-    if (attackerType === 'player') {
-        var opponentHpPercent = (opponent.currentHp / opponent.maxHp) * 100;
-        document.getElementById('player2HP').style.width = opponentHpPercent + '%';
-        document.getElementById('player2HPText').textContent = Math.floor(opponent.currentHp) + '/' + opponent.maxHp;
-    } else {
-        var playerHpPercent = (player.currentHp / player.maxHp) * 100;
-        document.getElementById('player1HP').style.width = playerHpPercent + '%';
-        document.getElementById('player1HPText').textContent = Math.floor(player.currentHp) + '/' + player.maxHp;
-    }
+if (attackerType === 'player') {
+    var opponentHpPercent = (defender.currentHp / defender.maxHp) * 100;
+    document.getElementById('player2HP').style.width = opponentHpPercent + '%';
+    document.getElementById('player2HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
+} else {
+    var playerHpPercent = (defender.currentHp / defender.maxHp) * 100;
+    document.getElementById('player1HP').style.width = playerHpPercent + '%';
+    document.getElementById('player1HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
+}
 }
             
             function performSpecialAttack(attacker, defender, attackerType) {
@@ -3926,15 +3926,15 @@ function fightWithoutRest() {
     addToFightLog(specialTexts[Math.floor(Math.random() * specialTexts.length)]);
     
     // Update HP bars
-    if (attackerType === 'player') {
-        var opponentHpPercent = (opponent.currentHp / opponent.maxHp) * 100;
-        document.getElementById('player2HP').style.width = opponentHpPercent + '%';
-        document.getElementById('player2HPText').textContent = Math.floor(opponent.currentHp) + '/' + opponent.maxHp;
-    } else {
-        var playerHpPercent = (player.currentHp / player.maxHp) * 100;
-        document.getElementById('player1HP').style.width = playerHpPercent + '%';
-        document.getElementById('player1HPText').textContent = Math.floor(player.currentHp) + '/' + player.maxHp;
-    }
+if (attackerType === 'player') {
+    var opponentHpPercent = (defender.currentHp / defender.maxHp) * 100;
+    document.getElementById('player2HP').style.width = opponentHpPercent + '%';
+    document.getElementById('player2HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
+} else {
+    var playerHpPercent = (defender.currentHp / defender.maxHp) * 100;
+    document.getElementById('player1HP').style.width = playerHpPercent + '%';
+    document.getElementById('player1HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
+}
 }
             
             function endCombat(player, opponent) {
