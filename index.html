@@ -2263,11 +2263,11 @@ function saveWeeklyWin(fighterName) {
     }
     
     var weekStart = getWeekStartDate();
-    var weekStartStr = weekStart.toISOString().split('T')[0]; // YYYY-MM-DD format
+    var weekStartStr = weekStart.toISOString().split('T')[0];
     var userId = getUserId();
     
-    // First, try to update existing record
-    fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?user_id=eq.' + userId + '&fighter_name=eq.' + encodeURIComponent(fighterName) + '&week_start=eq.' + weekStartStr, {
+    // First, check if this user already has fighters in the tournament
+    fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?user_id=eq.' + userId + '&week_start=eq.' + weekStartStr, {
         method: 'GET',
         headers: {
             'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U',
@@ -2277,11 +2277,33 @@ function saveWeeklyWin(fighterName) {
     .then(function(response) {
         return response.json();
     })
-    .then(function(data) {
-        if (data.length > 0) {
+    .then(function(allUserFighters) {
+        // Find which fighter has the most wins
+        var bestFighter = null;
+        var bestWins = 0;
+        
+        for (var i = 0; i < allUserFighters.length; i++) {
+            if (allUserFighters[i].wins > bestWins) {
+                bestWins = allUserFighters[i].wins;
+                bestFighter = allUserFighters[i];
+            }
+        }
+        
+        // Check if current fighter is the one that just won
+        var currentFighterEntry = null;
+        for (var i = 0; i < allUserFighters.length; i++) {
+            if (allUserFighters[i].fighter_name === fighterName) {
+                currentFighterEntry = allUserFighters[i];
+                break;
+            }
+        }
+        
+        if (currentFighterEntry) {
             // Update existing record
-            var currentWins = data[0].wins || 0;
-            return fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?id=eq.' + data[0].id, {
+            var currentWins = currentFighterEntry.wins || 0;
+            var newWins = currentWins + 1;
+            
+            return fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?id=eq.' + currentFighterEntry.id, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2289,9 +2311,15 @@ function saveWeeklyWin(fighterName) {
                     'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U'
                 },
                 body: JSON.stringify({
-                    wins: currentWins + 1,
+                    wins: newWins,
                     updated_at: new Date().toISOString()
                 })
+            }).then(function() {
+                // After updating, check if we need to remove other fighters
+                // If current fighter now has more wins than the previous best, remove others
+                if (newWins > bestWins || (bestFighter && bestFighter.fighter_name === fighterName)) {
+                    removeOtherWeeklyFighters(userId, weekStartStr, fighterName);
+                }
             });
         } else {
             // Create new record
@@ -2308,6 +2336,11 @@ function saveWeeklyWin(fighterName) {
                     week_start: weekStartStr,
                     wins: 1
                 })
+            }).then(function() {
+                // If this is a new fighter and we had others, check if we should remove them
+                if (allUserFighters.length > 0) {
+                    removeOtherWeeklyFighters(userId, weekStartStr, fighterName);
+                }
             });
         }
     })
@@ -2316,6 +2349,56 @@ function saveWeeklyWin(fighterName) {
     })
     .catch(function(error) {
         console.error('Error tracking weekly win:', error);
+    });
+}
+
+function removeOtherWeeklyFighters(userId, weekStartStr, keepFighterName) {
+    // Get all fighters for this user this week
+    fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?user_id=eq.' + userId + '&week_start=eq.' + weekStartStr, {
+        method: 'GET',
+        headers: {
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U'
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(allFighters) {
+        // Find the best fighter
+        var bestFighter = null;
+        var bestWins = 0;
+        
+        for (var i = 0; i < allFighters.length; i++) {
+            if (allFighters[i].wins > bestWins) {
+                bestWins = allFighters[i].wins;
+                bestFighter = allFighters[i];
+            }
+        }
+        
+        // Delete all fighters except the best one
+        var deletePromises = [];
+        for (var i = 0; i < allFighters.length; i++) {
+            if (allFighters[i].fighter_name !== bestFighter.fighter_name) {
+                deletePromises.push(
+                    fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?id=eq.' + allFighters[i].id, {
+                        method: 'DELETE',
+                        headers: {
+                            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U',
+                            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U'
+                        }
+                    })
+                );
+            }
+        }
+        
+        return Promise.all(deletePromises);
+    })
+    .then(function() {
+        console.log('Removed lower-ranked fighters from weekly tournament');
+    })
+    .catch(function(error) {
+        console.error('Error removing other fighters:', error);
     });
 }
 
