@@ -3018,9 +3018,8 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
     var strengthBonus = (fighter.stats.strength - 1) * 2;
 var toughnessBonus = fighter.stats.toughness >= 2 ? Math.min(50, (fighter.stats.toughness - 1) * 0.6) : 0; // 0.6% per point, max 50%
 var dodgeChance = Math.min(35, (fighter.stats.agility - 1) * 0.35); // 0.35% per point, max 35%
-var speedBonus = Math.min(100, (fighter.stats.speed - 1) * 1); // 1% per point, max 100% (double speed)
-var critChance = Math.min(30, (fighter.stats.luck - 1) * 0.3); // 0.3% per point, max 30%
-
+var speedBonus = Math.min(50, (fighter.stats.speed - 1) * 0.5); // Changed from 1%, max 50%
+var critChance = Math.min(40, (fighter.stats.luck - 1) * 0.4); // 0.4% per point, max 40%
     // Calculate base damage and defense
     var baseDamage = 10;
     var weaponDamage = 0;
@@ -3093,7 +3092,7 @@ var critChance = Math.min(30, (fighter.stats.luck - 1) * 0.3); // 0.3% per point
         '<div class="stat-row"><span>Toughness <span style="color: #888; font-size: 0.8em;">(-' + toughnessBonus.toFixed(1) + '% damage taken)</span>:</span> <span>' + fighter.stats.toughness + '</span></div>' +
         '<div class="stat-row"><span>Agility <span style="color: #888; font-size: 0.8em;">(' + dodgeChance.toFixed(1) + '% dodge chance)</span>:</span> <span>' + fighter.stats.agility + '</span></div>' +
         '<div class="stat-row"><span>Luck <span style="color: #888; font-size: 0.8em;">(' + critChance.toFixed(1) + '% crit chance)</span>:</span> <span>' + fighter.stats.luck + '</span></div>' +
-        '<div class="stat-row"><span>Speed <span style="color: #888; font-size: 0.8em;">(' + speedBonus + '% faster attacks)</span>:</span> <span>' + fighter.stats.speed + '</span></div>' +
+        '<div class="stat-row"><span>Speed <span style="color: #888; font-size: 0.8em;">(' + speedBonus.toFixed(1) + '% extra attack chance)</span>:</span> <span>' + fighter.stats.speed + '</span></div>' +        
         resetStatsDisplay +
         '<hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">' +
         specialDisplay;
@@ -3692,22 +3691,23 @@ function fightWithoutRest() {
     
     // For guaranteed losses, don't allocate all stat points
     var extraPoints = guaranteedLoss 
-        ? Math.floor((opponentLevel - 1) * 0.5) // Only half the normal stats
+        ? Math.floor((opponentLevel - 1) * 0.5)
         : opponentLevel - 1;
     
-    // For high-level bots, ensure minimum stats but not too high
+    // For high-level bots, ensure minimum stats but more balanced
     if (opponentLevel >= 15 && !guaranteedLoss) {
-        stats.strength = Math.min(4, Math.floor(opponentLevel / 5)); // Reduced from /4
-        stats.toughness = Math.min(4, Math.floor(opponentLevel / 5)); // Reduced from /4
-        extraPoints -= (stats.strength - 1) + (stats.toughness - 1);
+        stats.strength = Math.min(4, Math.floor(opponentLevel / 5));
+        stats.toughness = Math.min(4, Math.floor(opponentLevel / 5));
+        stats.speed = Math.min(3, Math.floor(opponentLevel / 8)); // Give bots some speed
+        extraPoints -= (stats.strength - 1) + (stats.toughness - 1) + (stats.speed - 1);
     }
     
-    // Distribute remaining points
+    // Distribute remaining points with more balanced weights
     var statNames = ['strength', 'toughness', 'agility', 'luck', 'speed'];
     for (var i = 0; i < extraPoints; i++) {
         var weights = opponentLevel >= 15 
-            ? [25, 35, 15, 15, 10] // More toughness at high levels
-            : [30, 30, 15, 15, 10]; // Original distribution
+            ? [25, 30, 15, 15, 15] // Better speed allocation for high level bots
+            : [30, 25, 15, 15, 15]; // More balanced for all levels
             
         var totalWeight = weights.reduce(function(sum, w) { return sum + w; }, 0);
         var random = Math.random() * totalWeight;
@@ -3922,17 +3922,17 @@ function fightWithoutRest() {
     var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles', 'cries out', 'gasps'];
     
     function fightTurn() {
-        if (turnCount > maxTurns || player.currentHp <= 0 || opponent.currentHp <= 0) {
-            endCombat(player, opponent);
-            return;
-        }
-        
-        // Calculate speed-based extra attacks
-        var playerSpeedChance = Math.min(100, (player.stats.speed - 1) * 1);
-        var playerExtraAttack = Math.random() * 100 < playerSpeedChance;
-        
-        var opponentSpeedChance = Math.min(100, (opponent.stats.speed - 1) * 1);
-        var opponentExtraAttack = Math.random() * 100 < opponentSpeedChance;
+    if (turnCount > maxTurns || player.currentHp <= 0 || opponent.currentHp <= 0) {
+        endCombat(player, opponent);
+        return;
+    }
+    
+    // NERFED: Calculate speed-based extra attacks (0.5% per point instead of 1%)
+    var playerSpeedChance = Math.min(50, (player.stats.speed - 1) * 0.5); // Changed from 1
+    var playerExtraAttack = Math.random() * 100 < playerSpeedChance;
+    
+    var opponentSpeedChance = Math.min(50, (opponent.stats.speed - 1) * 0.5); // Changed from 1
+    var opponentExtraAttack = Math.random() * 100 < opponentSpeedChance;
         
         // Player attacks first
         if (player.currentHp > 0) {
@@ -4017,7 +4017,7 @@ function fightWithoutRest() {
     }
     
     // Critical hit chance
-    var critChance = Math.min(30, (attacker.stats.luck - 1) * 0.3);
+    var critChance = Math.min(40, (attacker.stats.luck - 1) * 0.4); // 0.4% per point
     var isCrit = Math.random() * 100 < critChance;
     
     // Calculate defense
@@ -4043,16 +4043,16 @@ function fightWithoutRest() {
     var attackText = '';
     
     if (isCrit) {
-        damage = Math.floor(damage * 1.75);
-        damage = Math.max(2, damage);
-        // Enhanced critical hit display
-        var critTexts = [
-            '<span class="critical-hit-text">⚡ CRITICAL HIT! ⚡</span> ' + attackerNameText + ' finds a weak spot with their ' + weaponText + ' and deals <span class="damage">' + damage + '</span> massive damage!',
-            '<span class="critical-hit-text">💥 CRITICAL STRIKE! 💥</span> ' + attackerNameText + ' lands a devastating blow with their ' + weaponText + ' for <span class="damage">' + damage + '</span> damage!',
-            '<span class="critical-hit-text">🔥 CRITICAL! 🔥</span> ' + attackerNameText + '\'s ' + weaponText + ' strikes true for <span class="damage">' + damage + '</span> crushing damage!'
-        ];
-        attackText = critTexts[Math.floor(Math.random() * critTexts.length)];
-    } else {
+    damage = Math.floor(damage * 2.5); // Increased from 1.75x to 2.5x
+    damage = Math.max(2, damage);
+    // Enhanced critical hit display
+    var critTexts = [
+        '<span class="critical-hit-text">⚡ CRITICAL HIT! ⚡</span> ' + attackerNameText + ' finds a weak spot with their ' + weaponText + ' and deals <span class="damage">' + damage + '</span> massive damage!',
+        '<span class="critical-hit-text">💥 CRITICAL STRIKE! 💥</span> ' + attackerNameText + ' lands a devastating blow with their ' + weaponText + ' for <span class="damage">' + damage + '</span> damage!',
+        '<span class="critical-hit-text">🔥 CRITICAL! 🔥</span> ' + attackerNameText + '\'s ' + weaponText + ' strikes true for <span class="damage">' + damage + '</span> crushing damage!'
+    ];
+    attackText = critTexts[Math.floor(Math.random() * critTexts.length)];
+} else {
         // Regular attacks with highlighted names
         var bodyParts = ['chest', 'shoulder', 'arm', 'leg', 'ribs', 'side', 'back'];
         var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles'];
