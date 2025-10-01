@@ -1539,117 +1539,239 @@ function setupLoginKeyHandlers() {
         }
 
         // Game functions
-        function saveToSupabase() {
-            // If user is a guest, save locally instead
-            if (gameState.currentUser && gameState.currentUser.isGuest) {
-                saveGameData();
-                return;
-            }
-            
-            var userId = getUserId();
-            var gameData = {
-                user_id: userId,
-                fighters: gameState.fighters,
-                diamonds: gameState.diamonds,
-                fight_cooldown_end: gameState.fightCooldownEnd,
-                unlocked_slots: gameState.unlockedSlots,
-                updated_at: new Date().toISOString()
-            };
+        function saveToSupabase(retryCount) {
+    // If user is a guest, save locally instead
+    if (gameState.currentUser && gameState.currentUser.isGuest) {
+        saveGameData();
+        return;
+    }
+    
+    if (retryCount === undefined) {
+        retryCount = 0;
+    }
+    
+    var userId = getUserId();
+    var gameData = {
+        user_id: userId,
+        fighters: gameState.fighters,
+        diamonds: gameState.diamonds,
+        fight_cooldown_end: gameState.fightCooldownEnd,
+        unlocked_slots: gameState.unlockedSlots,
+        updated_at: new Date().toISOString()
+    };
 
-            console.log('Saving to Supabase via REST API:', gameData);
+    console.log('Saving to Supabase via REST API (attempt ' + (retryCount + 1) + '):', gameData);
 
-            fetch(SUPABASE_URL + '/rest/v1/game_data', {
+    // First, check if record exists
+    fetch(SUPABASE_URL + '/rest/v1/game_data?user_id=eq.' + encodeURIComponent(userId), {
+        method: 'GET',
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+        }
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error('Failed to check existing data: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(function(existingData) {
+        if (existingData && existingData.length > 0) {
+            // Update existing record
+            return fetch(SUPABASE_URL + '/rest/v1/game_data?user_id=eq.' + encodeURIComponent(userId), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                },
+                body: JSON.stringify(gameData)
+            });
+        } else {
+            // Insert new record
+            return fetch(SUPABASE_URL + '/rest/v1/game_data', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-                    'Prefer': 'resolution=merge-duplicates'
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
                 },
                 body: JSON.stringify(gameData)
-            })
-            .then(function(response) {
-                if (response.ok) {
-                    console.log('Saved to Supabase successfully!');
-                } else {
-                    console.error('Supabase save error:', response.status, response.statusText);
-                    return response.text().then(function(text) {
-                        console.error('Error details:', text);
-                        throw new Error('Save failed: ' + response.status);
-                    });
-                }
-            })
-            .catch(function(e) {
-                console.error('Save failed, using localStorage fallback:', e);
-                saveGameData();
             });
         }
+    })
+    .then(function(response) {
+        if (response.ok) {
+            console.log('Saved to Supabase successfully!');
+            hideCloudSaveError(); // Hide error popup if it was showing
+            
+            // Also save to localStorage as backup
+            saveGameData();
+        } else {
+            console.error('Supabase save error:', response.status, response.statusText);
+            return response.text().then(function(text) {
+                console.error('Error details:', text);
+                throw new Error('Save failed: ' + response.status);
+            });
+        }
+    })
+    .catch(function(e) {
+        console.error('Save failed:', e);
+        
+        // Save to localStorage as fallback
+        saveGameData();
+        
+        // Show error popup with retry option
+        showCloudSaveError(retryCount);
+    });
+}
 
+function showCloudSaveError(retryCount) {
+    var existingPopup = document.getElementById('cloudSaveErrorPopup');
+    if (existingPopup) {
+        return; // Don't show multiple popups
+    }
+    
+    var popupHTML = 
+        '<div id="cloudSaveErrorPopup" style="position: fixed; top: 20px; right: 20px; background: #e74c3c; color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 3000; max-width: 350px; animation: slideIn 0.3s ease;">' +
+            '<div style="display: flex; align-items: start; gap: 15px;">' +
+                '<div style="font-size: 2em;">⚠️</div>' +
+                '<div style="flex: 1;">' +
+                    '<h4 style="margin: 0 0 10px 0; font-size: 1.1em;">Cloud Save Failed</h4>' +
+                    '<p style="margin: 0 0 15px 0; font-size: 0.9em;">Unable to sync your progress to the cloud. Your data is saved locally, but may not be available on other devices.</p>' +
+                    '<div style="display: flex; gap: 10px;">' +
+                        '<button class="btn btn-primary" onclick="retryCloudSave(' + retryCount + ')" style="padding: 8px 16px; font-size: 0.9em;">Retry</button>' +
+                        '<button class="btn" style="background: rgba(255,255,255,0.2); color: #fff; padding: 8px 16px; font-size: 0.9em;" onclick="hideCloudSaveError()">Dismiss</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        '<style>' +
+            '@keyframes slideIn {' +
+                'from { transform: translateX(400px); opacity: 0; }' +
+                'to { transform: translateX(0); opacity: 1; }' +
+            '}' +
+        '</style>';
+    
+    document.body.insertAdjacentHTML('beforeend', popupHTML);
+    
+    // Auto-dismiss after 10 seconds if user doesn't interact
+    setTimeout(function() {
+        hideCloudSaveError();
+    }, 10000);
+}
+
+function hideCloudSaveError() {
+    var popup = document.getElementById('cloudSaveErrorPopup');
+    if (popup) {
+        popup.style.animation = 'slideOut 0.3s ease';
+        setTimeout(function() {
+            popup.remove();
+        }, 300);
+    }
+}
+
+function retryCloudSave(previousRetryCount) {
+    hideCloudSaveError();
+    
+    var newRetryCount = previousRetryCount + 1;
+    
+    if (newRetryCount > 3) {
+        alert('Unable to sync to cloud after multiple attempts. Your progress is saved locally. Please check your internet connection and try again later.');
+        return;
+    }
+    
+    saveToSupabase(newRetryCount);
+}
         function loadFromSupabase() {
-            // If user is a guest, load locally instead
-            if (gameState.currentUser && gameState.currentUser.isGuest) {
-                loadGameData();
-                updateFighterSlots();
-                updateDiamondDisplay();
-                return;
-            }
-            
-            var userId = getUserId();
-            console.log('Loading from Supabase via REST API for user:', userId);
-            
-            fetch(SUPABASE_URL + '/rest/v1/game_data?user_id=eq.' + encodeURIComponent(userId), {
-                method: 'GET',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-                }
-            })
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Load failed: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(function(data) {
-                console.log('Raw Supabase response:', data);
-                
-                if (data && data.length > 0) {
-                    var gameData = data[0];
-                    console.log('Loading data from Supabase:', gameData);
-                    gameState.fighters = gameData.fighters || [];
-                    gameState.diamonds = gameData.diamonds || 0;
-                    gameState.fightCooldownEnd = gameData.fight_cooldown_end || 0;
-                    gameState.unlockedSlots = gameData.unlocked_slots || [true, false, false, false, false];
-                    console.log('Game loaded from cloud successfully!');
-                } else {
-                    console.log('No saved data found in Supabase - starting fresh');
-                }
-                
-                updateFighterSlots();
-                updateDiamondDisplay();
-            })
-            .catch(function(e) {
-                console.error('Load failed, using localStorage fallback:', e);
-                loadGameData();
-                updateFighterSlots();
-                updateDiamondDisplay();
-            });
+    if (gameState.currentUser && gameState.currentUser.isGuest) {
+        loadGameData();
+        updateFighterSlots();
+        updateDiamondDisplay();
+        return;
+    }
+    
+    var userId = getUserId();
+    console.log('Loading from Supabase via REST API for user:', userId);
+    
+    // First check localStorage for comparison
+    var localData = localStorage.getItem('randofight_gamedata');
+    var localTimestamp = null;
+    if (localData) {
+        try {
+            var parsed = JSON.parse(localData);
+            localTimestamp = parsed.lastSaved || 0;
+        } catch(e) {}
+    }
+    
+    fetch(SUPABASE_URL + '/rest/v1/game_data?user_id=eq.' + encodeURIComponent(userId), {
+        method: 'GET',
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
         }
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error('Load failed: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        console.log('Raw Supabase response:', data);
+        
+        if (data && data.length > 0) {
+            var gameData = data[0];
+            var cloudTimestamp = new Date(gameData.updated_at).getTime();
+            
+            // Compare timestamps - use newer data
+            if (localTimestamp && localTimestamp > cloudTimestamp) {
+                console.log('Local data is newer, using local data and syncing to cloud');
+                loadGameData();
+                saveToSupabase(); // Sync the newer local data to cloud
+            } else {
+                console.log('Loading data from Supabase:', gameData);
+                gameState.fighters = gameData.fighters || [];
+                gameState.diamonds = gameData.diamonds || 0;
+                gameState.fightCooldownEnd = gameData.fight_cooldown_end || 0;
+                gameState.unlockedSlots = gameData.unlocked_slots || [true, false, false, false, false];
+                
+                // Also save to localStorage
+                saveGameData();
+                console.log('Game loaded from cloud successfully!');
+            }
+        } else {
+            console.log('No saved data found in Supabase - checking localStorage');
+            loadGameData();
+        }
+        
+        updateFighterSlots();
+        updateDiamondDisplay();
+    })
+    .catch(function(e) {
+        console.error('Load failed, using localStorage fallback:', e);
+        loadGameData();
+        updateFighterSlots();
+        updateDiamondDisplay();
+    });
+}
 
         function saveGameData() {
-            try {
-                var gameData = JSON.stringify({
-                    fighters: gameState.fighters,
-                    diamonds: gameState.diamonds,
-                    fightCooldownEnd: gameState.fightCooldownEnd,
-                    unlockedSlots: gameState.unlockedSlots
-                });
-                localStorage.setItem('randofight_gamedata', gameData);
-                console.log('Game saved to localStorage');
-            } catch (e) {
-                console.log('Save failed:', e);
-            }
-        }
+    try {
+        var gameData = JSON.stringify({
+            fighters: gameState.fighters,
+            diamonds: gameState.diamonds,
+            fightCooldownEnd: gameState.fightCooldownEnd,
+            unlockedSlots: gameState.unlockedSlots,
+            lastSaved: Date.now()
+        });
+        localStorage.setItem('randofight_gamedata', gameData);
+        console.log('Game saved to localStorage');
+    } catch (e) {
+        console.log('Save failed:', e);
+    }
+}
 
         function loadGameData() {
             try {
@@ -2240,14 +2362,14 @@ function closeSpecialAttackModal() {
 // Track weekly wins in database
 function saveWeeklyWin(fighterName) {
     if (!gameState.currentUser || gameState.currentUser.isGuest) {
-        return; // Don't track for guests
+        return;
     }
     
     var weekStart = getWeekStartDate();
     var weekStartStr = weekStart.toISOString().split('T')[0];
     var userId = getUserId();
     
-    // First, check if this user already has fighters in the tournament
+    // Check if this user already has fighters in THIS week's tournament
     fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores?user_id=eq.' + userId + '&week_start=eq.' + weekStartStr, {
         method: 'GET',
         headers: {
@@ -2259,28 +2381,18 @@ function saveWeeklyWin(fighterName) {
         return response.json();
     })
     .then(function(allUserFighters) {
-        // Find which fighter has the most wins
-        var bestFighter = null;
-        var bestWins = 0;
-        
-        for (var i = 0; i < allUserFighters.length; i++) {
-            if (allUserFighters[i].wins > bestWins) {
-                bestWins = allUserFighters[i].wins;
-                bestFighter = allUserFighters[i];
-            }
-        }
-        
-        // Check if current fighter is the one that just won
+        // Find if current fighter exists for THIS week
         var currentFighterEntry = null;
         for (var i = 0; i < allUserFighters.length; i++) {
-            if (allUserFighters[i].fighter_name === fighterName) {
+            if (allUserFighters[i].fighter_name === fighterName && 
+                allUserFighters[i].week_start === weekStartStr) {
                 currentFighterEntry = allUserFighters[i];
                 break;
             }
         }
         
         if (currentFighterEntry) {
-            // Update existing record
+            // Update existing record for this week
             var currentWins = currentFighterEntry.wins || 0;
             var newWins = currentWins + 1;
             
@@ -2296,14 +2408,11 @@ function saveWeeklyWin(fighterName) {
                     updated_at: new Date().toISOString()
                 })
             }).then(function() {
-                // After updating, check if we need to remove other fighters
-                // If current fighter now has more wins than the previous best, remove others
-                if (newWins > bestWins || (bestFighter && bestFighter.fighter_name === fighterName)) {
-                    removeOtherWeeklyFighters(userId, weekStartStr, fighterName);
-                }
+                // Check if this fighter should be the only one representing the user
+                removeOtherWeeklyFighters(userId, weekStartStr, fighterName);
             });
         } else {
-            // Create new record
+            // Create new record for this week - starts at 1 win
             return fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/weekly_scores', {
                 method: 'POST',
                 headers: {
@@ -2315,13 +2424,10 @@ function saveWeeklyWin(fighterName) {
                     user_id: userId,
                     fighter_name: fighterName,
                     week_start: weekStartStr,
-                    wins: 1
+                    wins: 1  // Start fresh at 1 for new week
                 })
             }).then(function() {
-                // If this is a new fighter and we had others, check if we should remove them
-                if (allUserFighters.length > 0) {
-                    removeOtherWeeklyFighters(userId, weekStartStr, fighterName);
-                }
+                removeOtherWeeklyFighters(userId, weekStartStr, fighterName);
             });
         }
     })
@@ -4075,13 +4181,16 @@ if (attackerType === 'player') {
         player.exp += expGained;
         player.wins++;
         
-        // Track weekly wins
+        // IMPORTANT: Save immediately after incrementing wins to prevent loss
+        saveToSupabase();
+        
+        // Track weekly wins AFTER saving global wins
         incrementWeeklyWins(player);
-        // Track weekly wins in database
         saveWeeklyWin(player.name);
         
         addToFightLog('<span class="exp-gain">Gained ' + expGained + ' EXP!</span>');
         
+        // Rest of the victory code...
         // Rare diamond drop (15% chance)
         var diamondDropChance = 15;
         if (Math.random() * 100 < diamondDropChance) {
@@ -4091,26 +4200,24 @@ if (attackerType === 'player') {
         }
         
         // Equipment drop system (25% chance)
-var equipmentDropChance = 25;
-if (Math.random() * 100 < equipmentDropChance) {
-    var droppedItem = generateUpgradeItem(player, opponent.level);
-    if (droppedItem) {
-        // Show item level in drop message
-        var itemLevelText = droppedItem.itemLevel ? 'Lv.' + droppedItem.itemLevel + ' ' : '';
-        var rarityText = droppedItem.rarity ? ' (' + droppedItem.rarity.charAt(0).toUpperCase() + droppedItem.rarity.slice(1) + ')' : '';
-        
-        addToFightLog('<span class="' + droppedItem.rarity + '">🎁 ' + opponent.name + ' dropped: ' + 
-            itemLevelText + droppedItem.name + rarityText + 
-            ' (+' + droppedItem.power + ' ' + droppedItem.statType + ')!</span>');
-        
-        // Always equip since it's guaranteed to be better
-        player.equipment[droppedItem.slot] = droppedItem;
-        addToFightLog('<span class="exp-gain">🔧 ' + itemLevelText + droppedItem.name + rarityText + ' equipped automatically!</span>');
-    }
-}
+        var equipmentDropChance = 25;
+        if (Math.random() * 100 < equipmentDropChance) {
+            var droppedItem = generateUpgradeItem(player, opponent.level);
+            if (droppedItem) {
+                var itemLevelText = droppedItem.itemLevel ? 'Lv.' + droppedItem.itemLevel + ' ' : '';
+                var rarityText = droppedItem.rarity ? ' (' + droppedItem.rarity.charAt(0).toUpperCase() + droppedItem.rarity.slice(1) + ')' : '';
+                
+                addToFightLog('<span class="' + droppedItem.rarity + '">🎁 ' + opponent.name + ' dropped: ' + 
+                    itemLevelText + droppedItem.name + rarityText + 
+                    ' (+' + droppedItem.power + ' ' + droppedItem.statType + ')!</span>');
+                
+                player.equipment[droppedItem.slot] = droppedItem;
+                addToFightLog('<span class="exp-gain">🔧 ' + itemLevelText + droppedItem.name + rarityText + ' equipped automatically!</span>');
+            }
+        }
         
     } else {
-        // Increment loss streak on loss
+        // Loss handling...
         if (player.lossStreak === undefined) {
             player.lossStreak = 0;
         }
@@ -4124,13 +4231,12 @@ if (Math.random() * 100 < equipmentDropChance) {
         ];
         addToFightLog(defeatTexts[Math.floor(Math.random() * defeatTexts.length)]);
         
-        // Small consolation reward
         var consolationExp = Math.floor(5 + opponent.level);
         player.exp += consolationExp;
         addToFightLog('<span class="exp-gain">Gained ' + consolationExp + ' consolation EXP for the effort!</span>');
     }
     
-    // Check for level up (moved outside win/lose blocks so it always runs)
+    // Check for level up
     while (player.exp >= player.expRequired) {
         levelUp(player);
     }
@@ -4139,6 +4245,7 @@ if (Math.random() * 100 < equipmentDropChance) {
     player.hp = player.maxHp;
     player.currentHp = player.maxHp;
     
+    // Final save after all changes
     saveToSupabase();
     document.getElementById('endFightBtn').style.display = 'block';
 }
