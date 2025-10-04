@@ -4189,32 +4189,25 @@ if (attackerType === 'player') {
         saveWeeklyWin(player.name);
         
         addToFightLog('<span class="exp-gain">Gained ' + expGained + ' EXP!</span>');
+
+// Replace the equipment drop system with this:
+var equipmentDropChance = 25;
+if (Math.random() * 100 < equipmentDropChance) {
+    var isUpgrade = Math.random() * 100 < 60; // 60% upgrade, 40% weak/same
+    var droppedItem = generateLootItem(player, opponent.level, isUpgrade);
+    
+    if (droppedItem) {
+        var itemLevelText = droppedItem.itemLevel ? 'Lv.' + droppedItem.itemLevel + ' ' : '';
+        var rarityText = droppedItem.rarity ? ' (' + droppedItem.rarity.charAt(0).toUpperCase() + droppedItem.rarity.slice(1) + ')' : '';
         
-        // Rest of the victory code...
-        // Rare diamond drop (15% chance)
-        var diamondDropChance = 15;
-        if (Math.random() * 100 < diamondDropChance) {
-            var diamondsGained = Math.floor(1 + opponent.level * 0.3);
-            gameState.diamonds += diamondsGained;
-            addToFightLog('<span class="exp-gain">✨ Found ' + diamondsGained + ' 💎 in the aftermath! ✨</span>');
-        }
+        addToFightLog('<span class="' + droppedItem.rarity + '">🎁 ' + opponent.name + ' dropped: ' + 
+            itemLevelText + droppedItem.name + rarityText + 
+            ' (+' + droppedItem.power + ' ' + droppedItem.statType + ')!</span>');
         
-        // Equipment drop system (25% chance)
-        var equipmentDropChance = 25;
-        if (Math.random() * 100 < equipmentDropChance) {
-            var droppedItem = generateUpgradeItem(player, opponent.level);
-            if (droppedItem) {
-                var itemLevelText = droppedItem.itemLevel ? 'Lv.' + droppedItem.itemLevel + ' ' : '';
-                var rarityText = droppedItem.rarity ? ' (' + droppedItem.rarity.charAt(0).toUpperCase() + droppedItem.rarity.slice(1) + ')' : '';
-                
-                addToFightLog('<span class="' + droppedItem.rarity + '">🎁 ' + opponent.name + ' dropped: ' + 
-                    itemLevelText + droppedItem.name + rarityText + 
-                    ' (+' + droppedItem.power + ' ' + droppedItem.statType + ')!</span>');
-                
-                player.equipment[droppedItem.slot] = droppedItem;
-                addToFightLog('<span class="exp-gain">🔧 ' + itemLevelText + droppedItem.name + rarityText + ' equipped automatically!</span>');
-            }
-        }
+        // Store the dropped item to show in modal after combat
+        player.pendingLoot = droppedItem;
+    }
+}
         
     } else {
         // Loss handling...
@@ -4250,8 +4243,7 @@ if (attackerType === 'player') {
     document.getElementById('endFightBtn').style.display = 'block';
 }
             
-            // Generate upgrade items that are always better than current gear
-            function generateUpgradeItem(player, opponentLevel) {
+            function generateLootItem(player, opponentLevel, isUpgrade) {
     var itemTypes = [
         { 
             slot: 'weapon', 
@@ -4333,7 +4325,6 @@ if (attackerType === 'player') {
         }
     ];
     
-    // Find slots that need upgrades
     var upgradeableSlots = [];
     
     for (var i = 0; i < itemTypes.length; i++) {
@@ -4364,47 +4355,57 @@ if (attackerType === 'player') {
         return a.currentPower - b.currentPower;
     });
     
+    // Select from top 3 prioritized slots
     var topSlots = upgradeableSlots.slice(0, Math.min(3, upgradeableSlots.length));
     var selectedSlot = topSlots[Math.floor(Math.random() * topSlots.length)];
     var itemType = selectedSlot.type;
+    var currentItem = player.equipment[itemType.slot];
     
-    // Item level is based on opponent level with some variance
+    // Item level based on opponent
     var itemLevel = Math.max(1, opponentLevel + Math.floor(Math.random() * 5) - 2);
     
-    // Rarity chances scale with item level
+    // Determine rarity based on upgrade/downgrade
     var rarities;
-    if (itemLevel <= 5) {
-        rarities = [
-            { name: 'common', weight: 70, powerPerLevel: 2, prefix: '' },
-            { name: 'uncommon', weight: 25, powerPerLevel: 2.5, prefix: 'Fine ' },
-            { name: 'rare', weight: 5, powerPerLevel: 3, prefix: 'Superior ' }
-        ];
-    } else if (itemLevel <= 15) {
-        rarities = [
-            { name: 'common', weight: 50, powerPerLevel: 2, prefix: '' },
-            { name: 'uncommon', weight: 35, powerPerLevel: 2.5, prefix: 'Fine ' },
-            { name: 'rare', weight: 12, powerPerLevel: 3, prefix: 'Superior ' },
-            { name: 'epic', weight: 3, powerPerLevel: 3.5, prefix: 'Masterwork ' }
-        ];
-    } else if (itemLevel <= 30) {
-        rarities = [
-            { name: 'common', weight: 30, powerPerLevel: 2, prefix: '' },
-            { name: 'uncommon', weight: 40, powerPerLevel: 2.5, prefix: 'Fine ' },
-            { name: 'rare', weight: 20, powerPerLevel: 3, prefix: 'Superior ' },
-            { name: 'epic', weight: 8, powerPerLevel: 3.5, prefix: 'Masterwork ' },
-            { name: 'legendary', weight: 2, powerPerLevel: 4, prefix: 'Legendary ' }
-        ];
+    
+    if (isUpgrade) {
+        // Upgrade: same or higher rarity
+        if (itemLevel <= 5) {
+            rarities = [
+                { name: 'common', weight: 50, powerPerLevel: 2, prefix: '' },
+                { name: 'uncommon', weight: 35, powerPerLevel: 2.5, prefix: 'Fine ' },
+                { name: 'rare', weight: 15, powerPerLevel: 3, prefix: 'Superior ' }
+            ];
+        } else if (itemLevel <= 15) {
+            rarities = [
+                { name: 'uncommon', weight: 40, powerPerLevel: 2.5, prefix: 'Fine ' },
+                { name: 'rare', weight: 35, powerPerLevel: 3, prefix: 'Superior ' },
+                { name: 'epic', weight: 20, powerPerLevel: 3.5, prefix: 'Masterwork ' },
+                { name: 'legendary', weight: 5, powerPerLevel: 4, prefix: 'Legendary ' }
+            ];
+        } else if (itemLevel <= 30) {
+            rarities = [
+                { name: 'rare', weight: 35, powerPerLevel: 3, prefix: 'Superior ' },
+                { name: 'epic', weight: 35, powerPerLevel: 3.5, prefix: 'Masterwork ' },
+                { name: 'legendary', weight: 25, powerPerLevel: 4, prefix: 'Legendary ' },
+                { name: 'mythic', weight: 5, powerPerLevel: 5, prefix: 'Mythic ' }
+            ];
+        } else {
+            rarities = [
+                { name: 'epic', weight: 30, powerPerLevel: 3.5, prefix: 'Masterwork ' },
+                { name: 'legendary', weight: 45, powerPerLevel: 4, prefix: 'Legendary ' },
+                { name: 'mythic', weight: 25, powerPerLevel: 5, prefix: 'Mythic ' }
+            ];
+        }
     } else {
+        // Weak item: lower rarity
         rarities = [
-            { name: 'uncommon', weight: 30, powerPerLevel: 2.5, prefix: 'Fine ' },
-            { name: 'rare', weight: 35, powerPerLevel: 3, prefix: 'Superior ' },
-            { name: 'epic', weight: 25, powerPerLevel: 3.5, prefix: 'Masterwork ' },
-            { name: 'legendary', weight: 8, powerPerLevel: 4, prefix: 'Legendary ' },
-            { name: 'mythic', weight: 2, powerPerLevel: 5, prefix: 'Mythic ' }
+            { name: 'common', weight: 60, powerPerLevel: 1.5, prefix: '' },
+            { name: 'uncommon', weight: 30, powerPerLevel: 2, prefix: 'Fine ' },
+            { name: 'rare', weight: 10, powerPerLevel: 2.5, prefix: 'Superior ' }
         ];
     }
     
-    // Determine rarity
+    // Select rarity
     var totalWeight = rarities.reduce(function(sum, rarity) { return sum + rarity.weight; }, 0);
     var randomWeight = Math.random() * totalWeight;
     var selectedRarity = rarities[0];
@@ -4418,22 +4419,25 @@ if (attackerType === 'player') {
         }
     }
     
-    // Calculate power based on item level and rarity
+    // Calculate power
     var basePower = Math.floor(itemLevel * selectedRarity.powerPerLevel);
     
-    // Ensure it's better than current item if same or higher level
-    var minimumPower = selectedSlot.currentPower;
-    if (itemLevel >= selectedSlot.currentItemLevel) {
-        minimumPower = selectedSlot.currentPower + 1;
+    // For upgrades, ensure better than current
+    if (isUpgrade && currentItem) {
+        basePower = Math.max(currentItem.power + 1, basePower);
     }
     
-    var finalPower = Math.max(minimumPower, basePower);
+    // For weak items, ensure worse or equal to current
+    if (!isUpgrade && currentItem) {
+        basePower = Math.min(currentItem.power, basePower);
+    }
     
-    // Generate item name
+    var finalPower = Math.max(1, basePower);
+    
+    // Generate name (reuse naming logic from generateUpgradeItem)
     var baseName = itemType.names[Math.floor(Math.random() * itemType.names.length)];
     var fullName = selectedRarity.prefix + baseName;
     
-    // Expanded materials and suffixes for more variety
     var materials = [
         'Steel', 'Iron', 'Bronze', 'Copper', 'Silver', 'Gold', 'Platinum',
         'Mithril', 'Adamant', 'Adamantine', 'Orichalcum', 'Titanium',
@@ -4473,13 +4477,11 @@ if (attackerType === 'player') {
         'Primordial Fury', 'Cosmic Terror', 'Celestial Judgment', 'Astral Devastation'
     ];
     
-    // Add special suffixes for higher rarities
     if (selectedRarity.name === 'rare' && itemLevel >= 15) {
         var material = materials[Math.floor(Math.random() * materials.length)];
         fullName = selectedRarity.prefix + material + ' ' + baseName;
     } else if (selectedRarity.name === 'epic') {
         var suffix = epicSuffixes[Math.floor(Math.random() * epicSuffixes.length)];
-        // 50% chance for material + base name, 50% for prefix + base name + suffix
         if (Math.random() < 0.5) {
             var material = materials[Math.floor(Math.random() * materials.length)];
             fullName = material + ' ' + baseName + ' ' + suffix;
@@ -4487,7 +4489,6 @@ if (attackerType === 'player') {
             fullName = selectedRarity.prefix + baseName + ' ' + suffix;
         }
     } else if (selectedRarity.name === 'legendary') {
-        // 70% use legendary name pool, 30% use epic-style naming
         if (Math.random() < 0.7) {
             fullName = legendaryNames[Math.floor(Math.random() * legendaryNames.length)];
         } else {
@@ -4547,19 +4548,170 @@ if (fighter.level === 10) {
             }
 
         function endFight() {
-            document.getElementById('endFightBtn').style.display = 'none';
-            // Restore the header and logo when leaving fight screen
-            var headerContainer = document.querySelector('h1.title');
-            if (headerContainer) {
+    document.getElementById('endFightBtn').style.display = 'none';
+    
+    // Restore the header and logo when leaving fight screen
+    var headerContainer = document.querySelector('h1.title');
+    if (headerContainer) {
         headerContainer.style.display = 'block';
-        }
-            var companyLogo = document.querySelector('.company-logo');
-            if (companyLogo) {
-            companyLogo.style.display = 'block';
-        }
-            showFighterScreen();
-        }
+    }
+    var companyLogo = document.querySelector('.company-logo');
+    if (companyLogo) {
+        companyLogo.style.display = 'block';
+    }
+    
+    // Check if there's pending loot to show
+    if (gameState.currentFighter && gameState.currentFighter.pendingLoot) {
+        showLootModal(gameState.currentFighter.pendingLoot);
+    } else {
+        showFighterScreen();
+    }
+}
 
+        function showLootModal(item) {
+    var fighter = gameState.currentFighter;
+    var currentItem = fighter.equipment[item.slot];
+    
+    // Calculate stat changes
+    var statChange = 0;
+    var statType = item.statType;
+    
+    if (currentItem) {
+        statChange = item.power - currentItem.power;
+    } else {
+        statChange = item.power;
+    }
+    
+    // Determine sell price based on rarity
+    var sellPrices = {
+        'common': 1,
+        'uncommon': 2,
+        'rare': 3,
+        'epic': 5,
+        'legendary': 6,
+        'mythic': 8
+    };
+    var sellPrice = sellPrices[item.rarity] || 1;
+    
+    // Create change indicator
+    var changeText = '';
+    var changeColor = '';
+    if (statChange > 0) {
+        changeText = '+' + statChange + ' ' + statType;
+        changeColor = '#6bcf7f'; // green
+    } else if (statChange < 0) {
+        changeText = statChange + ' ' + statType;
+        changeColor = '#e74c3c'; // red
+    } else {
+        changeText = 'No change';
+        changeColor = '#888'; // gray
+    }
+    
+    var itemLevelText = item.itemLevel ? 'Lv.' + item.itemLevel + ' ' : '';
+    var rarityClass = item.rarity || 'common';
+    
+    var modalHTML = 
+        '<div id="lootModal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000;">' +
+            '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; padding: 30px; border-radius: 10px; border: 3px solid #ffd93d; max-width: 450px; width: 90%; text-align: center;">' +
+                '<h2 style="color: #ffd93d; margin-bottom: 20px; font-size: 1.8em;">🎁 LOOT FOUND! 🎁</h2>' +
+                
+                '<div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin-bottom: 20px;">' +
+                    '<div class="' + rarityClass + '" style="font-size: 1.3em; font-weight: bold; margin-bottom: 10px;">' +
+                        itemLevelText + item.name +
+                    '</div>' +
+                    '<div style="color: #ffd93d; font-size: 1.1em; margin-bottom: 5px;">+' + item.power + ' ' + item.statType + '</div>' +
+                    '<div style="color: #888; font-size: 0.9em; text-transform: capitalize;">' + item.rarity + ' ' + item.slot + '</div>' +
+                '</div>' +
+                
+                '<div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px;">' +
+                    '<div style="font-size: 0.9em; color: #ccc; margin-bottom: 8px;">If equipped:</div>' +
+                    '<div style="font-size: 1.2em; font-weight: bold; color: ' + changeColor + ';">' + changeText + '</div>' +
+                '</div>' +
+                
+                '<div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 15px;">' +
+                    '<button class="btn btn-primary" onclick="equipLoot()" style="padding: 12px 30px; font-size: 1.1em;">Equip</button>' +
+                    '<button class="btn" style="background: #ffd93d; color: #333; padding: 12px 30px; font-size: 1.1em;" onclick="sellLoot(' + sellPrice + ')">Sell (' + sellPrice + ' 💎)</button>' +
+                '</div>' +
+                
+                (currentItem ? '<div style="color: #888; font-size: 0.85em;">Current: ' + (currentItem.name || 'Empty') + ' (+' + (currentItem.power || 0) + ' ' + statType + ')</div>' : '') +
+            '</div>' +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function equipLoot() {
+    var fighter = gameState.currentFighter;
+    if (!fighter || !fighter.pendingLoot) return;
+    
+    var item = fighter.pendingLoot;
+    fighter.equipment[item.slot] = item;
+    
+    // Clear pending loot
+    fighter.pendingLoot = null;
+    
+    // Save and close
+    saveToSupabase();
+    closeLootModal();
+    
+    // Show success message briefly
+    showLootMessage('✅ ' + item.name + ' equipped!');
+}
+
+function sellLoot(sellPrice) {
+    var fighter = gameState.currentFighter;
+    if (!fighter || !fighter.pendingLoot) return;
+    
+    var item = fighter.pendingLoot;
+    gameState.diamonds += sellPrice;
+    
+    // Clear pending loot
+    fighter.pendingLoot = null;
+    
+    // Save and update
+    saveToSupabase();
+    updateDiamondDisplay();
+    closeLootModal();
+    
+    // Show success message
+    showLootMessage('💎 Sold ' + item.name + ' for ' + sellPrice + ' diamonds!');
+}
+
+function closeLootModal() {
+    var modal = document.getElementById('lootModal');
+    if (modal) {
+        modal.remove();
+    }
+    
+    // Return to fighter screen
+    showFighterScreen();
+}
+
+function showLootMessage(message) {
+    var existingMsg = document.getElementById('lootMessage');
+    if (existingMsg) {
+        existingMsg.remove();
+    }
+    
+    var msgHTML = 
+        '<div id="lootMessage" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #4ecdc4; color: #fff; padding: 15px 30px; border-radius: 8px; font-weight: bold; z-index: 3500; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">' +
+            message +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', msgHTML);
+    
+    setTimeout(function() {
+        var msg = document.getElementById('lootMessage');
+        if (msg) {
+            msg.style.transition = 'opacity 0.3s ease';
+            msg.style.opacity = '0';
+            setTimeout(function() {
+                msg.remove();
+            }, 300);
+        }
+    }, 2000);
+}
+        
         function initGame() {
             console.log('RandoFight initializing...');
             
