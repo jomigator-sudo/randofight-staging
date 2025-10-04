@@ -3019,7 +3019,7 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
 var toughnessBonus = fighter.stats.toughness >= 2 ? Math.min(50, (fighter.stats.toughness - 1) * 0.6) : 0; // 0.6% per point, max 50%
 var dodgeChance = Math.min(35, (fighter.stats.agility - 1) * 0.35); // 0.35% per point, max 35%
 var speedBonus = Math.min(50, (fighter.stats.speed - 1) * 0.5); // Changed from 1%, max 50%
-var critChance = Math.min(40, (fighter.stats.luck - 1) * 0.4); // 0.4% per point, max 40%
+var critChance = Math.min(50, (fighter.stats.luck - 1) * 0.5); // 0.5% per point, max 50%
     // Calculate base damage and defense
     var baseDamage = 10;
     var weaponDamage = 0;
@@ -4017,7 +4017,7 @@ function fightWithoutRest() {
     }
     
     // Critical hit chance
-    var critChance = Math.min(40, (attacker.stats.luck - 1) * 0.4); // 0.4% per point
+    var critChance = Math.min(50, (attacker.stats.luck - 1) * 0.5); // 0.5% per point
     var isCrit = Math.random() * 100 < critChance;
     
     // Calculate defense
@@ -4043,7 +4043,7 @@ function fightWithoutRest() {
     var attackText = '';
     
     if (isCrit) {
-    damage = Math.floor(damage * 2.5); // Increased from 1.75x to 2.5x
+    damage = Math.floor(damage * 2.0); // Decreased from 2.5x to 2.0x
     damage = Math.max(2, damage);
     // Enhanced critical hit display
     var critTexts = [
