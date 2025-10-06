@@ -625,15 +625,27 @@ function handleBackButton() {
 
 // Update showFighterScreen to show the back button
 function showFighterScreen() {
-    hideAll();
-    document.getElementById('fighterScreen').style.display = 'block';
-    document.getElementById('globalBackBtn').style.display = 'block'; // Show back button
-    updateFighterDisplay();
-    updateFightStatus();
-    
-    setTimeout(function() {
-        initPayPalButtons();
-    }, 100);
+    try {
+        console.log('showFighterScreen called');
+        console.log('Current fighter:', gameState.currentFighter);
+        
+        hideAll();
+        document.getElementById('fighterScreen').style.display = 'block';
+        console.log('Fighter screen display set to block');
+        
+        updateFighterDisplay();
+        console.log('Fighter display updated');
+        
+        updateFightStatus();
+        console.log('Fight status updated');
+        
+        setTimeout(function() {
+            initPayPalButtons();
+        }, 100);
+    } catch (error) {
+        console.error('Error in showFighterScreen:', error);
+        alert('Error displaying character screen: ' + error.message + '\nCheck console for details');
+    }
 }
 
 // Update showTitleScreen to hide the back button
@@ -3018,16 +3030,30 @@ function updateWeeklyLeaderboard() {
 }
 
         function selectFighter(slotIndex) {
-            if (!gameState.unlockedSlots[slotIndex]) return;
-            
-            if (gameState.fighters[slotIndex]) {
-                gameState.currentFighter = gameState.fighters[slotIndex];
-                showFighterScreen();
-            } else {
-                gameState.currentSlotIndex = slotIndex;
-                showCreationScreen();
-            }
+    console.log('selectFighter called with index:', slotIndex);
+    console.log('Unlocked slots:', gameState.unlockedSlots);
+    console.log('Fighter at slot:', gameState.fighters[slotIndex]);
+    
+    if (!gameState.unlockedSlots[slotIndex]) {
+        console.log('Slot not unlocked');
+        return;
+    }
+    
+    if (gameState.fighters[slotIndex]) {
+        gameState.currentFighter = gameState.fighters[slotIndex];
+        console.log('Current fighter set to:', gameState.currentFighter.name);
+        try {
+            showFighterScreen();
+        } catch (e) {
+            console.error('Error showing fighter screen:', e);
+            alert('Error showing fighter screen: ' + e.message);
         }
+    } else {
+        gameState.currentSlotIndex = slotIndex;
+        console.log('No fighter in slot, showing creation screen');
+        showCreationScreen();
+    }
+}
 
         function purchaseSlot(slotIndex) {
             if (gameState.unlockedSlots[slotIndex]) {
