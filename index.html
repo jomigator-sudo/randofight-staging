@@ -1851,11 +1851,14 @@ function retryCloudSave(previousRetryCount) {
         }
 
         function hideAll() {
-            var screens = document.querySelectorAll('.game-screen');
-            for (var i = 0; i < screens.length; i++) {
-                screens[i].style.display = 'none';
-            }
+    var screens = ['loginScreen', 'titleScreen', 'creationScreen', 'fighterScreen', 'fightScreen'];
+    for (var i = 0; i < screens.length; i++) {
+        var screen = document.getElementById(screens[i]);
+        if (screen) {
+            screen.style.display = 'none';
         }
+    }
+}
 
         function updateDiamondDisplay() {
             var titleDiamonds = document.getElementById('titleDiamonds');
@@ -1892,16 +1895,35 @@ function retryCloudSave(previousRetryCount) {
         }
 
         function showFighterScreen() {
-    hideAll();
-    document.getElementById('fighterScreen').style.display = 'block';
-    updateFighterDisplay();
-    updateFightStatus();
-    // Removed updateWeeklyLeaderboard() from here
-    
-    // Initialize PayPal buttons when fighter screen is shown
-    setTimeout(function() {
-        initPayPalButtons();
-    }, 100);
+    try {
+        console.log('showFighterScreen called');
+        console.log('Current fighter:', gameState.currentFighter);
+        
+        hideAll(); // This should hide titleScreen
+        
+        var fighterScreen = document.getElementById('fighterScreen');
+        if (!fighterScreen) {
+            throw new Error('Fighter screen element not found');
+        }
+        
+        fighterScreen.style.display = 'block';
+        console.log('Fighter screen display set to block');
+        
+        document.getElementById('globalBackBtn').style.display = 'block'; // Show back button
+        
+        updateFighterDisplay();
+        console.log('Fighter display updated');
+        
+        updateFightStatus();
+        console.log('Fight status updated');
+        
+        setTimeout(function() {
+            initPayPalButtons();
+        }, 100);
+    } catch (error) {
+        console.error('Error in showFighterScreen:', error);
+        alert('Error displaying character screen: ' + error.message + '\nCheck console for details');
+    }
 }
 function showGlobalLeaderboard() {
     var existingModal = document.getElementById('globalLeaderboardModal');
