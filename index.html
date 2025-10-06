@@ -184,7 +184,14 @@
 }
         .game-screen {
     display: none;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    z-index: 10;
 }
 
 .game-screen * {
@@ -505,15 +512,25 @@
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U';
         
         var gameState = {
-            fighters: [],
-            currentFighter: null,
-            diamonds: 0,
-            fightCooldownEnd: 0,
-            unlockedSlots: [true, false, false, false, false],
-            currentSlotIndex: 0,
-            currentUser: null,
-            isLoggedIn: false
-        };
+    fighters: [],
+    currentFighter: null,
+    diamonds: 0,
+    fightCooldownEnd: 0,
+    unlockedSlots: [true, false, false, false, false],
+    currentSlotIndex: 0,
+    currentUser: null,
+    isLoggedIn: false,
+    dailyTasks: {
+        lastReset: new Date().toDateString(),
+        winsToday: 0,
+        claimed: {
+            win1: false,
+            win3: false,
+            win5: false,
+            win10: false
+        }
+    }
+};
 
         // Special attack word combinations for dynamic generation
 var specialAttackPrefixes = ['Dark', 'Light', 'Fire', 'Ice', 'Thunder', 'Shadow', 'Dragon', 'Phoenix', 'Storm', 'Chaos', 
@@ -1558,6 +1575,7 @@ function setupLoginKeyHandlers() {
         diamonds: gameState.diamonds,
         fight_cooldown_end: gameState.fightCooldownEnd,
         unlocked_slots: gameState.unlockedSlots,
+        daily_tasks: gameState.dailyTasks,
         updated_at: new Date().toISOString()
     };
 
@@ -1747,13 +1765,7 @@ function retryCloudSave(previousRetryCount) {
             loadGameData();
         }
         
-        // ADD THE DAILY TASKS INITIALIZATION HERE:
-        // Initialize daily tasks for all fighters
-        for (var i = 0; i < gameState.fighters.length; i++) {
-            if (gameState.fighters[i]) {
-                initializeDailyTasks(gameState.fighters[i]);
-            }
-        }
+        initializeDailyTasks();
         
         updateFighterSlots();
         updateDiamondDisplay();
@@ -1762,13 +1774,7 @@ function retryCloudSave(previousRetryCount) {
         console.error('Load failed, using localStorage fallback:', e);
         loadGameData();
         
-        // ALSO ADD HERE for the error case:
-        // Initialize daily tasks for all fighters
-        for (var i = 0; i < gameState.fighters.length; i++) {
-            if (gameState.fighters[i]) {
-                initializeDailyTasks(gameState.fighters[i]);
-            }
-        }
+        initializeDailyTasks();
         
         updateFighterSlots();
         updateDiamondDisplay();
@@ -1886,9 +1892,9 @@ function showGlobalLeaderboard() {
     updateLeaderboard();
     document.getElementById(originalId).id = tempId;
 }
-function initializeDailyTasks(fighter) {
-    if (!fighter.dailyTasks) {
-        fighter.dailyTasks = {
+function initializeDailyTasks() {
+    if (!gameState.dailyTasks) {
+        gameState.dailyTasks = {
             lastReset: new Date().toDateString(),
             winsToday: 0,
             claimed: {
@@ -1902,8 +1908,8 @@ function initializeDailyTasks(fighter) {
     
     // Check if it's a new day and reset tasks
     var today = new Date().toDateString();
-    if (fighter.dailyTasks.lastReset !== today) {
-        fighter.dailyTasks = {
+    if (gameState.dailyTasks.lastReset !== today) {
+        gameState.dailyTasks = {
             lastReset: today,
             winsToday: 0,
             claimed: {
@@ -1917,22 +1923,14 @@ function initializeDailyTasks(fighter) {
     }
 }
 
-function incrementDailyWins(fighter) {
-    initializeDailyTasks(fighter);
-    fighter.dailyTasks.winsToday++;
+function incrementDailyWins() {
+    initializeDailyTasks();
+    gameState.dailyTasks.winsToday++;
     saveToSupabase();
 }
 
 function showDailyTasks() {
-    var fighter = gameState.currentFighter;
-    
-    // If no fighter selected and we're on title screen, show message
-    if (!fighter) {
-        alert('Please select a fighter first to view daily tasks!');
-        return;
-    }
-    
-    initializeDailyTasks(fighter);
+    initializeDailyTasks();
     
     var tasks = [
         { id: 'win1', wins: 1, reward: 2, label: 'Win 1 Fight' },
@@ -1949,10 +1947,10 @@ function showDailyTasks() {
     var tasksHTML = '';
     for (var i = 0; i < tasks.length; i++) {
         var task = tasks[i];
-        var completed = fighter.dailyTasks.winsToday >= task.wins;
-        var claimed = fighter.dailyTasks.claimed[task.id];
+        var completed = gameState.dailyTasks.winsToday >= task.wins;
+        var claimed = gameState.dailyTasks.claimed[task.id];
         
-        var progressText = Math.min(fighter.dailyTasks.winsToday, task.wins) + '/' + task.wins;
+        var progressText = Math.min(gameState.dailyTasks.winsToday, task.wins) + '/' + task.wins;
         var statusColor = completed ? '#6bcf7f' : '#888';
         
         tasksHTML += 
@@ -1996,13 +1994,10 @@ function showDailyTasks() {
 }
 
 function claimDailyTask(taskId, reward) {
-    var fighter = gameState.currentFighter;
-    if (!fighter) return;
-    
-    initializeDailyTasks(fighter);
+    initializeDailyTasks();
     
     // Mark as claimed
-    fighter.dailyTasks.claimed[taskId] = true;
+    gameState.dailyTasks.claimed[taskId] = true;
     
     // Award diamonds
     gameState.diamonds += reward;
@@ -2961,16 +2956,6 @@ function updateWeeklyLeaderboard() {
     stats: { strength: 1, toughness: 1, agility: 1, luck: 1, speed: 1 },
     unallocatedStats: 0,
     specialAttack: null,
-    dailyTasks: {
-        lastReset: new Date().toDateString(),
-        winsToday: 0,
-        claimed: {
-            win1: false,
-            win3: false,
-            win5: false,
-            win10: false
-        }
-    },
     equipment: {
         weapon: { name: 'Wooden Stick', type: 'weapon', slot: 'weapon', power: 5, level: 1, itemLevel: 1, rarity: 'common', statType: 'Damage' },
         offHand: null, helmet: null, shoulders: null, gloves: null, chest: null, greaves: null, boots: null
@@ -4347,8 +4332,8 @@ if (attackerType === 'player') {
         player.exp += expGained;
         player.wins++;
 
-        // Track daily wins for tasks
-        incrementDailyWins(player);
+        // Track daily wins for tasks (account-wide now)
+        incrementDailyWins();
         
         // IMPORTANT: Save immediately after incrementing wins to prevent loss
         saveToSupabase();
