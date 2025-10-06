@@ -3042,12 +3042,8 @@ function updateWeeklyLeaderboard() {
     if (gameState.fighters[slotIndex]) {
         gameState.currentFighter = gameState.fighters[slotIndex];
         console.log('Current fighter set to:', gameState.currentFighter.name);
-        try {
-            showFighterScreen();
-        } catch (e) {
-            console.error('Error showing fighter screen:', e);
-            alert('Error showing fighter screen: ' + e.message);
-        }
+        console.log('About to call showFighterScreen');
+        showFighterScreen();
     } else {
         gameState.currentSlotIndex = slotIndex;
         console.log('No fighter in slot, showing creation screen');
