@@ -638,21 +638,34 @@ function showFighterScreen() {
 
 // Update showTitleScreen to hide the back button
 function showTitleScreen() {
-    hideAll();
-    document.getElementById('globalBackBtn').style.display = 'none'; // Hide back button
-    document.getElementById('titleScreen').style.display = 'block';
-    updateFighterSlots();
-    updateDiamondDisplay();
-    
-    // Check for weekly prizes when entering title screen
-    setTimeout(function() {
-        checkWeeklyPrizes();
-    }, 1000);
-    
-    // Initialize PayPal buttons when title screen is shown
-    setTimeout(function() {
-        initPayPalButtons();
-    }, 100);
+    try {
+        hideAll();
+        document.getElementById('globalBackBtn').style.display = 'none'; // Hide back button
+        document.getElementById('titleScreen').style.display = 'block';
+        updateFighterSlots();
+        updateDiamondDisplay();
+        
+        // Check for weekly prizes when entering title screen
+        setTimeout(function() {
+            try {
+                checkWeeklyPrizes();
+            } catch (e) {
+                console.error('Error checking weekly prizes:', e);
+            }
+        }, 1000);
+        
+        // Initialize PayPal buttons when title screen is shown
+        setTimeout(function() {
+            try {
+                initPayPalButtons();
+            } catch (e) {
+                console.error('Error initializing PayPal buttons:', e);
+            }
+        }, 100);
+    } catch (error) {
+        console.error('Error in showTitleScreen:', error);
+        alert('Error loading character select screen. Check console for details.');
+    }
 }
 
 // Update showCreationScreen to show the back button
