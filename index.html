@@ -369,11 +369,12 @@
     </div>
 
     <div class="ui-buttons">
-        <span style="color: #ffd93d; font-size: 1.2em; margin-right: 20px;">Diamonds: <span id="titleDiamonds">0</span> 💎</span>
-        <div id="titlePaypalButton" class="paypal-button-container"></div>
-        <button class="btn btn-secondary" onclick="showGlobalLeaderboard()">Leaderboard</button>
-        <button class="btn" style="background: #ffd93d; color: #333;" onclick="showWeeklyTournament()">🏆 Weekly</button>
-    </div>
+    <span style="color: #ffd93d; font-size: 1.2em; margin-right: 20px;">Diamonds: <span id="titleDiamonds">0</span> 💎</span>
+    <div id="titlePaypalButton" class="paypal-button-container"></div>
+    <button class="btn btn-secondary" onclick="showGlobalLeaderboard()">Leaderboard</button>
+    <button class="btn" style="background: #ffd93d; color: #333;" onclick="showWeeklyTournament()">🏆 Weekly</button>
+    <button class="btn" style="background: #4ecdc4; color: #fff;" onclick="showDailyTasks()">📅 Daily</button>
+</div>
 
     <div class="fighter-slots">
         <div class="fighter-slot" id="slot-container-0" onclick="selectFighter(0)">
@@ -444,13 +445,13 @@
         <button class="btn btn-secondary" onclick="showTitleScreen()">← Back</button>
     </div>
     
-    <div style="text-align: center; margin-bottom: 20px;">
-        <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; padding: 0 10px;">
-            <button class="btn btn-fight" onclick="findFight()" id="fightBtn" style="padding: 10px 18px; font-size: 0.9em;">Find Fight</button>
-            <button class="btn btn-primary" onclick="fightWithoutRest()" id="fightWithoutRestBtn" style="padding: 10px 18px; font-size: 0.9em;">Fight 💎</button>
-            <button class="btn" style="background: #ffd93d; color: #333; padding: 10px 18px; font-size: 0.9em;" onclick="showWeeklyTournamentFromFighter()">🏆 Weekly Tournament</button>
-            <div id="fighterPaypalButton" class="paypal-button-container"></div>
-        </div>
+    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; padding: 0 10px;">
+    <button class="btn btn-fight" onclick="findFight()" id="fightBtn" style="padding: 10px 18px; font-size: 0.9em;">Find Fight</button>
+    <button class="btn btn-primary" onclick="fightWithoutRest()" id="fightWithoutRestBtn" style="padding: 10px 18px; font-size: 0.9em;">Fight 💎</button>
+    <button class="btn" style="background: #ffd93d; color: #333; padding: 10px 18px; font-size: 0.9em;" onclick="showWeeklyTournamentFromFighter()">🏆 Weekly Tournament</button>
+    <button class="btn" style="background: #4ecdc4; color: #fff; padding: 10px 18px; font-size: 0.9em;" onclick="showDailyTasks()">📅 Daily</button>
+    <div id="fighterPaypalButton" class="paypal-button-container"></div>
+</div>
     </div>
     <div class="fight-status">
         <div class="diamonds-display">Diamonds: <span id="diamonds">0</span> 💎</div>
@@ -1729,7 +1730,7 @@ function retryCloudSave(previousRetryCount) {
             if (localTimestamp && localTimestamp > cloudTimestamp) {
                 console.log('Local data is newer, using local data and syncing to cloud');
                 loadGameData();
-                saveToSupabase(); // Sync the newer local data to cloud
+                saveToSupabase();
             } else {
                 console.log('Loading data from Supabase:', gameData);
                 gameState.fighters = gameData.fighters || [];
@@ -1746,12 +1747,29 @@ function retryCloudSave(previousRetryCount) {
             loadGameData();
         }
         
+        // ADD THE DAILY TASKS INITIALIZATION HERE:
+        // Initialize daily tasks for all fighters
+        for (var i = 0; i < gameState.fighters.length; i++) {
+            if (gameState.fighters[i]) {
+                initializeDailyTasks(gameState.fighters[i]);
+            }
+        }
+        
         updateFighterSlots();
         updateDiamondDisplay();
     })
     .catch(function(e) {
         console.error('Load failed, using localStorage fallback:', e);
         loadGameData();
+        
+        // ALSO ADD HERE for the error case:
+        // Initialize daily tasks for all fighters
+        for (var i = 0; i < gameState.fighters.length; i++) {
+            if (gameState.fighters[i]) {
+                initializeDailyTasks(gameState.fighters[i]);
+            }
+        }
+        
         updateFighterSlots();
         updateDiamondDisplay();
     });
@@ -1868,7 +1886,145 @@ function showGlobalLeaderboard() {
     updateLeaderboard();
     document.getElementById(originalId).id = tempId;
 }
+function initializeDailyTasks(fighter) {
+    if (!fighter.dailyTasks) {
+        fighter.dailyTasks = {
+            lastReset: new Date().toDateString(),
+            winsToday: 0,
+            claimed: {
+                win1: false,
+                win3: false,
+                win5: false,
+                win10: false
+            }
+        };
+    }
+    
+    // Check if it's a new day and reset tasks
+    var today = new Date().toDateString();
+    if (fighter.dailyTasks.lastReset !== today) {
+        fighter.dailyTasks = {
+            lastReset: today,
+            winsToday: 0,
+            claimed: {
+                win1: false,
+                win3: false,
+                win5: false,
+                win10: false
+            }
+        };
+        saveToSupabase();
+    }
+}
 
+function incrementDailyWins(fighter) {
+    initializeDailyTasks(fighter);
+    fighter.dailyTasks.winsToday++;
+    saveToSupabase();
+}
+
+function showDailyTasks() {
+    var fighter = gameState.currentFighter;
+    
+    // If no fighter selected and we're on title screen, show message
+    if (!fighter) {
+        alert('Please select a fighter first to view daily tasks!');
+        return;
+    }
+    
+    initializeDailyTasks(fighter);
+    
+    var tasks = [
+        { id: 'win1', wins: 1, reward: 2, label: 'Win 1 Fight' },
+        { id: 'win3', wins: 3, reward: 6, label: 'Win 3 Fights' },
+        { id: 'win5', wins: 5, reward: 10, label: 'Win 5 Fights' },
+        { id: 'win10', wins: 10, reward: 20, label: 'Win 10 Fights' }
+    ];
+    
+    var existingModal = document.getElementById('dailyTasksModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    var tasksHTML = '';
+    for (var i = 0; i < tasks.length; i++) {
+        var task = tasks[i];
+        var completed = fighter.dailyTasks.winsToday >= task.wins;
+        var claimed = fighter.dailyTasks.claimed[task.id];
+        
+        var progressText = Math.min(fighter.dailyTasks.winsToday, task.wins) + '/' + task.wins;
+        var statusColor = completed ? '#6bcf7f' : '#888';
+        
+        tasksHTML += 
+            '<div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">' +
+                '<div style="flex: 1;">' +
+                    '<div style="font-size: 1.1em; font-weight: bold; color: #fff; margin-bottom: 5px;">' + task.label + '</div>' +
+                    '<div style="color: ' + statusColor + '; font-size: 0.9em;">' + progressText + ' • Reward: ' + task.reward + ' 💎</div>' +
+                '</div>';
+        
+        if (claimed) {
+            tasksHTML += '<div style="background: #6bcf7f; color: #fff; padding: 8px 16px; border-radius: 6px; font-weight: bold;">✓ CLAIMED</div>';
+        } else if (completed) {
+            tasksHTML += '<button class="btn btn-primary" onclick="claimDailyTask(\'' + task.id + '\', ' + task.reward + ')" style="padding: 8px 20px;">CLAIM</button>';
+        } else {
+            tasksHTML += '<div style="color: #888; padding: 8px 16px;">Incomplete</div>';
+        }
+        
+        tasksHTML += '</div>';
+    }
+    
+    // Calculate time until reset
+    var now = new Date();
+    var tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    var msUntilReset = tomorrow - now;
+    var hoursUntilReset = Math.floor(msUntilReset / (1000 * 60 * 60));
+    var minutesUntilReset = Math.floor((msUntilReset % (1000 * 60 * 60)) / (1000 * 60));
+    
+    var modalHTML = 
+        '<div id="dailyTasksModal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">' +
+            '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; padding: 30px; border-radius: 10px; border: 2px solid #4ecdc4; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">' +
+                '<h2 style="color: #4ecdc4; text-align: center; margin-bottom: 10px;">📅 Daily Tasks</h2>' +
+                '<p style="text-align: center; color: #888; font-size: 0.9em; margin-bottom: 20px;">Resets in ' + hoursUntilReset + 'h ' + minutesUntilReset + 'm</p>' +
+                '<div style="margin-bottom: 20px;">' + tasksHTML + '</div>' +
+                '<button class="btn btn-secondary" onclick="closeDailyTasks()" style="width: 100%;">Close</button>' +
+            '</div>' +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function claimDailyTask(taskId, reward) {
+    var fighter = gameState.currentFighter;
+    if (!fighter) return;
+    
+    initializeDailyTasks(fighter);
+    
+    // Mark as claimed
+    fighter.dailyTasks.claimed[taskId] = true;
+    
+    // Award diamonds
+    gameState.diamonds += reward;
+    
+    // Save and update
+    saveToSupabase();
+    updateDiamondDisplay();
+    
+    // Close and reopen modal to refresh
+    closeDailyTasks();
+    showDailyTasks();
+    
+    // Show success message
+    showLootMessage('✓ Claimed ' + reward + ' 💎 from daily task!');
+}
+
+function closeDailyTasks() {
+    var modal = document.getElementById('dailyTasksModal');
+    if (modal) {
+        modal.remove();
+    }
+}
 function closeGlobalLeaderboard() {
     var modal = document.getElementById('globalLeaderboardModal');
     if (modal) modal.remove();
@@ -2791,25 +2947,35 @@ function updateWeeklyLeaderboard() {
             
             // All validations passed - create the fighter
             var fighter = {
-                name: name,
-                birthplace: 'Unknown',
-                level: 1,
-                exp: 0,
-                expRequired: 100,
-                hp: 100,
-                maxHp: 100,
-                wins: 0,
-                lossStreak: 0,
-                totalFights: 0,
-                recentOpponents: [],
-                stats: { strength: 1, toughness: 1, agility: 1, luck: 1, speed: 1 },
-                unallocatedStats: 0,
-                specialAttack: null,
-                equipment: {
-                    weapon: { name: 'Wooden Stick', type: 'weapon', slot: 'weapon', power: 5, level: 1, itemLevel: 1, rarity: 'common', statType: 'Damage' },
-                    offHand: null, helmet: null, shoulders: null, gloves: null, chest: null, greaves: null, boots: null
-                }
-            };
+    name: name,
+    birthplace: 'Unknown',
+    level: 1,
+    exp: 0,
+    expRequired: 100,
+    hp: 100,
+    maxHp: 100,
+    wins: 0,
+    lossStreak: 0,
+    totalFights: 0,
+    recentOpponents: [],
+    stats: { strength: 1, toughness: 1, agility: 1, luck: 1, speed: 1 },
+    unallocatedStats: 0,
+    specialAttack: null,
+    dailyTasks: {
+        lastReset: new Date().toDateString(),
+        winsToday: 0,
+        claimed: {
+            win1: false,
+            win3: false,
+            win5: false,
+            win10: false
+        }
+    },
+    equipment: {
+        weapon: { name: 'Wooden Stick', type: 'weapon', slot: 'weapon', power: 5, level: 1, itemLevel: 1, rarity: 'common', statType: 'Damage' },
+        offHand: null, helmet: null, shoulders: null, gloves: null, chest: null, greaves: null, boots: null
+    }
+};
 
             gameState.fighters[gameState.currentSlotIndex] = fighter;
             
@@ -4180,6 +4346,9 @@ if (attackerType === 'player') {
         var expGained = Math.floor(20 + opponent.level * 5);
         player.exp += expGained;
         player.wins++;
+
+        // Track daily wins for tasks
+        incrementDailyWins(player);
         
         // IMPORTANT: Save immediately after incrementing wins to prevent loss
         saveToSupabase();
