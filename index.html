@@ -619,8 +619,10 @@ function initPayPalButtons() {
 function handleBackButton() {
     // Determine which screen is currently active and go back appropriately
     if (document.getElementById('fighterScreen').style.display === 'block') {
+        document.getElementById('globalBackBtn').style.display = 'none'; // Hide back button
         showTitleScreen();
     } else if (document.getElementById('creationScreen').style.display === 'block') {
+        document.getElementById('globalBackBtn').style.display = 'none'; // Hide back button
         showTitleScreen();
     }
 }
