@@ -632,8 +632,11 @@ function showFighterScreen() {
         console.log('Current fighter:', gameState.currentFighter);
         
         hideAll();
-        document.getElementById('fighterScreen').style.display = 'block';
-        console.log('Fighter screen display set to block');
+        
+        // Explicitly show the back button for fighter screen
+        document.getElementById('globalBackBtn').style.display = 'block';
+        
+        var fighterScreen = document.getElementById('fighterScreen');
         
         updateFighterDisplay();
         console.log('Fighter display updated');
