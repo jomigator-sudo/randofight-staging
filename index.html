@@ -451,9 +451,7 @@
 
 <!-- Fighter Details Screen -->
 <div id="fighterScreen" class="game-screen">
-    <div style="padding: 10px;">
-        <button class="btn btn-secondary" onclick="showTitleScreen()">← Back</button>
-    </div>
+    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; padding: 0 10px;">
     
     <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; padding: 0 10px;">
     <button class="btn btn-fight" onclick="findFight()" id="fightBtn" style="padding: 10px 18px; font-size: 0.9em;">Find Fight</button>
@@ -485,8 +483,8 @@
     </div>
 </div>  <!-- This closes fighterScreen -->
 
-        <!-- Fight Screen -->
-        <div id="fightScreen" class="game-screen">
+<!-- Fight Screen -->
+<div id="fightScreen" class="game-screen">
             <div class="fighters-display">
                 <div class="fighter-card">
                     <h3 id="player1Name">Your Fighter</h3>
