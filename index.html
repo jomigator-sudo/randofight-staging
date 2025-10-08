@@ -4608,45 +4608,45 @@ if (Math.random() * 100 < equipmentDropChance) {
     var itemLevel = Math.max(1, opponentLevel + Math.floor(Math.random() * 5) - 2);
     
     // Determine rarity based on upgrade/downgrade
-    var rarities;
-    
-    if (isUpgrade) {
-        // Upgrade: same or higher rarity
-        if (itemLevel <= 5) {
-            rarities = [
-                { name: 'common', weight: 50, powerPerLevel: 2, prefix: '' },
-                { name: 'uncommon', weight: 35, powerPerLevel: 2.5, prefix: 'Fine ' },
-                { name: 'rare', weight: 15, powerPerLevel: 3, prefix: 'Superior ' }
-            ];
-        } else if (itemLevel <= 15) {
-            rarities = [
-                { name: 'uncommon', weight: 40, powerPerLevel: 2.5, prefix: 'Fine ' },
-                { name: 'rare', weight: 35, powerPerLevel: 3, prefix: 'Superior ' },
-                { name: 'epic', weight: 20, powerPerLevel: 3.5, prefix: 'Masterwork ' },
-                { name: 'legendary', weight: 5, powerPerLevel: 4, prefix: 'Legendary ' }
-            ];
-        } else if (itemLevel <= 30) {
-            rarities = [
-                { name: 'rare', weight: 35, powerPerLevel: 3, prefix: 'Superior ' },
-                { name: 'epic', weight: 35, powerPerLevel: 3.5, prefix: 'Masterwork ' },
-                { name: 'legendary', weight: 25, powerPerLevel: 4, prefix: 'Legendary ' },
-                { name: 'mythic', weight: 5, powerPerLevel: 5, prefix: 'Mythic ' }
-            ];
-        } else {
-            rarities = [
-                { name: 'epic', weight: 30, powerPerLevel: 3.5, prefix: 'Masterwork ' },
-                { name: 'legendary', weight: 45, powerPerLevel: 4, prefix: 'Legendary ' },
-                { name: 'mythic', weight: 25, powerPerLevel: 5, prefix: 'Mythic ' }
-            ];
-        }
-    } else {
-        // Weak item: lower rarity
+var rarities;
+
+if (isUpgrade) {
+    // Upgrade: same or higher rarity
+    if (itemLevel <= 5) {
         rarities = [
-            { name: 'common', weight: 60, powerPerLevel: 1.5, prefix: '' },
-            { name: 'uncommon', weight: 30, powerPerLevel: 2, prefix: 'Fine ' },
-            { name: 'rare', weight: 10, powerPerLevel: 2.5, prefix: 'Superior ' }
+            { name: 'common', weight: 50, powerPerLevel: 2, prefix: '' },
+            { name: 'uncommon', weight: 35, powerPerLevel: 2.5, prefix: 'Fine ' },
+            { name: 'rare', weight: 15, powerPerLevel: 3, prefix: 'Superior ' }
+        ];
+    } else if (itemLevel <= 15) {
+        rarities = [
+            { name: 'uncommon', weight: 40, powerPerLevel: 2.5, prefix: 'Fine ' },
+            { name: 'rare', weight: 35, powerPerLevel: 3, prefix: 'Superior ' },
+            { name: 'epic', weight: 20, powerPerLevel: 3.5, prefix: 'Masterwork ' },
+            { name: 'legendary', weight: 5, powerPerLevel: 4, prefix: 'Legendary ' }
+        ];
+    } else if (itemLevel <= 30) {
+        rarities = [
+            { name: 'rare', weight: 35, powerPerLevel: 3, prefix: 'Superior ' },
+            { name: 'epic', weight: 35, powerPerLevel: 3.5, prefix: 'Masterwork ' },
+            { name: 'legendary', weight: 25, powerPerLevel: 4, prefix: 'Legendary ' },
+            { name: 'mythic', weight: 5, powerPerLevel: 5, prefix: 'Mythic ' }
+        ];
+    } else {
+        rarities = [
+            { name: 'epic', weight: 30, powerPerLevel: 3.5, prefix: 'Masterwork ' },
+            { name: 'legendary', weight: 45, powerPerLevel: 4, prefix: 'Legendary ' },
+            { name: 'mythic', weight: 25, powerPerLevel: 5, prefix: 'Mythic ' }
         ];
     }
+} else {
+    // Weak item: lower rarity
+    rarities = [
+        { name: 'common', weight: 60, powerPerLevel: 1.5, prefix: '' },
+        { name: 'uncommon', weight: 30, powerPerLevel: 2, prefix: 'Fine ' },
+        { name: 'rare', weight: 10, powerPerLevel: 2.5, prefix: 'Superior ' }
+    ];
+}
     
     // Select rarity
     var totalWeight = rarities.reduce(function(sum, rarity) { return sum + rarity.weight; }, 0);
@@ -4662,24 +4662,18 @@ if (Math.random() * 100 < equipmentDropChance) {
         }
     }
     
-    // Calculate power
-    var basePower = Math.floor(itemLevel * selectedRarity.powerPerLevel);
+    // Calculate power based on item level and rarity
+var basePower = Math.floor(itemLevel * selectedRarity.powerPerLevel);
 
-                // NERF armor defense values (weapons stay the same)
+// NERF: Reduce defense item power by 40% to balance armor
 if (itemType.statType === 'Defense') {
-    basePower = Math.floor(basePower * 0.3); // Reduce armor to 30% of weapon values
-}           
-    // For upgrades, ensure better than current
-    if (isUpgrade && currentItem) {
-        basePower = Math.max(currentItem.power + 1, basePower);
-    }
-    
-    // For weak items, ensure worse or equal to current
-    if (!isUpgrade && currentItem) {
-        basePower = Math.min(currentItem.power, basePower);
-    }
-    
-    var finalPower = Math.max(1, basePower);
+    basePower = Math.floor(basePower * 0.6); // 40% reduction for defense items
+}
+
+var finalPower = Math.max(1, basePower);
+
+// Adjust item level based on upgrade/downgrade
+// No need to adjust power directly - the item level already determines if it's an upgrade
     
     // Generate name (reuse naming logic from generateUpgradeItem)
     var baseName = itemType.names[Math.floor(Math.random() * itemType.names.length)];
