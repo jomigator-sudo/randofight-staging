@@ -526,10 +526,11 @@
         lastReset: new Date().toDateString(),
         winsToday: 0,
         claimed: {
-            win1: false,
-            win3: false,
-            win5: false,
-            win10: false
+                win3: false,
+                win5: false,
+                win10: false,
+                win20: false,
+                win30: false
         }
     }
 };
@@ -1959,10 +1960,11 @@ function initializeDailyTasks() {
             lastReset: new Date().toDateString(),
             winsToday: 0,
             claimed: {
-                win1: false,
                 win3: false,
                 win5: false,
-                win10: false
+                win10: false,
+                win20: false,
+                win30: false
             }
         };
     }
@@ -1974,10 +1976,11 @@ function initializeDailyTasks() {
             lastReset: today,
             winsToday: 0,
             claimed: {
-                win1: false,
                 win3: false,
                 win5: false,
-                win10: false
+                win10: false,
+                win20: false,
+                win30: false
             }
         };
         saveToSupabase();
@@ -1994,11 +1997,12 @@ function showDailyTasks() {
     initializeDailyTasks();
     
     var tasks = [
-        { id: 'win1', wins: 1, reward: 2, label: 'Win 1 Fight' },
-        { id: 'win3', wins: 3, reward: 6, label: 'Win 3 Fights' },
-        { id: 'win5', wins: 5, reward: 10, label: 'Win 5 Fights' },
-        { id: 'win10', wins: 10, reward: 20, label: 'Win 10 Fights' }
-    ];
+    { id: 'win3', wins: 3, reward: 2, label: 'Win 3 Fights' },
+    { id: 'win5', wins: 5, reward: 6, label: 'Win 5 Fights' },
+    { id: 'win10', wins: 10, reward: 10, label: 'Win 10 Fights' },
+    { id: 'win20', wins: 20, reward: 20, label: 'Win 20 Fights' },
+    { id: 'win30', wins: 30, reward: 30, label: 'Win 30 Fights' }
+];
     
     var existingModal = document.getElementById('dailyTasksModal');
     if (existingModal) {
