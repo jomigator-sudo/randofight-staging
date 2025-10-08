@@ -3239,6 +3239,7 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
 
     var strengthBonus = (fighter.stats.strength - 1) * 2;
 var toughnessBonus = fighter.stats.toughness >= 2 ? Math.min(50, (fighter.stats.toughness - 1) * 0.6) : 0; // 0.6% per point, max 50%
+var toughnessChance = Math.min(40, (fighter.stats.toughness - 1) * 0.4); // 0.4% per point, max 40%
 var dodgeChance = Math.min(35, (fighter.stats.agility - 1) * 0.35); // 0.35% per point, max 35%
 var speedBonus = Math.min(50, (fighter.stats.speed - 1) * 0.5); // Changed from 1%, max 50%
 var critChance = Math.min(50, (fighter.stats.luck - 1) * 0.5); // 0.5% per point, max 50%
@@ -3311,7 +3312,7 @@ var critChance = Math.min(50, (fighter.stats.luck - 1) * 0.5); // 0.5% per point
         '<hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">' +
         unallocatedDisplay +
         '<div class="stat-row"><span>Strength <span style="color: #888; font-size: 0.8em;">(+' + strengthBonus + ' damage)</span>:</span> <span>' + fighter.stats.strength + '</span></div>' +
-        '<div class="stat-row"><span>Toughness <span style="color: #888; font-size: 0.8em;">(-' + toughnessBonus.toFixed(1) + '% damage taken)</span>:</span> <span>' + fighter.stats.toughness + '</span></div>' +
+        '<div class="stat-row"><span>Toughness <span style="color: #888; font-size: 0.8em;">(' + toughnessChance.toFixed(1) + '% chance for 50% damage reduction)</span>:</span> <span>' + fighter.stats.toughness + '</span></div>' +
         '<div class="stat-row"><span>Agility <span style="color: #888; font-size: 0.8em;">(' + dodgeChance.toFixed(1) + '% dodge chance)</span>:</span> <span>' + fighter.stats.agility + '</span></div>' +
         '<div class="stat-row"><span>Luck <span style="color: #888; font-size: 0.8em;">(' + critChance.toFixed(1) + '% crit chance)</span>:</span> <span>' + fighter.stats.luck + '</span></div>' +
         '<div class="stat-row"><span>Speed <span style="color: #888; font-size: 0.8em;">(' + speedBonus.toFixed(1) + '% extra attack chance)</span>:</span> <span>' + fighter.stats.speed + '</span></div>' +        
@@ -3856,51 +3857,51 @@ function fightWithoutRest() {
         }
     };
     
-    // Add defensive equipment for higher level bots - SLIGHTLY REDUCED
-    if (opponentLevel >= 5) {
-        var armorPower = Math.floor(5 + opponentLevel * 1.2); // Reduced from 1.5
-        
-        if (opponentLevel >= 10) {
-            botEquipment.chest = {
-                name: 'Battle Armor',
-                rarity: opponentLevel >= 15 ? 'rare' : 'uncommon',
-                power: armorPower,
-                statType: 'Defense'
-            };
-        }
-        
-        if (opponentLevel >= 15) {
-            botEquipment.helmet = {
-                name: 'War Helm',
-                rarity: opponentLevel >= 20 ? 'epic' : 'rare',
-                power: Math.floor(armorPower * 0.7),
-                statType: 'Defense'
-            };
-            
-            botEquipment.offhand = {
-                name: 'Tower Shield',
-                rarity: opponentLevel >= 20 ? 'epic' : 'rare',
-                power: Math.floor(armorPower * 0.8),
-                statType: 'Defense'
-            };
-        }
-        
-        if (opponentLevel >= 20) {
-            botEquipment.boots = {
-                name: 'Plated Boots',
-                rarity: 'epic',
-                power: Math.floor(armorPower * 0.5),
-                statType: 'Defense'
-            };
-            
-            botEquipment.gloves = {
-                name: 'Gauntlets',
-                rarity: 'epic',
-                power: Math.floor(armorPower * 0.5),
-                statType: 'Defense'
-            };
-        }
+    // Add defensive equipment for higher level bots - HEAVILY REDUCED
+if (opponentLevel >= 5) {
+    var armorPower = Math.floor(3 + opponentLevel * 0.4); // Reduced from 1.2
+    
+    if (opponentLevel >= 10) {
+        botEquipment.chest = {
+            name: 'Battle Armor',
+            rarity: opponentLevel >= 15 ? 'rare' : 'uncommon',
+            power: armorPower,
+            statType: 'Defense'
+        };
     }
+    
+    if (opponentLevel >= 15) {
+        botEquipment.helmet = {
+            name: 'War Helm',
+            rarity: opponentLevel >= 20 ? 'epic' : 'rare',
+            power: Math.floor(armorPower * 0.7),
+            statType: 'Defense'
+        };
+        
+        botEquipment.offhand = {
+            name: 'Tower Shield',
+            rarity: opponentLevel >= 20 ? 'epic' : 'rare',
+            power: Math.floor(armorPower * 0.8),
+            statType: 'Defense'
+        };
+    }
+    
+    if (opponentLevel >= 20) {
+        botEquipment.boots = {
+            name: 'Plated Boots',
+            rarity: 'epic',
+            power: Math.floor(armorPower * 0.5),
+            statType: 'Defense'
+        };
+        
+        botEquipment.gloves = {
+            name: 'Gauntlets',
+            rarity: 'epic',
+            power: Math.floor(armorPower * 0.5),
+            statType: 'Defense'
+        };
+    }
+}
     
     // Stats distribution
     var stats = {
@@ -4239,10 +4240,10 @@ function fightWithoutRest() {
     }
     
     // Critical hit chance
-    var critChance = Math.min(50, (attacker.stats.luck - 1) * 0.5); // 0.5% per point
+    var critChance = Math.min(50, (attacker.stats.luck - 1) * 0.5);
     var isCrit = Math.random() * 100 < critChance;
     
-    // Calculate defense
+    // Calculate defense from armor only
     var totalDefense = 0;
     if (defender.equipment) {
         var equipmentSlotNames = ['offhand', 'helmet', 'shoulders', 'gloves', 'chest', 'greaves', 'boots'];
@@ -4255,26 +4256,34 @@ function fightWithoutRest() {
         }
     }
     
-    var toughnessReduction = Math.min(50, (defender.stats.toughness - 1) * 0.6);
-    var defenseReduction = Math.min(40, totalDefense * 0.5);
-    var totalReduction = Math.min(60, toughnessReduction + defenseReduction);
+    // Defense reduction from armor (capped at 60%)
+    var defenseReduction = Math.min(60, totalDefense * 0.5);
+    damage = Math.floor(damage * (1 - defenseReduction / 100));
     
-    damage = Math.floor(damage * (1 - totalReduction / 100));
+    // Toughness check - chance to reduce damage by 50%
+    var toughnessChance = Math.min(40, (defender.stats.toughness - 1) * 0.4); // 0.4% per point, max 40%
+    var toughnessProc = Math.random() * 100 < toughnessChance;
+    
+    if (toughnessProc) {
+        damage = Math.floor(damage * 0.5); // 50% damage reduction when it procs
+        addToFightLog('<span style="color: #4ecdc4; font-weight: bold;">🛡️ TOUGH! ' + defenderNameText + ' braces for impact and reduces damage by 50%!</span>');
+    }
+    
     damage = Math.max(1, damage);
     
     var attackText = '';
     
     if (isCrit) {
-    damage = Math.floor(damage * 2.0); // Decreased from 2.5x to 2.0x
-    damage = Math.max(2, damage);
-    // Enhanced critical hit display
-    var critTexts = [
-        '<span class="critical-hit-text">⚡ CRITICAL HIT! ⚡</span> ' + attackerNameText + ' finds a weak spot with their ' + weaponText + ' and deals <span class="damage">' + damage + '</span> massive damage!',
-        '<span class="critical-hit-text">💥 CRITICAL STRIKE! 💥</span> ' + attackerNameText + ' lands a devastating blow with their ' + weaponText + ' for <span class="damage">' + damage + '</span> damage!',
-        '<span class="critical-hit-text">🔥 CRITICAL! 🔥</span> ' + attackerNameText + '\'s ' + weaponText + ' strikes true for <span class="damage">' + damage + '</span> crushing damage!'
-    ];
-    attackText = critTexts[Math.floor(Math.random() * critTexts.length)];
-} else {
+        damage = Math.floor(damage * 2.0);
+        damage = Math.max(2, damage);
+        // Enhanced critical hit display
+        var critTexts = [
+            '<span class="critical-hit-text">⚡ CRITICAL HIT! ⚡</span> ' + attackerNameText + ' finds a weak spot with their ' + weaponText + ' and deals <span class="damage">' + damage + '</span> massive damage!',
+            '<span class="critical-hit-text">💥 CRITICAL STRIKE! 💥</span> ' + attackerNameText + ' lands a devastating blow with their ' + weaponText + ' for <span class="damage">' + damage + '</span> damage!',
+            '<span class="critical-hit-text">🔥 CRITICAL! 🔥</span> ' + attackerNameText + '\'s ' + weaponText + ' strikes true for <span class="damage">' + damage + '</span> crushing damage!'
+        ];
+        attackText = critTexts[Math.floor(Math.random() * critTexts.length)];
+    } else {
         // Regular attacks with highlighted names
         var bodyParts = ['chest', 'shoulder', 'arm', 'leg', 'ribs', 'side', 'back'];
         var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles'];
@@ -4299,15 +4308,15 @@ function fightWithoutRest() {
     }
     
     // Update HP bars
-if (attackerType === 'player') {
-    var opponentHpPercent = (defender.currentHp / defender.maxHp) * 100;
-    document.getElementById('player2HP').style.width = opponentHpPercent + '%';
-    document.getElementById('player2HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
-} else {
-    var playerHpPercent = (defender.currentHp / defender.maxHp) * 100;
-    document.getElementById('player1HP').style.width = playerHpPercent + '%';
-    document.getElementById('player1HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
-}
+    if (attackerType === 'player') {
+        var opponentHpPercent = (defender.currentHp / defender.maxHp) * 100;
+        document.getElementById('player2HP').style.width = opponentHpPercent + '%';
+        document.getElementById('player2HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
+    } else {
+        var playerHpPercent = (defender.currentHp / defender.maxHp) * 100;
+        document.getElementById('player1HP').style.width = playerHpPercent + '%';
+        document.getElementById('player1HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
+    }
 }
             
             function performSpecialAttack(attacker, defender, attackerType) {
@@ -4323,7 +4332,7 @@ if (attackerType === 'player') {
     
     specialDamage = Math.floor(specialDamage * (0.85 + Math.random() * 0.3));
     
-    // Calculate defense
+    // Calculate defense from armor
     var totalDefense = 0;
     if (defender.equipment) {
         var equipmentSlotNames = ['offhand', 'helmet', 'shoulders', 'gloves', 'chest', 'greaves', 'boots'];
@@ -4336,11 +4345,20 @@ if (attackerType === 'player') {
         }
     }
     
-    var toughnessReduction = Math.min(30, (defender.stats.toughness - 1) * 3);
-    var defenseReduction = Math.min(40, totalDefense * 0.5);
-    var totalReduction = Math.min(60, toughnessReduction + defenseReduction);
+    var defenseReduction = Math.min(60, totalDefense * 0.5);
+    specialDamage = Math.floor(specialDamage * (1 - defenseReduction / 100));
     
-    specialDamage = Math.floor(specialDamage * (1 - totalReduction / 100));
+    // Toughness check
+    var toughnessChance = Math.min(40, (defender.stats.toughness - 1) * 0.4);
+    var toughnessProc = Math.random() * 100 < toughnessChance;
+    
+    if (toughnessProc) {
+        specialDamage = Math.floor(specialDamage * 0.5);
+        var defenderNameClass = attackerType === 'player' ? 'opponent-name' : 'player-name';
+        var defenderNameText = '<span class="' + defenderNameClass + '">' + defender.name + '</span>';
+        addToFightLog('<span style="color: #4ecdc4; font-weight: bold;">🛡️ TOUGH! ' + defenderNameText + ' braces for impact and reduces damage by 50%!</span>');
+    }
+    
     specialDamage = Math.max(3, specialDamage);
     
     defender.currentHp = Math.max(0, defender.currentHp - specialDamage);
@@ -4366,15 +4384,15 @@ if (attackerType === 'player') {
     addToFightLog(specialTexts[Math.floor(Math.random() * specialTexts.length)]);
     
     // Update HP bars
-if (attackerType === 'player') {
-    var opponentHpPercent = (defender.currentHp / defender.maxHp) * 100;
-    document.getElementById('player2HP').style.width = opponentHpPercent + '%';
-    document.getElementById('player2HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
-} else {
-    var playerHpPercent = (defender.currentHp / defender.maxHp) * 100;
-    document.getElementById('player1HP').style.width = playerHpPercent + '%';
-    document.getElementById('player1HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
-}
+    if (attackerType === 'player') {
+        var opponentHpPercent = (defender.currentHp / defender.maxHp) * 100;
+        document.getElementById('player2HP').style.width = opponentHpPercent + '%';
+        document.getElementById('player2HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
+    } else {
+        var playerHpPercent = (defender.currentHp / defender.maxHp) * 100;
+        document.getElementById('player1HP').style.width = playerHpPercent + '%';
+        document.getElementById('player1HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
+    }
 }
             
             function endCombat(player, opponent) {
@@ -4646,7 +4664,11 @@ if (Math.random() * 100 < equipmentDropChance) {
     
     // Calculate power
     var basePower = Math.floor(itemLevel * selectedRarity.powerPerLevel);
-    
+
+                // NERF armor defense values (weapons stay the same)
+if (itemType.statType === 'Defense') {
+    basePower = Math.floor(basePower * 0.3); // Reduce armor to 30% of weapon values
+}           
     // For upgrades, ensure better than current
     if (isUpgrade && currentItem) {
         basePower = Math.max(currentItem.power + 1, basePower);
