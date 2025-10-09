@@ -3243,7 +3243,7 @@ if (fighter.specialAttack && fighter.specialAttack.name) {
 
     var strengthBonus = (fighter.stats.strength - 1) * 2;
 var toughnessBonus = fighter.stats.toughness >= 2 ? Math.min(50, (fighter.stats.toughness - 1) * 0.6) : 0; // 0.6% per point, max 50%
-var toughnessChance = Math.min(40, (fighter.stats.toughness - 1) * 0.4); // 0.4% per point, max 40%
+var toughnessChance = Math.min(50, (fighter.stats.toughness - 1) * 0.5); // 0.5% per point, max 50%
 var dodgeChance = Math.min(35, (fighter.stats.agility - 1) * 0.35); // 0.35% per point, max 35%
 var speedBonus = Math.min(50, (fighter.stats.speed - 1) * 0.5); // Changed from 1%, max 50%
 var critChance = Math.min(50, (fighter.stats.luck - 1) * 0.5); // 0.5% per point, max 50%
@@ -3312,7 +3312,7 @@ var critChance = Math.min(50, (fighter.stats.luck - 1) * 0.5); // 0.5% per point
         '<div class="stat-row"><span>Damage:</span> <span style="color: #ff6b6b;">' + baseDamage + 
             (damageBonus > 0 ? ' <span style="color: #6bcf7f;">(+' + damageBonus + ')</span>' : '') + '</span></div>' +
         '<div class="stat-row"><span>Defense:</span> <span style="color: #74b9ff;">' + 
-            (totalDefense > 0 ? totalDefense + ' <span style="color: #888;">(-' + Math.min(50, totalDefense) + '% damage)</span>' : '0') + '</span></div>' +
+    (totalDefense > 0 ? totalDefense + ' <span style="color: #888;">(-' + Math.min(60, totalDefense * 0.25).toFixed(1) + '% damage)</span>' : '0') + '</span></div>' +
         '<hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);">' +
         unallocatedDisplay +
         '<div class="stat-row"><span>Strength <span style="color: #888; font-size: 0.8em;">(+' + strengthBonus + ' damage)</span>:</span> <span>' + fighter.stats.strength + '</span></div>' +
@@ -4261,11 +4261,11 @@ if (opponentLevel >= 5) {
     }
     
     // Defense reduction from armor (capped at 60%)
-    var defenseReduction = Math.min(60, totalDefense * 0.5);
+    var defenseReduction = Math.min(60, totalDefense * 0.25);
     damage = Math.floor(damage * (1 - defenseReduction / 100));
     
     // Toughness check - chance to reduce damage by 50%
-    var toughnessChance = Math.min(40, (defender.stats.toughness - 1) * 0.4); // 0.4% per point, max 40%
+    var toughnessChance = Math.min(50, (defender.stats.toughness - 1) * 0.5); // 0.5% per point, max 50%
     var toughnessProc = Math.random() * 100 < toughnessChance;
     
     if (toughnessProc) {
@@ -4349,12 +4349,12 @@ if (opponentLevel >= 5) {
         }
     }
     
-    var defenseReduction = Math.min(60, totalDefense * 0.5);
+    var defenseReduction = Math.min(60, totalDefense * 0.25);
     specialDamage = Math.floor(specialDamage * (1 - defenseReduction / 100));
     
     // Toughness check
-    var toughnessChance = Math.min(40, (defender.stats.toughness - 1) * 0.4);
-    var toughnessProc = Math.random() * 100 < toughnessChance;
+    var toughnessChance = Math.min(50, (defender.stats.toughness - 1) * 0.5);
+var toughnessProc = Math.random() * 100 < toughnessChance;
     
     if (toughnessProc) {
         specialDamage = Math.floor(specialDamage * 0.5);
