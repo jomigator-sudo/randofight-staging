@@ -4108,6 +4108,12 @@ player.specialMeter = 0;
 opponent.specialMeter = 0;
 player.specialReady = false;
 opponent.specialReady = false;
+player.useSpecialNext = false;
+opponent.useSpecialNext = false;
+            // Reset the visual special attack bars
+document.getElementById('player1Special').style.width = '0%';
+document.getElementById('player2Special').style.width = '0%';
+document.getElementById('player1SpecialBtn').style.display = 'none';
     // Store whether this is a diamond fight
     player.isDiamondFight = isDiamondFight;
     
