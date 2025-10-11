@@ -4326,13 +4326,11 @@ document.getElementById('player1SpecialBtn').style.display = 'none';
     defender.currentHp = Math.max(0, defender.currentHp - damage);
     
     addToFightLog(attackText);
-// Gain special meter for both attacker and defender
+// Special meter only gains from taking damage (comeback mechanic)
 if (attackerType === 'player') {
-    updateSpecialMeter(attacker, 15, true); // Attacker gains 15%
-    updateSpecialMeter(defender, 10, false); // Defender gains 10%
+    updateSpecialMeter(defender, 20, false); // Opponent gains meter when hit
 } else {
-    updateSpecialMeter(attacker, 15, false); // Bot attacker
-    updateSpecialMeter(defender, 10, true); // Player defender
+    updateSpecialMeter(defender, 20, true); // Player gains meter when hit
 }
                 
 // Check if special attack should be used
