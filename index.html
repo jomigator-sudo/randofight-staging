@@ -4114,6 +4114,22 @@ opponent.useSpecialNext = false;
 document.getElementById('player1Special').style.width = '0%';
 document.getElementById('player2Special').style.width = '0%';
 document.getElementById('player1SpecialBtn').style.display = 'none';
+// Hide/show special attack UI based on level
+var player1SpecialContainer = document.getElementById('player1Special').parentElement;
+var player2SpecialContainer = document.getElementById('player2Special').parentElement;
+
+if (player.level >= 10 && player.specialAttack) {
+    player1SpecialContainer.style.display = 'block';
+} else {
+    player1SpecialContainer.style.display = 'none';
+}
+
+if (opponent.level >= 10 && opponent.specialAttack) {
+    player2SpecialContainer.style.display = 'block';
+} else {
+    player2SpecialContainer.style.display = 'none';
+}
+            
     // Store whether this is a diamond fight
     player.isDiamondFight = isDiamondFight;
     
