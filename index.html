@@ -485,22 +485,35 @@
 
 <!-- Fight Screen -->
 <div id="fightScreen" class="game-screen">
-    <div class="fighters-display" style="margin-top: 40px;">
-                <div class="fighter-card">
-                    <h3 id="player1Name">Your Fighter</h3>
-                    <div class="hp-bar">
-                        <div id="player1HP" class="hp-fill" style="width: 100%"></div>
-                    </div>
-                    <div id="player1Info">HP: <span id="player1HPText">100/100</span></div>
-                </div>
-                <div class="fighter-card">
-                    <h3 id="player2Name">Opponent</h3>
-                    <div class="hp-bar">
-                        <div id="player2HP" class="hp-fill" style="width: 100%"></div>
-                    </div>
-                    <div id="player2Info">HP: <span id="player2HPText">100/100</span></div>
-                </div>
+<div class="fighters-display" style="margin-top: 40px;">
+    <div class="fighter-card">
+        <h3 id="player1Name">Your Fighter</h3>
+        <div class="hp-bar">
+            <div id="player1HP" class="hp-fill" style="width: 100%"></div>
+        </div>
+        <div id="player1Info">HP: <span id="player1HPText">100/100</span></div>
+        <div style="margin-top: 10px;">
+            <div style="font-size: 0.8em; color: #ffd93d; margin-bottom: 3px;">Special Attack</div>
+            <div style="width: 100%; height: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; overflow: hidden; border: 1px solid #ffd93d;">
+                <div id="player1Special" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ffd93d, #ffed4d); transition: width 0.3s ease;"></div>
             </div>
+        </div>
+        <button id="player1SpecialBtn" class="btn" style="background: #ffd93d; color: #333; margin-top: 8px; padding: 6px 12px; font-size: 0.85em; display: none;" onclick="playerUseSpecial()">Use Special Attack</button>
+    </div>
+    <div class="fighter-card">
+        <h3 id="player2Name">Opponent</h3>
+        <div class="hp-bar">
+            <div id="player2HP" class="hp-fill" style="width: 100%"></div>
+        </div>
+        <div id="player2Info">HP: <span id="player2HPText">100/100</span></div>
+        <div style="margin-top: 10px;">
+            <div style="font-size: 0.8em; color: #ffd93d; margin-bottom: 3px;">Special Attack</div>
+            <div style="width: 100%; height: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; overflow: hidden; border: 1px solid #ffd93d;">
+                <div id="player2Special" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff6b6b, #ff8c42); transition: width 0.3s ease;"></div>
+            </div>
+        </div>
+    </div>
+</div>
             <div id="fightLog" class="fight-log"></div>
 <div style="text-align: center; margin-top: 20px;">
     <button class="btn btn-secondary" onclick="endFight()" id="endFightBtn" style="display: none; margin: 0 auto;">Continue</button>
@@ -4090,7 +4103,11 @@ if (opponentLevel >= 5) {
             
     player.currentHp = player.maxHp;
     opponent.currentHp = opponent.maxHp;
-    
+    // Initialize special attack meters
+player.specialMeter = 0;
+opponent.specialMeter = 0;
+player.specialReady = false;
+opponent.specialReady = false;
     // Store whether this is a diamond fight
     player.isDiamondFight = isDiamondFight;
     
@@ -4303,13 +4320,35 @@ if (opponentLevel >= 5) {
     defender.currentHp = Math.max(0, defender.currentHp - damage);
     
     addToFightLog(attackText);
-    
-    // Special attack chance
-    if (attacker.level >= 10 && attacker.specialAttack && Math.random() < 0.1) {
-        setTimeout(function() {
-            performSpecialAttack(attacker, defender, attackerType);
-        }, 500);
+// Gain special meter for both attacker and defender
+if (attackerType === 'player') {
+    updateSpecialMeter(attacker, 15, true); // Attacker gains 15%
+    updateSpecialMeter(defender, 10, false); // Defender gains 10%
+} else {
+    updateSpecialMeter(attacker, 15, false); // Bot attacker
+    updateSpecialMeter(defender, 10, true); // Player defender
+}
+                
+// Check if special attack should be used
+var shouldUseSpecial = false;
+
+if (attacker.level >= 10 && attacker.specialAttack) {
+    if (attackerType === 'player' && attacker.useSpecialNext) {
+        shouldUseSpecial = true;
+        attacker.useSpecialNext = false;
+    } else if (attackerType === 'opponent' && attacker.specialMeter >= 100) {
+        // Bot uses special when meter is full
+        shouldUseSpecial = true;
+        attacker.specialMeter = 0;
+        document.getElementById('player2Special').style.width = '0%';
     }
+}
+
+if (shouldUseSpecial) {
+    setTimeout(function() {
+        performSpecialAttack(attacker, defender, attackerType);
+    }, 500);
+}
     
     // Update HP bars
     if (attackerType === 'player') {
@@ -4321,6 +4360,39 @@ if (opponentLevel >= 5) {
         document.getElementById('player1HP').style.width = playerHpPercent + '%';
         document.getElementById('player1HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
     }
+}
+        function updateSpecialMeter(fighter, amount, isPlayer) {
+    if (!fighter.specialAttack || fighter.level < 10) return;
+    
+    fighter.specialMeter = Math.min(100, fighter.specialMeter + amount);
+    
+    var meterId = isPlayer ? 'player1Special' : 'player2Special';
+    var btnId = 'player1SpecialBtn';
+    
+    document.getElementById(meterId).style.width = fighter.specialMeter + '%';
+    
+    // Show button when meter is full (player only)
+    if (isPlayer && fighter.specialMeter >= 100 && !fighter.specialReady) {
+        fighter.specialReady = true;
+        var btn = document.getElementById(btnId);
+        if (btn) {
+            btn.style.display = 'block';
+        }
+    }
+}
+
+function playerUseSpecial() {
+    var player = gameState.currentFighter;
+    if (!player.specialReady || player.specialMeter < 100) return;
+    
+    player.useSpecialNext = true;
+    player.specialMeter = 0;
+    player.specialReady = false;
+    
+    document.getElementById('player1Special').style.width = '0%';
+    document.getElementById('player1SpecialBtn').style.display = 'none';
+    
+    addToFightLog('<span style="color: #ffd93d; font-weight: bold;">âš¡ ' + player.name + ' is preparing their special attack! âš¡</span>');
 }
             
             function performSpecialAttack(attacker, defender, attackerType) {
@@ -4366,7 +4438,7 @@ var toughnessProc = Math.random() * 100 < toughnessChance;
     specialDamage = Math.max(3, specialDamage);
     
     defender.currentHp = Math.max(0, defender.currentHp - specialDamage);
-    
+    // Special attacks don't generate meter
     // Determine name classes
     var attackerNameClass = attackerType === 'player' ? 'player-name' : 'opponent-name';
     var defenderNameClass = attackerType === 'player' ? 'opponent-name' : 'player-name';
