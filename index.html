@@ -4852,12 +4852,23 @@ var finalPower = Math.max(1, basePower);
 }
             
             function levelUp(fighter) {
-                fighter.level++;
-                fighter.exp -= fighter.expRequired;
-                fighter.expRequired = Math.floor(fighter.expRequired * 1.2);
-                fighter.maxHp += 20;
-                fighter.hp = fighter.maxHp;
-                fighter.currentHp = fighter.maxHp;
+    fighter.level++;
+    fighter.exp -= fighter.expRequired;
+    fighter.expRequired = Math.floor(fighter.expRequired * 1.2);
+    
+    // Increased HP scaling - more HP per level at higher levels
+    var hpGain = 20;
+    if (fighter.level > 50) {
+        hpGain = 50; // +50 HP per level after 50
+    } else if (fighter.level > 30) {
+        hpGain = 35; // +35 HP per level 31-50
+    } else if (fighter.level > 15) {
+        hpGain = 25; // +25 HP per level 16-30
+    }
+    
+    fighter.maxHp += hpGain;
+    fighter.hp = fighter.maxHp;
+    fighter.currentHp = fighter.maxHp;
                 
                 // Give 1 unallocated stat point instead of random increases
                 if (!fighter.unallocatedStats) {
