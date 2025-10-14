@@ -3783,7 +3783,20 @@ function fightWithoutRest() {
         opponentLevel = Math.max(1, level + Math.floor(Math.random() * 3) - 1);
     }
     
-    var opponentMaxHp = Math.floor(100 + (opponentLevel - 1) * 20);
+    // Calculate HP with scaling based on level
+var hpGain = 0;
+for (var lvl = 1; lvl < opponentLevel; lvl++) {
+    if (lvl > 50) {
+        hpGain += 50;
+    } else if (lvl > 30) {
+        hpGain += 35;
+    } else if (lvl > 15) {
+        hpGain += 25;
+    } else {
+        hpGain += 20;
+    }
+}
+var opponentMaxHp = Math.floor(100 + hpGain);
     
     // If guaranteed loss, reduce HP further
     if (guaranteedLoss) {
