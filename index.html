@@ -3076,10 +3076,14 @@ function updateWeeklyLeaderboard() {
                 var highlightStyle = isCurrentUser ? ' style="background: rgba(78, 205, 196, 0.1); border-radius: 5px;"' : '';
                 var yourFighterTag = isCurrentUser ? ' <span style="color: #4ecdc4; font-size: 0.8em;">(You)</span>' : '';
                 
-                html += '<div class="leaderboard-entry"' + highlightStyle + '>' +
-                    '<span>' + medal + ' ' + entry.fighter_name + yourFighterTag + prizeText + '</span>' +
-                    '<span>' + entry.wins + ' wins</span>' +
-                    '</div>';
+                var nameClickable = entry.user_id ? 
+    '<span style="cursor: pointer; text-decoration: underline;" onclick="showPlayerProfile(\'' + entry.fighter_name.replace(/'/g, "\\'") + '\', \'' + entry.user_id + '\')">' + entry.fighter_name + '</span>' : 
+    entry.fighter_name;
+
+html += '<div class="leaderboard-entry"' + highlightStyle + '>' +
+    '<span>' + medal + ' ' + nameClickable + yourFighterTag + prizeText + '</span>' +
+    '<span>' + entry.wins + ' wins</span>' +
+    '</div>';
             }
         }
         
@@ -4214,11 +4218,12 @@ if (opponentLevel >= 5) {
                     var fighter = playerData.fighters[j];
                     if (fighter && fighter.name) {
                         var fighterEntry = {
-                            name: fighter.name,
-                            wins: fighter.wins || 0,
-                            level: fighter.level || 1,
-                            isCurrentUser: false
-                        };
+    name: fighter.name,
+    wins: fighter.wins || 0,
+    level: fighter.level || 1,
+    isCurrentUser: false,
+    userId: playerData.user_id
+};
                         
                         // Check if this fighter belongs to the current user
                         if (gameState.currentUser && playerData.user_id === gameState.currentUser.user_id) {
