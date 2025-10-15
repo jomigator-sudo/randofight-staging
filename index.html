@@ -4193,7 +4193,7 @@ if (opponentLevel >= 5) {
     
     content.innerHTML = '<div style="text-align: center; padding: 20px; color: #888;">Loading leaderboard...</div>';
     
-    fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/game_data?select=fighters', {
+    fetch('https://pmsbxvqavkoboxyhqjcc.supabase.co/rest/v1/game_data?select=fighters,user_id', {
         method: 'GET',
         headers: {
             'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2J4dnFhdmtvYm94eWhxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NjA2OTMsImV4cCI6MjA3MzIzNjY5M30.9-0-glSFo66fOktfR6ineO8J4Ra8RLVXwytCb9jca9U',
