@@ -3737,6 +3737,18 @@ function confirmResetStats(diamondCost, allocatedPoints) {
         gameState.currentFighter.totalFights = 0;
     }
     
+    // 10% chance for boss battle (only after first 6 fights and level 5+)
+    var bossChance = 10;
+    var canFightBoss = gameState.currentFighter.totalFights >= 6 && gameState.currentFighter.level >= 5;
+    var isBossFight = canFightBoss && Math.random() * 100 < bossChance;
+    
+    if (isBossFight) {
+        console.log('Boss battle encountered!');
+        var bossOpponent = generateBossOpponent(gameState.currentFighter.level);
+        startFight(gameState.currentFighter, bossOpponent, false);
+        return;
+    }
+    
     // First 6 fights are guaranteed wins
     var guaranteedWin = gameState.currentFighter.totalFights < 6;
     
@@ -3744,7 +3756,7 @@ function confirmResetStats(diamondCost, allocatedPoints) {
     if (!guaranteedWin && gameState.currentFighter.lossStreak >= 4) {
         console.log('Player has lost', gameState.currentFighter.lossStreak, 'times in a row - providing easier opponent');
         var easierLevel = Math.max(1, gameState.currentFighter.level - 3);
-        var botOpponent = generateOpponent(easierLevel, true); // Pass true for guaranteed loss
+        var botOpponent = generateOpponent(easierLevel, true);
         startFight(gameState.currentFighter, botOpponent, false);
         return;
     }
@@ -3793,6 +3805,18 @@ function fightWithoutRest() {
         gameState.currentFighter.totalFights = 0;
     }
     
+    // 10% chance for boss battle (only after first 6 fights and level 5+)
+    var bossChance = 10;
+    var canFightBoss = gameState.currentFighter.totalFights >= 6 && gameState.currentFighter.level >= 5;
+    var isBossFight = canFightBoss && Math.random() * 100 < bossChance;
+    
+    if (isBossFight) {
+        console.log('Boss battle encountered! (Diamond fight)');
+        var bossOpponent = generateBossOpponent(gameState.currentFighter.level);
+        startFight(gameState.currentFighter, bossOpponent, true);
+        return;
+    }
+    
     // First 6 fights are guaranteed wins
     var guaranteedWin = gameState.currentFighter.totalFights < 6;
     
@@ -3800,7 +3824,7 @@ function fightWithoutRest() {
     if (!guaranteedWin && gameState.currentFighter.lossStreak >= 4) {
         console.log('Player has lost', gameState.currentFighter.lossStreak, 'times in a row - providing easier opponent');
         var easierLevel = Math.max(1, gameState.currentFighter.level - 3);
-        var botOpponent = generateOpponent(easierLevel, true); // Pass true for guaranteed loss
+        var botOpponent = generateOpponent(easierLevel, true);
         botOpponent.stats.strength = Math.max(1, botOpponent.stats.strength - 1);
         botOpponent.stats.toughness = Math.max(1, botOpponent.stats.toughness - 1);
         startFight(gameState.currentFighter, botOpponent, true);
@@ -3811,24 +3835,24 @@ function fightWithoutRest() {
     if (guaranteedWin || gameState.currentFighter.level <= 5) {
         console.log(guaranteedWin ? 'Guaranteed win diamond fight #' + (gameState.currentFighter.totalFights + 1) : 'Level ' + gameState.currentFighter.level + ' diamond fight - matching with bot opponent');
         var botOpponent = generateOpponent(gameState.currentFighter.level, guaranteedWin);
-        startFight(gameState.currentFighter, botOpponent, true); // true = diamond fight
+        startFight(gameState.currentFighter, botOpponent, true);
     } else {
         console.log('Looking for opponents for diamond fight...');
         findOpponentFromSupabase(gameState.currentFighter.level)
             .then(function(opponent) {
                 if (opponent) {
                     console.log('Found real player opponent for diamond fight:', opponent.name);
-                    startFight(gameState.currentFighter, opponent, true); // true = diamond fight
+                    startFight(gameState.currentFighter, opponent, true);
                 } else {
                     console.log('No real players found for diamond fight, generating AI opponent');
                     var botOpponent = generateOpponent(gameState.currentFighter.level, false);
-                    startFight(gameState.currentFighter, botOpponent, true); // true = diamond fight
+                    startFight(gameState.currentFighter, botOpponent, true);
                 }
             })
             .catch(function(error) {
                 console.error('Diamond fight matchmaking error, using AI opponent:', error);
                 var botOpponent = generateOpponent(gameState.currentFighter.level, false);
-                startFight(gameState.currentFighter, botOpponent, true); // true = diamond fight
+                startFight(gameState.currentFighter, botOpponent, true);
             });
     }
 }
@@ -4173,7 +4197,112 @@ if (opponentLevel >= 5) {
         isBot: true
     };
 }
+function generateBossOpponent(playerLevel) {
+    var bossNames = [
+        'The Devourer', 'Shadow Tyrant', 'Crimson Overlord', 'Void Emperor', 'Death Incarnate',
+        'The Annihilator', 'Chaos Lord', 'Eternal Destroyer', 'Nightmare King', 'Blood Sovereign',
+        'The Executioner', 'Doom Bringer', 'Infernal Warlord', 'Dark Harbinger', 'The Ravager',
+        'Oblivion Master', 'Cataclysm', 'The Reaper', 'Abyssal Fiend', 'Vengeance Incarnate',
+        'The Tormentor', 'Plague Bearer', 'Skull Crusher', 'Soul Eater', 'The Desecrator',
+        'Crimson Nightmare', 'Shadow Demon', 'The Butcher', 'Wraith Lord', 'The Defiler',
+        'Bone Collector', 'The Malevolent', 'Dread King', 'The Corruptor', 'Venom Master',
+        'The Slaughterer', 'Dark Apostle', 'The Impaler', 'Hellfire Lord', 'The Damned One',
+        'Chaos Incarnate', 'The Scourge', 'Death's Shadow', 'The Tyrant', 'Abyss Walker',
+        'The Fallen One', 'Nightmare Spawn', 'The Dreadlord', 'Obsidian Fiend', 'The Conqueror'
+    ];
+    
+    var bossLevel = Math.max(playerLevel, playerLevel + Math.floor(Math.random() * 3)); // Same level or higher
+    
+    // Boss has significantly more HP
+    var hpGain = 0;
+    for (var lvl = 1; lvl < bossLevel; lvl++) {
+        if (lvl > 50) {
+            hpGain += 50;
+        } else if (lvl > 30) {
+            hpGain += 35;
+        } else if (lvl > 15) {
+            hpGain += 25;
+        } else {
+            hpGain += 20;
+        }
+    }
+    var bossMaxHp = Math.floor((100 + hpGain) * 1.5); // 50% more HP than normal
+    
+    // Boss weapon - always powerful
+    var bossWeaponPower = Math.floor(bossLevel * 3 + 20); // Strong weapon
+    var bossWeapon = {
+        name: 'Legendary Boss Weapon',
+        rarity: 'legendary',
+        power: bossWeaponPower,
+        statType: 'Damage'
+    };
+    
+    // Boss equipment - well-armored
+    var bossEquipment = {
+        weapon: bossWeapon
+    };
+    
+    // Add defensive equipment
+    var armorPower = Math.floor(5 + bossLevel * 0.6);
+    
+    if (bossLevel >= 10) {
+        bossEquipment.chest = {
+            name: 'Boss Armor',
+            rarity: 'epic',
+            power: armorPower,
+            statType: 'Defense'
+        };
+        bossEquipment.helmet = {
+            name: 'Boss Helm',
+            rarity: 'epic',
+            power: Math.floor(armorPower * 0.7),
+            statType: 'Defense'
+        };
+        bossEquipment.offhand = {
+            name: 'Boss Shield',
+            rarity: 'epic',
+            power: Math.floor(armorPower * 0.8),
+            statType: 'Defense'
+        };
+    }
+    
+    // Boss stats - well-rounded and powerful
+    var stats = {
+        strength: Math.max(3, Math.floor(bossLevel / 4)),
+        toughness: Math.max(3, Math.floor(bossLevel / 4)),
+        agility: Math.max(2, Math.floor(bossLevel / 6)),
+        luck: Math.max(2, Math.floor(bossLevel / 6)),
+        speed: Math.max(2, Math.floor(bossLevel / 6))
+    };
+    
+    // Distribute extra points
+    var extraPoints = Math.floor(bossLevel * 0.7);
+    var statNames = ['strength', 'toughness', 'agility', 'luck', 'speed'];
+    for (var i = 0; i < extraPoints; i++) {
+        var randomStat = statNames[Math.floor(Math.random() * statNames.length)];
+        stats[randomStat]++;
+    }
+    
+    return {
+        name: bossNames[Math.floor(Math.random() * bossNames.length)],
+        birthplace: 'The Abyss',
+        level: bossLevel,
+        hp: bossMaxHp,
+        maxHp: bossMaxHp,
+        currentHp: bossMaxHp,
+        wins: Math.floor(bossLevel * 10),
+        stats: stats,
+        equipment: bossEquipment,
+        specialAttack: bossLevel >= 10 ? {
+            name: generateSpecialAttackName()
+        } : null,
+        isRealPlayer: false,
+        isBot: true,
+        isBoss: true // Mark as boss
+    };
+}
 
+        
         function updateLeaderboard() {
     var content = document.getElementById('leaderboardContent');
     
@@ -4288,9 +4417,18 @@ html +=
     });
 }
 
-        function startFight(player, opponent, isDiamondFight) {
+function startFight(player, opponent, isDiamondFight) {
     hideAll();
-    document.getElementById('fightScreen').style.display = 'block';
+    var fightScreen = document.getElementById('fightScreen');
+    fightScreen.style.display = 'block';
+    
+    // Change background color to blood red if boss fight
+    if (opponent.isBoss) {
+        fightScreen.style.background = 'linear-gradient(135deg, #8B0000, #4a0000)';
+    } else {
+        fightScreen.style.background = 'linear-gradient(135deg, #1a1a2e, #16213e)';
+    }
+    
     // Hide the header and logo during fights
     var headerContainer = document.querySelector('h1.title');
     if (headerContainer) {
@@ -4304,37 +4442,39 @@ html +=
     player.currentHp = player.maxHp;
     opponent.currentHp = opponent.maxHp;
     // Initialize special attack meters
-player.specialMeter = 0;
-opponent.specialMeter = 0;
-player.specialReady = false;
-opponent.specialReady = false;
-player.useSpecialNext = false;
-opponent.useSpecialNext = false;
-            // Reset the visual special attack bars
-document.getElementById('player1Special').style.width = '0%';
-document.getElementById('player2Special').style.width = '0%';
-document.getElementById('player1SpecialBtn').style.display = 'none';
-// Hide/show special attack UI based on level
-var player1SpecialBar = document.getElementById('player1Special').parentElement.parentElement;
-var player2SpecialBar = document.getElementById('player2Special').parentElement.parentElement;
-var player1SpecialBtn = document.getElementById('player1SpecialBtn');
+    player.specialMeter = 0;
+    opponent.specialMeter = 0;
+    player.specialReady = false;
+    opponent.specialReady = false;
+    player.useSpecialNext = false;
+    opponent.useSpecialNext = false;
+    
+    // Reset the visual special attack bars
+    document.getElementById('player1Special').style.width = '0%';
+    document.getElementById('player2Special').style.width = '0%';
+    document.getElementById('player1SpecialBtn').style.display = 'none';
+    // Hide/show special attack UI based on level
+    var player1SpecialBar = document.getElementById('player1Special').parentElement.parentElement;
+    var player2SpecialBar = document.getElementById('player2Special').parentElement.parentElement;
+    var player1SpecialBtn = document.getElementById('player1SpecialBtn');
 
-if (player.level >= 10 && player.specialAttack) {
-    player1SpecialBar.style.display = 'block';
-    player1SpecialBtn.parentElement.style.display = 'block';
-} else {
-    player1SpecialBar.style.display = 'none';
-    player1SpecialBtn.style.display = 'none';
-}
+    if (player.level >= 10 && player.specialAttack) {
+        player1SpecialBar.style.display = 'block';
+        player1SpecialBtn.parentElement.style.display = 'block';
+    } else {
+        player1SpecialBar.style.display = 'none';
+        player1SpecialBtn.style.display = 'none';
+    }
 
-if (opponent.level >= 10 && opponent.specialAttack) {
-    player2SpecialBar.style.display = 'block';
-} else {
-    player2SpecialBar.style.display = 'none';
-}
+    if (opponent.level >= 10 && opponent.specialAttack) {
+        player2SpecialBar.style.display = 'block';
+    } else {
+        player2SpecialBar.style.display = 'none';
+    }
             
-    // Store whether this is a diamond fight
+    // Store whether this is a diamond fight and boss fight
     player.isDiamondFight = isDiamondFight;
+    player.isBossFight = opponent.isBoss || false;
     
     // Track recent opponents if it's a real player
     if (opponent.isRealPlayer && opponent.fighterIdentifier) {
@@ -4353,8 +4493,14 @@ if (opponent.level >= 10 && opponent.specialAttack) {
         console.log('Updated recent opponents:', player.recentOpponents);
     }
 
+    // Display opponent name with boss indicator
+    var opponentDisplayName = opponent.name;
+    if (opponent.isBoss) {
+        opponentDisplayName = opponent.name + ' 💀 (BOSS)';
+    }
+    
     document.getElementById('player1Name').textContent = player.name + ' (Level ' + player.level + ', ' + player.wins + ' wins)';
-    document.getElementById('player2Name').textContent = opponent.name + ' (Level ' + opponent.level + ', ' + opponent.wins + ' wins)';
+    document.getElementById('player2Name').textContent = opponentDisplayName + ' (Level ' + opponent.level + ', ' + opponent.wins + ' wins)';
     
     document.getElementById('player1HPText').textContent = Math.floor(player.currentHp) + '/' + player.maxHp;
     document.getElementById('player2HPText').textContent = Math.floor(opponent.currentHp) + '/' + opponent.maxHp;
@@ -4364,7 +4510,12 @@ if (opponent.level >= 10 && opponent.specialAttack) {
     var fightLog = document.getElementById('fightLog');
     fightLog.innerHTML = '';
 
-    addToFightLog('<div class="story-title">' + player.name + ' vs ' + opponent.name + '</div>');
+    if (opponent.isBoss) {
+        addToFightLog('<div class="story-title" style="color: #ff0000; font-size: 1.3em;">💀 BOSS BATTLE 💀</div>');
+        addToFightLog('<span style="color: #ff6b6b; font-weight: bold;">You have encountered a fearsome boss: ' + opponent.name + '!</span>');
+    } else {
+        addToFightLog('<div class="story-title">' + player.name + ' vs ' + opponent.name + '</div>');
+    }
     addToFightLog('Fight begins!');
     
     setTimeout(function() { simulateFight(player, opponent); }, 1500);
@@ -4731,22 +4882,39 @@ var toughnessProc = Math.random() * 100 < toughnessChance;
         
         addToFightLog('<span class="exp-gain">Gained ' + expGained + ' EXP!</span>');
 
-// Replace the equipment drop system with this:
-var equipmentDropChance = 25;
-if (Math.random() * 100 < equipmentDropChance) {
-    var isUpgrade = Math.random() * 100 < 60; // 60% upgrade, 40% weak/same
-    var droppedItem = generateLootItem(player, opponent.level, isUpgrade);
+// Boss loot - guaranteed Legendary or Mythic
+if (player.isBossFight) {
+    var isMythic = Math.random() * 100 < 30; // 30% chance for Mythic, 70% for Legendary
+    var bossLoot = generateBossLoot(player, opponent.level, isMythic);
     
-    if (droppedItem) {
-        var itemLevelText = droppedItem.itemLevel ? 'Lv.' + droppedItem.itemLevel + ' ' : '';
-        var rarityText = droppedItem.rarity ? ' (' + droppedItem.rarity.charAt(0).toUpperCase() + droppedItem.rarity.slice(1) + ')' : '';
+    if (bossLoot) {
+        var itemLevelText = bossLoot.itemLevel ? 'Lv.' + bossLoot.itemLevel + ' ' : '';
+        var rarityText = bossLoot.rarity ? ' (' + bossLoot.rarity.charAt(0).toUpperCase() + bossLoot.rarity.slice(1) + ')' : '';
         
-        addToFightLog('<span class="' + droppedItem.rarity + '">🎁 ' + opponent.name + ' dropped: ' + 
-            itemLevelText + droppedItem.name + rarityText + 
-            ' (+' + droppedItem.power + ' ' + droppedItem.statType + ')!</span>');
+        addToFightLog('<span class="' + bossLoot.rarity + '" style="font-size: 1.2em;">🎁 BOSS DEFEATED! ' + 
+            opponent.name + ' dropped: ' + 
+            itemLevelText + bossLoot.name + rarityText + 
+            ' (+' + bossLoot.power + ' ' + bossLoot.statType + ')!</span>');
         
-        // Store the dropped item to show in modal after combat
-        player.pendingLoot = droppedItem;
+        player.pendingLoot = bossLoot;
+    }
+} else {
+    // Regular equipment drop
+    var equipmentDropChance = 25;
+    if (Math.random() * 100 < equipmentDropChance) {
+        var isUpgrade = Math.random() * 100 < 60;
+        var droppedItem = generateLootItem(player, opponent.level, isUpgrade);
+        
+        if (droppedItem) {
+            var itemLevelText = droppedItem.itemLevel ? 'Lv.' + droppedItem.itemLevel + ' ' : '';
+            var rarityText = droppedItem.rarity ? ' (' + droppedItem.rarity.charAt(0).toUpperCase() + droppedItem.rarity.slice(1) + ')' : '';
+            
+            addToFightLog('<span class="' + droppedItem.rarity + '">🎁 ' + opponent.name + ' dropped: ' + 
+                itemLevelText + droppedItem.name + rarityText + 
+                ' (+' + droppedItem.power + ' ' + droppedItem.statType + ')!</span>');
+            
+            player.pendingLoot = droppedItem;
+        }
     }
 }
         
@@ -5047,6 +5215,107 @@ var finalPower = Math.max(1, basePower);
         level: opponentLevel,
         itemLevel: itemLevel,
         rarity: selectedRarity.name,
+        statType: itemType.statType
+    };
+}
+        function generateBossLoot(player, bossLevel, isMythic) {
+    var itemTypes = [
+        { 
+            slot: 'weapon', 
+            statType: 'Damage', 
+            names: ['Blade', 'Sword', 'Axe', 'Hammer', 'Staff', 'Scythe']
+        },
+        { 
+            slot: 'helmet', 
+            statType: 'Defense', 
+            names: ['Helm', 'Crown', 'Mask', 'Circlet']
+        },
+        { 
+            slot: 'chest', 
+            statType: 'Defense', 
+            names: ['Armor', 'Plate', 'Mail', 'Cuirass']
+        },
+        { 
+            slot: 'gloves', 
+            statType: 'Defense', 
+            names: ['Gauntlets', 'Gloves', 'Grips']
+        },
+        { 
+            slot: 'boots', 
+            statType: 'Defense', 
+            names: ['Boots', 'Greaves', 'Treads']
+        },
+        { 
+            slot: 'offhand', 
+            statType: 'Defense', 
+            names: ['Shield', 'Buckler', 'Ward']
+        },
+        { 
+            slot: 'shoulders', 
+            statType: 'Defense', 
+            names: ['Pauldrons', 'Guards', 'Plates']
+        },
+        { 
+            slot: 'greaves', 
+            statType: 'Defense', 
+            names: ['Greaves', 'Guards', 'Plates']
+        }
+    ];
+    
+    // Select random item type
+    var itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+    var baseName = itemType.names[Math.floor(Math.random() * itemType.names.length)];
+    
+    // Boss item level is higher
+    var itemLevel = Math.max(bossLevel, bossLevel + Math.floor(Math.random() * 3));
+    
+    var rarity, powerPerLevel, prefix;
+    
+    if (isMythic) {
+        rarity = 'mythic';
+        powerPerLevel = 5;
+        
+        // Mythic boss names
+        var mythicNames = [
+            'Worldbreaker', 'Godslayer', 'Eternity\'s Edge', 'Chaos Reaper', 'Divine Wrath',
+            'Oblivion', 'Extinction', 'Annihilation', 'Genesis', 'Omega',
+            'The Destroyer', 'Universe Render', 'Reality Splitter', 'Void Caller',
+            'The Absolution', 'The Reckoning', 'Primordial Fury', 'Cosmic Terror'
+        ];
+        baseName = mythicNames[Math.floor(Math.random() * mythicNames.length)];
+    } else {
+        rarity = 'legendary';
+        powerPerLevel = 4;
+        
+        // Legendary boss names
+        var legendaryNames = [
+            'Dragonslayer', 'Stormbringer', 'Soulrender', 'Flamestrike', 'Frostbite',
+            'Shadowbane', 'Lightbringer', 'Doomblade', 'Excalibur', 'Mjolnir',
+            'Vorpal', 'Reaver', 'Skullcrusher', 'Heartseeker', 'Souleater',
+            'Worldender', 'Kingslayer', 'Demonbane', 'Godsend', 'Eternity',
+            'Nemesis', 'Ragnarok', 'Armageddon', 'Cataclysm', 'Apocalypse'
+        ];
+        baseName = legendaryNames[Math.floor(Math.random() * legendaryNames.length)];
+    }
+    
+    // Calculate power
+    var basePower = Math.floor(itemLevel * powerPerLevel);
+    
+    // Defense items get 60% power
+    if (itemType.statType === 'Defense') {
+        basePower = Math.floor(basePower * 0.6);
+    }
+    
+    var finalPower = Math.max(1, basePower);
+    
+    return {
+        name: baseName,
+        type: itemType.slot,
+        slot: itemType.slot,
+        power: finalPower,
+        level: bossLevel,
+        itemLevel: itemLevel,
+        rarity: rarity,
         statType: itemType.statType
     };
 }
