@@ -535,15 +535,16 @@
     currentSlotIndex: 0,
     currentUser: null,
     isLoggedIn: false,
+    currentBoss: null, // Add this line
     dailyTasks: {
         lastReset: new Date().toDateString(),
         winsToday: 0,
         claimed: {
-                win3: false,
-                win5: false,
-                win10: false,
-                win20: false,
-                win30: false
+            win3: false,
+            win5: false,
+            win10: false,
+            win20: false,
+            win30: false
         }
     }
 };
@@ -4919,24 +4920,29 @@ if (player.isBossFight) {
 }
         
     } else {
-        // Loss handling...
-        if (player.lossStreak === undefined) {
-            player.lossStreak = 0;
-        }
-        player.lossStreak++;
-        
-        var defeatTexts = [
-            '<span class="defeat">💀 ' + player.name + ' has been defeated in battle! 💀</span>',
-            '<span class="defeat">💀 ' + player.name + ' falls to their opponent! 💀</span>',
-            '<span class="defeat">💀 ' + opponent.name + ' proves too strong for ' + player.name + '! 💀</span>',
-            '<span class="defeat">💀 ' + player.name + ' fought valiantly but could not prevail! 💀</span>'
-        ];
-        addToFightLog(defeatTexts[Math.floor(Math.random() * defeatTexts.length)]);
-        
-        var consolationExp = Math.floor(5 + opponent.level);
-        player.exp += consolationExp;
-        addToFightLog('<span class="exp-gain">Gained ' + consolationExp + ' consolation EXP for the effort!</span>');
+    // Loss handling...
+    if (player.lossStreak === undefined) {
+        player.lossStreak = 0;
     }
+    player.lossStreak++;
+    
+    var defeatTexts = [
+        '<span class="defeat">💀 ' + player.name + ' has been defeated in battle! 💀</span>',
+        '<span class="defeat">💀 ' + player.name + ' falls to their opponent! 💀</span>',
+        '<span class="defeat">💀 ' + opponent.name + ' proves too strong for ' + player.name + '! 💀</span>',
+        '<span class="defeat">💀 ' + player.name + ' fought valiantly but could not prevail! 💀</span>'
+    ];
+    addToFightLog(defeatTexts[Math.floor(Math.random() * defeatTexts.length)]);
+    
+    var consolationExp = Math.floor(5 + opponent.level);
+    player.exp += consolationExp;
+    addToFightLog('<span class="exp-gain">Gained ' + consolationExp + ' consolation EXP for the effort!</span>');
+    
+    // Store boss data if this was a boss fight (for rematch option)
+    if (player.isBossFight) {
+        gameState.currentBoss = opponent;
+    }
+}
     
     // Check for level up
     while (player.exp >= player.expRequired) {
@@ -5379,6 +5385,15 @@ if (fighter.level === 10) {
         companyLogo.style.display = 'block';
     }
     
+    // Check if player lost to a boss - show rematch modal
+    if (gameState.currentFighter && gameState.currentBoss && gameState.currentFighter.hp <= 0) {
+        showRematchModal(gameState.currentBoss);
+        return;
+    }
+    
+    // Clear boss data if player won
+    gameState.currentBoss = null;
+    
     // Check if there's pending loot to show
     if (gameState.currentFighter && gameState.currentFighter.pendingLoot) {
         showLootModal(gameState.currentFighter.pendingLoot);
@@ -5386,7 +5401,6 @@ if (fighter.level === 10) {
         showFighterScreen();
     }
 }
-
         function showLootModal(item) {
     var fighter = gameState.currentFighter;
     var currentItem = fighter.equipment[item.slot];
@@ -5459,6 +5473,89 @@ if (fighter.level === 10) {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
+        function showRematchModal(boss) {
+    var existingModal = document.getElementById('rematchModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    var modalHTML = 
+        '<div id="rematchModal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000;">' +
+            '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, #8B0000, #4a0000); padding: 30px; border-radius: 10px; border: 3px solid #ff0000; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);">' +
+                '<h2 style="color: #ff6b6b; margin-bottom: 20px; font-size: 2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">💀 DEFEATED 💀</h2>' +
+                
+                '<div style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #ff6b6b;">' +
+                    '<div style="color: #fff; font-size: 1.2em; margin-bottom: 10px; font-weight: bold;">' + boss.name + ' has crushed you!</div>' +
+                    '<div style="color: #ff6b6b; font-size: 1em;">Level ' + boss.level + ' Boss</div>' +
+                '</div>' +
+                
+                '<p style="color: #ccc; margin-bottom: 20px; font-size: 1em; line-height: 1.5;">The boss stands victorious over your fallen body. Will you rise again to challenge this fearsome foe?</p>' +
+                
+                '<div style="background: rgba(255, 215, 0, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 2px solid #ffd93d;">' +
+                    '<div style="color: #ffd93d; font-size: 1.1em; font-weight: bold; margin-bottom: 8px;">⚔️ REMATCH AVAILABLE ⚔️</div>' +
+                    '<div style="color: #fff; font-size: 0.9em;">Immediately challenge the boss again!</div>' +
+                    '<div style="color: #ffd93d; font-size: 1.2em; font-weight: bold; margin-top: 10px;">Cost: 10 💎</div>' +
+                '</div>' +
+                
+                '<div style="display: flex; flex-direction: column; gap: 15px;">' +
+                    '<button class="btn" style="background: #ff0000; color: #fff; padding: 15px 30px; font-size: 1.2em; font-weight: bold; border: 2px solid #fff;" onclick="acceptRematch()" ' + (gameState.diamonds < 10 ? 'disabled' : '') + '>⚔️ REMATCH (10 💎)</button>' +
+                    '<button class="btn btn-secondary" onclick="declineRematch()" style="padding: 12px 30px; font-size: 1em;">Retreat</button>' +
+                '</div>' +
+                
+                (gameState.diamonds < 10 ? '<div style="color: #ff6b6b; font-size: 0.9em; margin-top: 15px;">⚠️ Not enough diamonds! You need 10 💎 to rematch.</div>' : '') +
+            '</div>' +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function acceptRematch() {
+    var modal = document.getElementById('rematchModal');
+    if (modal) {
+        modal.remove();
+    }
+    
+    // Check if player has enough diamonds
+    if (gameState.diamonds < 10) {
+        alert('You need 10 💎 to rematch the boss!');
+        showFighterScreen();
+        return;
+    }
+    
+    // Deduct diamonds
+    gameState.diamonds -= 10;
+    saveToSupabase();
+    updateDiamondDisplay();
+    
+    // Get the boss from storage
+    var boss = gameState.currentBoss;
+    if (!boss) {
+        alert('Boss data lost! Returning to character screen.');
+        showFighterScreen();
+        return;
+    }
+    
+    // Restore player to full HP for rematch
+    gameState.currentFighter.hp = gameState.currentFighter.maxHp;
+    gameState.currentFighter.currentHp = gameState.currentFighter.maxHp;
+    
+    // Start the fight again with the same boss
+    startFight(gameState.currentFighter, boss, false);
+}
+
+function declineRematch() {
+    var modal = document.getElementById('rematchModal');
+    if (modal) {
+        modal.remove();
+    }
+    
+    // Clear boss data
+    gameState.currentBoss = null;
+    
+    // Return to fighter screen
+    showFighterScreen();
+}
+        
 function equipLoot() {
     var fighter = gameState.currentFighter;
     if (!fighter || !fighter.pendingLoot) return;
