@@ -3738,9 +3738,9 @@ function confirmResetStats(diamondCost, allocatedPoints) {
         gameState.currentFighter.totalFights = 0;
     }
     
-    // 10% chance for boss battle (only after first 6 fights and level 5+)
+    // 10% chance for boss battle (only at level 30+)
     var bossChance = 10;
-    var canFightBoss = gameState.currentFighter.totalFights >= 6 && gameState.currentFighter.level >= 5;
+    var canFightBoss = gameState.currentFighter.level >= 30 && gameState.currentFighter.totalFights >= 6;
     var isBossFight = canFightBoss && Math.random() * 100 < bossChance;
     
     if (isBossFight) {
@@ -3806,9 +3806,9 @@ function fightWithoutRest() {
         gameState.currentFighter.totalFights = 0;
     }
     
-    // 10% chance for boss battle (only after first 6 fights and level 5+)
+    // 10% chance for boss battle (only at level 30+)
     var bossChance = 10;
-    var canFightBoss = gameState.currentFighter.totalFights >= 6 && gameState.currentFighter.level >= 5;
+    var canFightBoss = gameState.currentFighter.level >= 30 && gameState.currentFighter.totalFights >= 6;
     var isBossFight = canFightBoss && Math.random() * 100 < bossChance;
     
     if (isBossFight) {
