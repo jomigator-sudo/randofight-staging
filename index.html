@@ -569,7 +569,31 @@
         }
     }
 };
+// Add these functions near the top of your script section, after the gameState declaration
 
+function updateLoadingProgress(percent, message) {
+    var loadingBar = document.getElementById('loadingBar');
+    var loadingText = document.getElementById('loadingText');
+    
+    if (loadingBar) {
+        loadingBar.style.width = percent + '%';
+    }
+    if (loadingText && message) {
+        loadingText.textContent = message;
+    }
+}
+
+function hideLoadingScreen() {
+    var loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+        loadingScreen.style.opacity = '0';
+        loadingScreen.style.transition = 'opacity 0.5s ease';
+        setTimeout(function() {
+            loadingScreen.style.display = 'none';
+        }, 500);
+    }
+}
+        
         // Special attack word combinations for dynamic generation
 var specialAttackPrefixes = ['Dark', 'Light', 'Fire', 'Ice', 'Thunder', 'Shadow', 'Dragon', 'Phoenix', 'Storm', 'Chaos', 
     'Divine', 'Mystic', 'Crimson', 'Azure', 'Golden', 'Silver', 'Void', 'Cosmic', 'Lunar', 'Solar', 
