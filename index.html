@@ -4845,7 +4845,10 @@ var toughnessProc = Math.random() * 100 < toughnessChance;
             
             function endCombat(player, opponent) {
     var playerWon = player.currentHp > 0;
-    
+
+    // Store battle result BEFORE restoring HP
+    player.didLoseBossFight = !playerWon && (player.isBossFight || false);
+                
     // Increment total fights counter
     if (player.totalFights === undefined) {
         player.totalFights = 0;
