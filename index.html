@@ -1797,14 +1797,19 @@ function retryCloudSave(previousRetryCount) {
 }
         function loadFromSupabase() {
     if (gameState.currentUser && gameState.currentUser.isGuest) {
+        updateLoadingProgress(50, 'Loading local data...');
         loadGameData();
         updateFighterSlots();
         updateDiamondDisplay();
+        updateLoadingProgress(100, 'Ready!');
+        setTimeout(hideLoadingScreen, 300);
         return;
     }
     
     var userId = getUserId();
     console.log('Loading from Supabase via REST API for user:', userId);
+    
+    updateLoadingProgress(20, 'Connecting to server...');
     
     // First check localStorage for comparison
     var localData = localStorage.getItem('randofight_gamedata');
@@ -1815,6 +1820,8 @@ function retryCloudSave(previousRetryCount) {
             localTimestamp = parsed.lastSaved || 0;
         } catch(e) {}
     }
+    
+    updateLoadingProgress(40, 'Fetching your data...');
     
     fetch(SUPABASE_URL + '/rest/v1/game_data?user_id=eq.' + encodeURIComponent(userId), {
         method: 'GET',
@@ -1827,10 +1834,13 @@ function retryCloudSave(previousRetryCount) {
         if (!response.ok) {
             throw new Error('Load failed: ' + response.status);
         }
+        updateLoadingProgress(60, 'Processing data...');
         return response.json();
     })
     .then(function(data) {
         console.log('Raw Supabase response:', data);
+        
+        updateLoadingProgress(80, 'Loading characters...');
         
         if (data && data.length > 0) {
             var gameData = data[0];
@@ -1865,18 +1875,29 @@ function retryCloudSave(previousRetryCount) {
         // Initialize daily tasks (will create if missing or reset if new day)
         initializeDailyTasks();
         
+        updateLoadingProgress(100, 'Ready!');
+        
         updateFighterSlots();
         updateDiamondDisplay();
+        
+        // Hide loading screen after a brief delay
+        setTimeout(hideLoadingScreen, 300);
     })
     .catch(function(e) {
         console.error('Load failed, using localStorage fallback:', e);
+        updateLoadingProgress(80, 'Loading backup data...');
         loadGameData();
         
         // Initialize daily tasks
         initializeDailyTasks();
         
+        updateLoadingProgress(100, 'Ready!');
+        
         updateFighterSlots();
         updateDiamondDisplay();
+        
+        // Hide loading screen
+        setTimeout(hideLoadingScreen, 300);
     });
 }
 
