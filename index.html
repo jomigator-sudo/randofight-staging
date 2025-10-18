@@ -5760,46 +5760,54 @@ function showLootMessage(message) {
     }, 2000);
 }
         
-        function initGame() {
-            console.log('RandoFight initializing...');
-            
-            // Force clear any password reset tokens first
-            console.log('Clearing any existing reset tokens...');
-            localStorage.removeItem('reset_token_demo');
-            localStorage.removeItem('reset_user_id');
-            
-            // Initialize EmailJS early
-            setTimeout(function() {
-                initEmailJS();
-            }, 1000);
-            
-            try {
-                // Check if this is a password reset link first (only URL parameters, not localStorage)
-                var urlParams = new URLSearchParams(window.location.search);
-                var tokenFromURL = urlParams.get('reset');
-                
-                if (tokenFromURL) {
-                    console.log('URL reset token found:', tokenFromURL);
-                    showResetPasswordForm();
-                    return;
-                }
-                
-                // Check for existing login session
-                if (checkExistingSession()) {
-                    console.log('Valid session found, loading game data...');
-                    loadFromSupabase();
-                    showTitleScreen();
-                } else {
-                    console.log('No valid session, showing login screen...');
-                    showLoginScreen();
-                }
-            } catch (error) {
-                console.error('Init error, forcing login screen:', error);
-                showLoginScreen();
-            }
-            
-            setInterval(updateFightStatus, 1000);
+function initGame() {
+    console.log('RandoFight initializing...');
+    
+    updateLoadingProgress(10, 'Initializing...');
+    
+    // Force clear any password reset tokens first
+    console.log('Clearing any existing reset tokens...');
+    localStorage.removeItem('reset_token_demo');
+    localStorage.removeItem('reset_user_id');
+    
+    // Initialize EmailJS early
+    setTimeout(function() {
+        initEmailJS();
+    }, 1000);
+    
+    try {
+        // Check if this is a password reset link first (only URL parameters, not localStorage)
+        var urlParams = new URLSearchParams(window.location.search);
+        var tokenFromURL = urlParams.get('reset');
+        
+        if (tokenFromURL) {
+            console.log('URL reset token found:', tokenFromURL);
+            hideLoadingScreen();
+            showResetPasswordForm();
+            return;
         }
+        
+        // Check for existing login session
+        if (checkExistingSession()) {
+            console.log('Valid session found, loading game data...');
+            loadFromSupabase();
+            showTitleScreen();
+        } else {
+            console.log('No valid session, showing login screen...');
+            updateLoadingProgress(100, 'Ready!');
+            setTimeout(function() {
+                hideLoadingScreen();
+                showLoginScreen();
+            }, 300);
+        }
+    } catch (error) {
+        console.error('Init error, forcing login screen:', error);
+        hideLoadingScreen();
+        showLoginScreen();
+    }
+    
+    setInterval(updateFightStatus, 1000);
+}
 
         // Add a manual cleanup function you can call from browser console
         window.clearResetTokens = function() {
