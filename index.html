@@ -4199,7 +4199,8 @@ if (opponentLevel >= 5) {
     };
 }
 function generateBossOpponent(playerLevel) {
-    var bossNames = ['The Devourer', 'Shadow Tyrant', 'Crimson Overlord', 'Void Emperor', 'Death Incarnate',
+    var bossNames = [
+        'The Devourer', 'Shadow Tyrant', 'Crimson Overlord', 'Void Emperor', 'Death Incarnate',
         'The Annihilator', 'Chaos Lord', 'Eternal Destroyer', 'Nightmare King', 'Blood Sovereign',
         'The Executioner', 'Doom Bringer', 'Infernal Warlord', 'Dark Harbinger', 'The Ravager',
         'Oblivion Master', 'Cataclysm', 'The Reaper', 'Abyssal Fiend', 'Vengeance Incarnate',
@@ -4207,8 +4208,63 @@ function generateBossOpponent(playerLevel) {
         'Crimson Nightmare', 'Shadow Demon', 'The Butcher', 'Wraith Lord', 'The Defiler',
         'Bone Collector', 'The Malevolent', 'Dread King', 'The Corruptor', 'Venom Master',
         'The Slaughterer', 'Dark Apostle', 'The Impaler', 'Hellfire Lord', 'The Damned One',
-        'Chaos Incarnate', 'The Scourge', 'Death Shadow', 'The Tyrant', 'Abyss Walker',
-        'The Fallen One', 'Nightmare Spawn', 'The Dreadlord', 'Obsidian Fiend', 'The Conqueror'];
+        'Chaos Incarnate', 'The Scourge', 'Death\'s Shadow', 'The Tyrant', 'Abyss Walker',
+        'The Fallen One', 'Nightmare Spawn', 'The Dreadlord', 'Obsidian Fiend', 'The Conqueror'
+    ];
+    
+    // Boss-specific legendary weapons that match their theme
+    var bossWeapons = [
+        { name: 'Fang of the Devourer', type: 'Dagger' },
+        { name: 'Scepter of Shadows', type: 'Staff' },
+        { name: 'Crimson Reaver', type: 'Axe' },
+        { name: 'Void Scythe', type: 'Scythe' },
+        { name: 'Death\'s Embrace', type: 'Scythe' },
+        { name: 'The Annihilator', type: 'Hammer' },
+        { name: 'Chaos Blade', type: 'Sword' },
+        { name: 'Eternity\'s End', type: 'Greatsword' },
+        { name: 'Nightmare\'s Edge', type: 'Sword' },
+        { name: 'Bloodletter', type: 'Axe' },
+        { name: 'The Executioner\'s Axe', type: 'Axe' },
+        { name: 'Doomhammer', type: 'Hammer' },
+        { name: 'Inferno\'s Wrath', type: 'Mace' },
+        { name: 'Harbinger of Ruin', type: 'Halberd' },
+        { name: 'The Ravager\'s Claw', type: 'Gauntlet' },
+        { name: 'Staff of Oblivion', type: 'Staff' },
+        { name: 'World Ender', type: 'Greatsword' },
+        { name: 'Soul Reaper', type: 'Scythe' },
+        { name: 'Abyssal Maw', type: 'Mace' },
+        { name: 'Vengeance Incarnate', type: 'Sword' },
+        { name: 'The Tormentor\'s Flail', type: 'Flail' },
+        { name: 'Pestilence', type: 'Staff' },
+        { name: 'Skull Splitter', type: 'Hammer' },
+        { name: 'Soul Drinker', type: 'Blade' },
+        { name: 'Profane Edge', type: 'Sword' },
+        { name: 'Crimson Terror', type: 'Axe' },
+        { name: 'Shadow Fang', type: 'Dagger' },
+        { name: 'Butcher\'s Cleaver', type: 'Cleaver' },
+        { name: 'Wraith Caller', type: 'Staff' },
+        { name: 'Corruption', type: 'Sword' },
+        { name: 'Bone Crusher', type: 'Mace' },
+        { name: 'Malice', type: 'Blade' },
+        { name: 'Crown of Dread', type: 'Scepter' },
+        { name: 'The Corruptor\'s Touch', type: 'Staff' },
+        { name: 'Venom Fang', type: 'Spear' },
+        { name: 'The Slaughterer', type: 'Axe' },
+        { name: 'Dark Covenant', type: 'Sword' },
+        { name: 'The Impaler', type: 'Spear' },
+        { name: 'Hellfire Brand', type: 'Sword' },
+        { name: 'Damnation', type: 'Greatsword' },
+        { name: 'Chaos Incarnate', type: 'Blade' },
+        { name: 'The Scourge', type: 'Whip' },
+        { name: 'Shadow\'s Grasp', type: 'Claw' },
+        { name: 'Tyranny', type: 'Mace' },
+        { name: 'Abyssal Blade', type: 'Sword' },
+        { name: 'Fallen Grace', type: 'Sword' },
+        { name: 'Nightmare Manifest', type: 'Staff' },
+        { name: 'The Dreadlord\'s Glaive', type: 'Glaive' },
+        { name: 'Obsidian Fang', type: 'Dagger' },
+        { name: 'The Conqueror\'s Blade', type: 'Sword' }
+    ];
     
     var bossLevel = Math.max(playerLevel, playerLevel + Math.floor(Math.random() * 3)); // Same level or higher
     
@@ -4227,18 +4283,26 @@ function generateBossOpponent(playerLevel) {
     }
     var bossMaxHp = Math.floor((100 + hpGain) * 1.5); // 50% more HP than normal
     
-    // Boss weapon - always powerful
+    // Select boss name and matching weapon
+    var bossIndex = Math.floor(Math.random() * bossNames.length);
+    var bossName = bossNames[bossIndex];
+    var bossWeapon = bossWeapons[bossIndex];
+    
+    // Boss weapon - always powerful and legendary/mythic
+    var weaponRarity = Math.random() < 0.3 ? 'mythic' : 'legendary'; // 30% mythic, 70% legendary
     var bossWeaponPower = Math.floor(bossLevel * 3 + 20); // Strong weapon
-    var bossWeapon = {
-        name: 'Legendary Boss Weapon',
-        rarity: 'legendary',
+    
+    var bossWeaponItem = {
+        name: bossWeapon.name,
+        rarity: weaponRarity,
         power: bossWeaponPower,
-        statType: 'Damage'
+        statType: 'Damage',
+        weaponType: bossWeapon.type // Store the weapon type for flavor
     };
     
     // Boss equipment - well-armored
     var bossEquipment = {
-        weapon: bossWeapon
+        weapon: bossWeaponItem
     };
     
     // Add defensive equipment
@@ -4283,7 +4347,7 @@ function generateBossOpponent(playerLevel) {
     }
     
     return {
-        name: bossNames[Math.floor(Math.random() * bossNames.length)],
+        name: bossName,
         birthplace: 'The Abyss',
         level: bossLevel,
         hp: bossMaxHp,
