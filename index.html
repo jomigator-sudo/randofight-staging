@@ -5387,7 +5387,8 @@ if (fighter.level === 10) {
     }
     
     // Check if player lost to a boss - show rematch modal
-    if (gameState.currentFighter && gameState.currentBoss && gameState.currentFighter.hp <= 0) {
+    if (gameState.currentFighter && gameState.currentBoss && gameState.currentFighter.didLoseBossFight) {
+        gameState.currentFighter.didLoseBossFight = false; // Clear the flag
         showRematchModal(gameState.currentBoss);
         return;
     }
