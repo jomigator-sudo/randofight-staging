@@ -2058,9 +2058,12 @@ function showGlobalLeaderboard() {
     document.getElementById(originalId).id = tempId;
 }
 function initializeDailyTasks() {
+    var today = new Date().toDateString();
+    
+    // If dailyTasks doesn't exist, initialize it
     if (!gameState.dailyTasks) {
         gameState.dailyTasks = {
-            lastReset: new Date().toDateString(),
+            lastReset: today,
             winsToday: 0,
             claimed: {
                 win3: false,
@@ -2070,11 +2073,14 @@ function initializeDailyTasks() {
                 win30: false
             }
         };
+        console.log('Initialized daily tasks for the first time');
+        saveToSupabase();
+        return;
     }
     
-    // Check if it's a new day and reset tasks
-    var today = new Date().toDateString();
+    // Check if it's a new day - only reset if the date has changed
     if (gameState.dailyTasks.lastReset !== today) {
+        console.log('New day detected! Resetting daily tasks. Old date:', gameState.dailyTasks.lastReset, 'New date:', today);
         gameState.dailyTasks = {
             lastReset: today,
             winsToday: 0,
@@ -2087,9 +2093,10 @@ function initializeDailyTasks() {
             }
         };
         saveToSupabase();
+    } else {
+        console.log('Same day - keeping daily tasks progress:', gameState.dailyTasks);
     }
 }
-
 function incrementDailyWins() {
     initializeDailyTasks();
     gameState.dailyTasks.winsToday++;
