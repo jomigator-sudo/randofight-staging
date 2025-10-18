@@ -1678,12 +1678,12 @@ function setupLoginKeyHandlers() {
         diamonds: gameState.diamonds,
         fight_cooldown_end: gameState.fightCooldownEnd,
         unlocked_slots: gameState.unlockedSlots,
-        daily_tasks: gameState.dailyTasks,
+        daily_tasks: gameState.dailyTasks, // Make sure this is included
         updated_at: new Date().toISOString()
     };
 
     console.log('Saving to Supabase via REST API (attempt ' + (retryCount + 1) + '):', gameData);
-
+            
     // First, check if record exists
     fetch(SUPABASE_URL + '/rest/v1/game_data?user_id=eq.' + encodeURIComponent(userId), {
         method: 'GET',
