@@ -990,69 +990,80 @@ function showCreationScreen() {
 }
 
         function loginUser() {
-            var email = document.getElementById('loginEmail').value.trim();
-            var password = document.getElementById('loginPassword').value;
-            
-            if (!email || !password) {
-                alert('Please enter both email and password.');
-                return;
+    var email = document.getElementById('loginEmail').value.trim();
+    var password = document.getElementById('loginPassword').value;
+    
+    if (!email || !password) {
+        alert('Please enter both email and password.');
+        return;
+    }
+    
+    console.log('Attempting login for:', email);
+    
+    // Show loading screen
+    document.getElementById('loadingScreen').style.display = 'flex';
+    document.getElementById('loadingScreen').style.opacity = '1';
+    updateLoadingProgress(20, 'Authenticating...');
+    
+    hashPassword(password).then(function(hashedPassword) {
+        updateLoadingProgress(40, 'Verifying credentials...');
+        return fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email), {
+            method: 'GET',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
             }
-            
-            console.log('Attempting login for:', email);
-            
-            hashPassword(password).then(function(hashedPassword) {
-                return fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email), {
-                    method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-                    }
-                });
-            })
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Login failed: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(function(users) {
-                if (users.length === 0) {
-                    alert('No account found with this email. Please create an account first.');
-                    return;
-                }
-                
-                var user = users[0];
-                
-                return hashPassword(password).then(function(hashedPassword) {
-                    if (user.password_hash === hashedPassword) {
-                        gameState.currentUser = user;
-                        gameState.isLoggedIn = true;
-                        
-                        localStorage.setItem('randofight_session', JSON.stringify({
-                            user_id: user.user_id,
-                            email: user.email,
-                            username: user.username,
-                            loginTime: Date.now()
-                        }));
-                        
-                        document.getElementById('usernameDisplay').textContent = user.username;
-                        console.log('Login successful for:', user.username);
-                        
-                        document.getElementById('loginEmail').value = '';
-                        document.getElementById('loginPassword').value = '';
-                        
-                        loadFromSupabase();
-                        showTitleScreen();
-                    } else {
-                        alert('Incorrect password. Please try again.');
-                    }
-                });
-            })
-            .catch(function(error) {
-                console.error('Login error:', error);
-                alert('Login failed. Please check your connection and try again.');
-            });
+        });
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error('Login failed: ' + response.status);
         }
+        return response.json();
+    })
+    .then(function(users) {
+        if (users.length === 0) {
+            hideLoadingScreen();
+            alert('No account found with this email. Please create an account first.');
+            return;
+        }
+        
+        var user = users[0];
+        
+        return hashPassword(password).then(function(hashedPassword) {
+            if (user.password_hash === hashedPassword) {
+                updateLoadingProgress(60, 'Login successful!');
+                gameState.currentUser = user;
+                gameState.isLoggedIn = true;
+                
+                localStorage.setItem('randofight_session', JSON.stringify({
+                    user_id: user.user_id,
+                    email: user.email,
+                    username: user.username,
+                    loginTime: Date.now()
+                }));
+                
+                document.getElementById('usernameDisplay').textContent = user.username;
+                console.log('Login successful for:', user.username);
+                
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+                
+                updateLoadingProgress(80, 'Loading your data...');
+                loadFromSupabase();
+                showTitleScreen();
+            } else {
+                hideLoadingScreen();
+                alert('Incorrect password. Please try again.');
+            }
+        });
+    })
+    .catch(function(error) {
+        console.error('Login error:', error);
+        hideLoadingScreen();
+        alert('Login failed. Please check your connection and try again.');
+    });
+}
 
         function logoutUser() {
             // Check if user is a guest
