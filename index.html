@@ -2100,7 +2100,9 @@ function initializeDailyTasks() {
 function incrementDailyWins() {
     initializeDailyTasks();
     gameState.dailyTasks.winsToday++;
+    console.log('Incremented daily wins to:', gameState.dailyTasks.winsToday);
     saveToSupabase();
+    saveGameData(); // Also save locally for immediate backup
 }
 
 function showDailyTasks() {
