@@ -1919,6 +1919,7 @@ function retryCloudSave(previousRetryCount) {
             diamonds: gameState.diamonds,
             fightCooldownEnd: gameState.fightCooldownEnd,
             unlockedSlots: gameState.unlockedSlots,
+            dailyTasks: gameState.dailyTasks, // Add this line
             lastSaved: Date.now()
         });
         localStorage.setItem('randofight_gamedata', gameData);
@@ -1929,22 +1930,33 @@ function retryCloudSave(previousRetryCount) {
 }
 
         function loadGameData() {
-            try {
-                var gameData = localStorage.getItem('randofight_gamedata');
-                if (gameData) {
-                    var data = JSON.parse(gameData);
-                    gameState.fighters = data.fighters || [];
-                    gameState.diamonds = data.diamonds || 0;
-                    gameState.fightCooldownEnd = data.fightCooldownEnd || 0;
-                    gameState.unlockedSlots = data.unlockedSlots || [true, false, false, false, false];
-                    console.log('Game loaded from localStorage');
-                } else {
-                    console.log('No saved data found');
+    try {
+        var gameData = localStorage.getItem('randofight_gamedata');
+        if (gameData) {
+            var data = JSON.parse(gameData);
+            gameState.fighters = data.fighters || [];
+            gameState.diamonds = data.diamonds || 0;
+            gameState.fightCooldownEnd = data.fightCooldownEnd || 0;
+            gameState.unlockedSlots = data.unlockedSlots || [true, false, false, false, false];
+            gameState.dailyTasks = data.dailyTasks || {
+                lastReset: new Date().toDateString(),
+                winsToday: 0,
+                claimed: {
+                    win3: false,
+                    win5: false,
+                    win10: false,
+                    win20: false,
+                    win30: false
                 }
-            } catch (e) {
-                console.log('Load failed:', e);
-            }
+            };
+            console.log('Game loaded from localStorage');
+        } else {
+            console.log('No saved data found');
         }
+    } catch (e) {
+        console.log('Load failed:', e);
+    }
+}
 
         function hideAll() {
     var screens = ['loginScreen', 'titleScreen', 'creationScreen', 'fighterScreen', 'fightScreen'];
