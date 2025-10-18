@@ -1849,68 +1849,52 @@ function retryCloudSave(previousRetryCount) {
         return response.json();
     })
     .then(function(data) {
-        console.log('Raw Supabase response:', data);
+    console.log('Raw Supabase response:', data);
+    
+    updateLoadingProgress(80, 'Loading characters...');
+    
+    if (data && data.length > 0) {
+        var gameData = data[0];
+        var cloudTimestamp = new Date(gameData.updated_at).getTime();
         
-        updateLoadingProgress(80, 'Loading characters...');
-        
-        if (data && data.length > 0) {
-            var gameData = data[0];
-            var cloudTimestamp = new Date(gameData.updated_at).getTime();
-            
-            // Compare timestamps - use newer data
-            if (localTimestamp && localTimestamp > cloudTimestamp) {
-                console.log('Local data is newer, using local data and syncing to cloud');
-                loadGameData();
-                saveToSupabase();
-            } else {
-                console.log('Loading data from Supabase:', gameData);
-                gameState.fighters = gameData.fighters || [];
-                gameState.diamonds = gameData.diamonds || 0;
-                gameState.fightCooldownEnd = gameData.fight_cooldown_end || 0;
-                gameState.unlockedSlots = gameData.unlocked_slots || [true, false, false, false, false];
-                
-                // Load daily tasks if they exist, otherwise initialize
-                if (gameData.daily_tasks) {
-                    gameState.dailyTasks = gameData.daily_tasks;
-                }
-                
-                // Also save to localStorage
-                saveGameData();
-                console.log('Game loaded from cloud successfully!');
-            }
-        } else {
-            console.log('No saved data found in Supabase - checking localStorage');
+        // Compare timestamps - use newer data
+        if (localTimestamp && localTimestamp > cloudTimestamp) {
+            console.log('Local data is newer, using local data and syncing to cloud');
             loadGameData();
+            saveToSupabase();
+        } else {
+            console.log('Loading data from Supabase:', gameData);
+            gameState.fighters = gameData.fighters || [];
+            gameState.diamonds = gameData.diamonds || 0;
+            gameState.fightCooldownEnd = gameData.fight_cooldown_end || 0;
+            gameState.unlockedSlots = gameData.unlocked_slots || [true, false, false, false, false];
+            
+            // Load daily tasks - IMPORTANT: Load before initializing
+            if (gameData.daily_tasks) {
+                gameState.dailyTasks = gameData.daily_tasks;
+                console.log('Loaded daily tasks from cloud:', gameState.dailyTasks);
+            }
+            
+            // Also save to localStorage
+            saveGameData();
+            console.log('Game loaded from cloud successfully!');
         }
-        
-        // Initialize daily tasks (will create if missing or reset if new day)
-        initializeDailyTasks();
-        
-        updateLoadingProgress(100, 'Ready!');
-        
-        updateFighterSlots();
-        updateDiamondDisplay();
-        
-        // Hide loading screen after a brief delay
-        setTimeout(hideLoadingScreen, 300);
-    })
-    .catch(function(e) {
-        console.error('Load failed, using localStorage fallback:', e);
-        updateLoadingProgress(80, 'Loading backup data...');
+    } else {
+        console.log('No saved data found in Supabase - checking localStorage');
         loadGameData();
-        
-        // Initialize daily tasks
-        initializeDailyTasks();
-        
-        updateLoadingProgress(100, 'Ready!');
-        
-        updateFighterSlots();
-        updateDiamondDisplay();
-        
-        // Hide loading screen
-        setTimeout(hideLoadingScreen, 300);
-    });
-}
+    }
+    
+    // Initialize daily tasks (will create if missing or reset if new day)
+    initializeDailyTasks();
+    
+    updateLoadingProgress(100, 'Ready!');
+    
+    updateFighterSlots();
+    updateDiamondDisplay();
+    
+    // Hide loading screen after a brief delay
+    setTimeout(hideLoadingScreen, 300);
+})
 
         function saveGameData() {
     try {
