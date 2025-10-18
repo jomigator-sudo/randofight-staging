@@ -820,41 +820,46 @@ function showCreationScreen() {
 }
 
         function initShopPayPalButton(containerId, price, diamonds) {
-            paypal.Buttons({
-                createOrder: function(data, actions) {
-                    return actions.order.create({
-                        purchase_units: [{
-                            amount: {
-                                value: price,
-                                currency_code: 'USD'
-                            },
-                            description: diamonds + ' Diamonds for RandoFight'
-                        }]
-                    });
-                },
-                onApprove: function(data, actions) {
-                    return actions.order.capture().then(function(details) {
-                        console.log('PayPal payment successful:', details);
-                        closeDiamondShop();
-                        processSuccessfulPayment(details, diamonds);
-                    });
-                },
-                onError: function(err) {
-                    console.error('PayPal payment error:', err);
-                    alert('Payment failed. Please try again.');
-                },
-                onCancel: function(data) {
-                    console.log('PayPal payment cancelled:', data);
-                },
-                style: {
-                    color: 'blue',
-                    shape: 'pill',
-                    label: 'pay',
-                    height: 35,
-                    tagline: false
+    paypal.Buttons({
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: price,
+                        currency_code: 'USD'
+                    },
+                    description: diamonds + ' Diamonds for RandoFight'
+                }],
+                application_context: {
+                    brand_name: 'RandoFight',
+                    locale: 'en-US',
+                    shipping_preference: 'NO_SHIPPING'
                 }
-            }).render('#' + containerId);
+            });
+        },
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+                console.log('PayPal payment successful:', details);
+                closeDiamondShop();
+                processSuccessfulPayment(details, diamonds);
+            });
+        },
+        onError: function(err) {
+            console.error('PayPal payment error:', err);
+            alert('Payment failed. Please try again.');
+        },
+        onCancel: function(data) {
+            console.log('PayPal payment cancelled:', data);
+        },
+        style: {
+            color: 'blue',
+            shape: 'pill',
+            label: 'pay',
+            height: 35,
+            tagline: false
         }
+    }).render('#' + containerId);
+}
 
         function closeDiamondShop() {
             var modal = document.getElementById('diamondShopModal');
