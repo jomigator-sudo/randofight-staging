@@ -4981,25 +4981,6 @@ if (shouldUseSpecial) {
         document.getElementById('player1HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
     }
 }
-        function updateSpecialMeter(fighter, amount, isPlayer) {
-    if (!fighter.specialAttack || fighter.level < 10) return;
-    
-    fighter.specialMeter = Math.min(100, fighter.specialMeter + amount);
-    
-    var meterId = isPlayer ? 'player1Special' : 'player2Special';
-    var btnId = 'player1SpecialBtn';
-    
-    document.getElementById(meterId).style.width = fighter.specialMeter + '%';
-    
-    // Show button when meter is full (player only)
-    if (isPlayer && fighter.specialMeter >= 100 && !fighter.specialReady) {
-        fighter.specialReady = true;
-        var btn = document.getElementById(btnId);
-        if (btn) {
-            btn.style.display = 'block';
-        }
-    }
-}
 
 function playerUseSpecial() {
     var player = gameState.currentFighter;
