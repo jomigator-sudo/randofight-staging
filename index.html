@@ -4943,9 +4943,18 @@ var shouldUseSpecial = false;
 
 if (attacker.level >= 10 && attacker.specialAttack && attacker.specialAvailable && !attacker.specialUsed) {
     if (attackerType === 'player' && attacker.useSpecialNext) {
+        console.log('Player using special attack now!');
         shouldUseSpecial = true;
         attacker.useSpecialNext = false;
         attacker.specialUsed = true;
+        
+        // Update button to show it was used
+        var btn = document.getElementById('player1SpecialBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '⚡ Special Used';
+            btn.style.opacity = '0.5';
+        }
     } else if (attackerType === 'opponent') {
         // AI uses special attack strategically:
         // - 30% chance when opponent HP is below 40% (finishing move)
@@ -4962,6 +4971,7 @@ if (attacker.level >= 10 && attacker.specialAttack && attacker.specialAvailable 
         }
         
         if (Math.random() * 100 < useChance) {
+            console.log('Opponent using special attack!');
             shouldUseSpecial = true;
             attacker.specialUsed = true;
         }
@@ -4988,18 +4998,22 @@ if (shouldUseSpecial) {
 
 function playerUseSpecial() {
     var player = gameState.currentFighter;
-    if (!player.specialAvailable || player.specialUsed) return;
+    if (!player.specialAvailable || player.specialUsed) {
+        console.log('Special not available or already used');
+        return;
+    }
     
-    // Mark special as used
-    player.specialUsed = true;
+    console.log('Special attack queued for next player turn');
+    
+    // Mark special as queued (will be used on next player attack)
     player.useSpecialNext = true;
     
-    // Disable button
+    // Disable button immediately
     var btn = document.getElementById('player1SpecialBtn');
     if (btn) {
         btn.disabled = true;
-        btn.textContent = '⚡ Special Used';
-        btn.style.opacity = '0.5';
+        btn.textContent = '⚡ Special Queued...';
+        btn.style.opacity = '0.7';
         btn.style.cursor = 'not-allowed';
     }
 }
