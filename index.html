@@ -5002,7 +5002,12 @@ function playerUseSpecial() {
             
             function performSpecialAttack(attacker, defender, attackerType) {
     if (defender.currentHp <= 0) return;
-    
+
+    // Add this at the beginning to show opponent used their special
+    if (attackerType === 'opponent') {
+        addToFightLog('<span style="color: #ff6b6b; font-weight: bold;">⚠️ ' + attacker.name + ' prepares their special attack!</span>');
+    }
+                
     var specialBaseDamage = attacker.level * 4 + 20;
     var specialStrengthBonus = (attacker.stats.strength - 1) * 2;
     var specialDamage = specialBaseDamage + specialStrengthBonus;
