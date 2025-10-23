@@ -4994,15 +4994,20 @@ if (shouldUseSpecial) {
 
 function playerUseSpecial() {
     var player = gameState.currentFighter;
-    if (!player.specialReady || player.specialMeter < 100) return;
+    if (!player.specialAvailable || player.specialUsed) return;
     
+    // Mark special as used
+    player.specialUsed = true;
     player.useSpecialNext = true;
-    player.specialMeter = 0;
-    player.specialReady = false;
     
-    document.getElementById('player1Special').style.width = '0%';
-    document.getElementById('player1SpecialBtn').style.display = 'none';
-    
+    // Disable button
+    var btn = document.getElementById('player1SpecialBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⚡ Special Used';
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+    }
 }
             
             function performSpecialAttack(attacker, defender, attackerType) {
