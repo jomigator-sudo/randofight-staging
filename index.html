@@ -4686,11 +4686,13 @@ function startFight(player, opponent, isDiamondFight) {
     player.currentHp = player.maxHp;
     opponent.currentHp = opponent.maxHp;
     
-    // Initialize special attacks - each player gets 1 use per match
+    // IMPORTANT: Reset special attack state completely for both fighters
     player.specialAvailable = player.level >= 10 && player.specialAttack ? true : false;
     opponent.specialAvailable = opponent.level >= 10 && opponent.specialAttack ? true : false;
     player.specialUsed = false;
     opponent.specialUsed = false;
+    player.useSpecialNext = false; // Reset this flag
+    opponent.useSpecialNext = false; // Reset this flag
     
     // Hide the special meter bars (no longer needed)
     var player1SpecialContainer = document.getElementById('player1Special').parentElement.parentElement;
@@ -4698,11 +4700,13 @@ function startFight(player, opponent, isDiamondFight) {
     player1SpecialContainer.style.display = 'none';
     player2SpecialContainer.style.display = 'none';
     
-    // Show special attack button if available
+    // Show and enable special attack button if available
     var player1SpecialBtn = document.getElementById('player1SpecialBtn');
     if (player.specialAvailable) {
         player1SpecialBtn.style.display = 'block';
         player1SpecialBtn.disabled = false;
+        player1SpecialBtn.style.opacity = '1';
+        player1SpecialBtn.style.cursor = 'pointer';
         player1SpecialBtn.textContent = '⚡ Use ' + player.specialAttack.name;
         player1SpecialBtn.parentElement.style.display = 'block';
     } else {
