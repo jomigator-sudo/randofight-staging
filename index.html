@@ -5864,6 +5864,256 @@ function showLootMessage(message) {
         }
     }, 2000);
 }
+// Referral System Functions
+function showReferralModal() {
+    if (!gameState.currentUser || gameState.currentUser.isGuest) {
+        alert('Please create an account to use the referral system!');
+        return;
+    }
+    
+    var userId = getUserId();
+    var referralLink = window.location.origin + window.location.pathname + '?ref=' + userId;
+    
+    // Get referral stats
+    getReferralStats(userId).then(function(stats) {
+        var modal = 
+            '<div id="referralModal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">' +
+                '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; padding: 30px; border-radius: 10px; border: 2px solid #4ecdc4; max-width: 500px; width: 90%; text-align: center;">' +
+                    '<h2 style="color: #4ecdc4; margin-bottom: 20px;">🎁 Refer Friends & Earn Rewards!</h2>' +
+                    
+                    '<div style="background: rgba(255, 215, 0, 0.2); border: 2px solid #ffd93d; border-radius: 8px; padding: 20px; margin-bottom: 20px;">' +
+                        '<h3 style="color: #ffd93d; margin-bottom: 15px;">How It Works</h3>' +
+                        '<div style="text-align: left; color: #ccc; font-size: 0.9em;">' +
+                            '<p style="margin-bottom: 10px;">✅ Share your unique referral link</p>' +
+                            '<p style="margin-bottom: 10px;">✅ Friend creates account & first fighter</p>' +
+                            '<p style="margin-bottom: 10px;">✅ You both get <span style="color: #ffd93d; font-weight: bold;">50 💎</span></p>' +
+                        '</div>' +
+                    '</div>' +
+                    
+                    '<div style="background: rgba(78, 205, 196, 0.2); border: 2px solid #4ecdc4; border-radius: 8px; padding: 15px; margin-bottom: 20px;">' +
+                        '<div style="color: #4ecdc4; font-weight: bold; font-size: 1.1em;">Your Stats</div>' +
+                        '<div style="color: #fff; margin-top: 10px;">' +
+                            '<span style="color: #ffd93d; font-size: 1.5em; font-weight: bold;">' + stats.totalReferred + '</span>' +
+                            '<div style="color: #888; font-size: 0.9em;">Friends Referred</div>' +
+                        '</div>' +
+                        '<div style="color: #fff; margin-top: 10px;">' +
+                            '<span style="color: #6bcf7f; font-size: 1.5em; font-weight: bold;">' + (stats.totalReferred * 50) + ' 💎</span>' +
+                            '<div style="color: #888; font-size: 0.9em;">Diamonds Earned</div>' +
+                        '</div>' +
+                    '</div>' +
+                    
+                    '<div style="margin-bottom: 20px;">' +
+                        '<label style="color: #4ecdc4; display: block; margin-bottom: 8px; font-weight: bold;">Your Referral Link:</label>' +
+                        '<div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; border: 1px solid #4ecdc4;">' +
+                            '<input type="text" value="' + referralLink + '" id="referralLinkInput" readonly onclick="this.select()" style="width: 100%; padding: 10px; background: transparent; border: none; color: #fff; text-align: center; font-size: 0.85em; cursor: pointer;">' +
+                        '</div>' +
+                    '</div>' +
+                    
+                    '<div style="display: flex; gap: 10px; margin-bottom: 15px;">' +
+                        '<button class="btn btn-primary" onclick="copyReferralLink()" style="flex: 1;">📋 Copy Link</button>' +
+                        '<button class="btn" style="background: #1DA1F2; color: #fff; flex: 1;" onclick="shareOnTwitter()">🐦 Tweet</button>' +
+                    '</div>' +
+                    
+                    '<button class="btn btn-secondary" onclick="closeReferralModal()" style="width: 100%;">Close</button>' +
+                '</div>' +
+            '</div>';
+        
+        document.body.insertAdjacentHTML('beforeend', modal);
+    });
+}
+
+function closeReferralModal() {
+    var modal = document.getElementById('referralModal');
+    if (modal) modal.remove();
+}
+
+function copyReferralLink() {
+    var input = document.getElementById('referralLinkInput');
+    input.select();
+    input.setSelectionRange(0, 99999); // For mobile
+    
+    try {
+        document.execCommand('copy');
+        
+        // Visual feedback
+        var btn = event.target;
+        var originalText = btn.innerHTML;
+        btn.innerHTML = '✅ Copied!';
+        btn.style.background = '#6bcf7f';
+        
+        setTimeout(function() {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+        }, 2000);
+    } catch (err) {
+        // Fallback for older browsers
+        alert('Please manually copy the link: ' + input.value);
+    }
+}
+
+function shareOnTwitter() {
+    var userId = getUserId();
+    var text = 'Join me on RandoFight! 🎮 Free browser fighting game with PvP battles, loot, and tournaments. Use my link and we both get 50 diamonds! 💎';
+    var url = window.location.origin + window.location.pathname + '?ref=' + userId;
+    var twitterUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url);
+    window.open(twitterUrl, '_blank', 'width=550,height=420');
+}
+
+function getReferralStats(userId) {
+    return fetch(SUPABASE_URL + '/rest/v1/referrals?referrer_id=eq.' + encodeURIComponent(userId), {
+        method: 'GET',
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(referrals) {
+        return {
+            totalReferred: referrals.length
+        };
+    })
+    .catch(function(error) {
+        console.error('Error getting referral stats:', error);
+        return {
+            totalReferred: 0
+        };
+    });
+}
+
+function checkReferralCode() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var referrerId = urlParams.get('ref');
+    
+    if (referrerId) {
+        console.log('Referral code detected:', referrerId);
+        localStorage.setItem('randofight_referrer', referrerId);
+    }
+}
+
+function processReferral(newUserId) {
+    var referrerId = localStorage.getItem('randofight_referrer');
+    
+    if (!referrerId || referrerId === newUserId) {
+        localStorage.removeItem('randofight_referrer');
+        return;
+    }
+    
+    console.log('Processing referral for new user:', newUserId, 'referred by:', referrerId);
+    
+    // Check if this referral already exists
+    fetch(SUPABASE_URL + '/rest/v1/referrals?referred_id=eq.' + encodeURIComponent(newUserId), {
+        method: 'GET',
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(existingReferrals) {
+        if (existingReferrals.length > 0) {
+            console.log('Referral already processed');
+            localStorage.removeItem('randofight_referrer');
+            return;
+        }
+        
+        // Create referral record
+        var referralData = {
+            referrer_id: referrerId,
+            referred_id: newUserId,
+            created_at: new Date().toISOString(),
+            reward_claimed: false
+        };
+        
+        return fetch(SUPABASE_URL + '/rest/v1/referrals', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify(referralData)
+        });
+    })
+    .then(function(response) {
+        if (response && response.ok) {
+            console.log('Referral recorded successfully');
+            localStorage.removeItem('randofight_referrer');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error processing referral:', error);
+    });
+}
+
+function claimReferralReward(newUserId) {
+    var referrerId = localStorage.getItem('randofight_referrer');
+    
+    if (!referrerId) {
+        return;
+    }
+    
+    console.log('Claiming referral rewards...');
+    
+    // Award diamonds to both users
+    // 1. Award to referrer
+    fetch(SUPABASE_URL + '/rest/v1/game_data?user_id=eq.' + encodeURIComponent(referrerId), {
+        method: 'GET',
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data && data.length > 0) {
+            var referrerData = data[0];
+            var newDiamonds = (referrerData.diamonds || 0) + 50;
+            
+            return fetch(SUPABASE_URL + '/rest/v1/game_data?user_id=eq.' + encodeURIComponent(referrerId), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                },
+                body: JSON.stringify({ diamonds: newDiamonds })
+            });
+        }
+    })
+    .then(function() {
+        // 2. Award to new user
+        gameState.diamonds += 50;
+        saveToSupabase();
+        
+        // 3. Mark referral as claimed
+        return fetch(SUPABASE_URL + '/rest/v1/referrals?referred_id=eq.' + encodeURIComponent(newUserId), {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({ reward_claimed: true })
+        });
+    })
+    .then(function() {
+        console.log('Referral rewards claimed successfully!');
+        localStorage.removeItem('randofight_referrer');
+        
+        // Show notification
+        alert('🎉 Referral bonus! You and your friend both received 50 diamonds! 💎');
+    })
+    .catch(function(error) {
+        console.error('Error claiming referral rewards:', error);
+    });
+}
         
 function initGame() {
     console.log('RandoFight initializing...');
