@@ -4685,35 +4685,28 @@ function startFight(player, opponent, isDiamondFight) {
             
     player.currentHp = player.maxHp;
     opponent.currentHp = opponent.maxHp;
-    // Initialize special attack meters
-    player.specialMeter = 0;
-    opponent.specialMeter = 0;
-    player.specialReady = false;
-    opponent.specialReady = false;
-    player.useSpecialNext = false;
-    opponent.useSpecialNext = false;
     
-    // Reset the visual special attack bars
-    document.getElementById('player1Special').style.width = '0%';
-    document.getElementById('player2Special').style.width = '0%';
-    document.getElementById('player1SpecialBtn').style.display = 'none';
-    // Hide/show special attack UI based on level
-    var player1SpecialBar = document.getElementById('player1Special').parentElement.parentElement;
-    var player2SpecialBar = document.getElementById('player2Special').parentElement.parentElement;
+    // Initialize special attacks - each player gets 1 use per match
+    player.specialAvailable = player.level >= 10 && player.specialAttack ? true : false;
+    opponent.specialAvailable = opponent.level >= 10 && opponent.specialAttack ? true : false;
+    player.specialUsed = false;
+    opponent.specialUsed = false;
+    
+    // Hide the special meter bars (no longer needed)
+    var player1SpecialContainer = document.getElementById('player1Special').parentElement.parentElement;
+    var player2SpecialContainer = document.getElementById('player2Special').parentElement.parentElement;
+    player1SpecialContainer.style.display = 'none';
+    player2SpecialContainer.style.display = 'none';
+    
+    // Show special attack button if available
     var player1SpecialBtn = document.getElementById('player1SpecialBtn');
-
-    if (player.level >= 10 && player.specialAttack) {
-        player1SpecialBar.style.display = 'block';
+    if (player.specialAvailable) {
+        player1SpecialBtn.style.display = 'block';
+        player1SpecialBtn.disabled = false;
+        player1SpecialBtn.textContent = '⚡ Use ' + player.specialAttack.name;
         player1SpecialBtn.parentElement.style.display = 'block';
     } else {
-        player1SpecialBar.style.display = 'none';
         player1SpecialBtn.style.display = 'none';
-    }
-
-    if (opponent.level >= 10 && opponent.specialAttack) {
-        player2SpecialBar.style.display = 'block';
-    } else {
-        player2SpecialBar.style.display = 'none';
     }
             
     // Store whether this is a diamond fight and boss fight
