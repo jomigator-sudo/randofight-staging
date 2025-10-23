@@ -3403,6 +3403,16 @@ html += '<div class="leaderboard-entry"' + highlightStyle + '>' +
             
             saveToSupabase();
             gameState.currentFighter = fighter;
+            
+            // Process referral if this is first fighter AND user is not a guest
+            if (isFirstFighter && gameState.currentUser && !gameState.currentUser.isGuest) {
+                var userId = getUserId();
+                processReferral(userId);
+                setTimeout(function() {
+                    claimReferralReward(userId);
+                }, 1000);
+            }
+            
             showFighterScreen();
         })
         .catch(function(error) {
