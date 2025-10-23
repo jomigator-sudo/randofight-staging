@@ -5690,6 +5690,16 @@ if (fighter.level === 10) {
     var itemLevelText = item.itemLevel ? 'Lv.' + item.itemLevel + ' ' : '';
     var rarityClass = item.rarity || 'common';
     
+    // Build current item display with item level
+    var currentItemDisplay = '';
+    if (currentItem) {
+        var currentItemLevelText = currentItem.itemLevel ? 'Lv.' + currentItem.itemLevel + ' ' : '';
+        var currentRarityClass = currentItem.rarity || 'common';
+        currentItemDisplay = '<div style="color: #888; font-size: 0.85em;">Currently equipped: <span class="' + currentRarityClass + '">' + currentItemLevelText + currentItem.name + '</span> (+' + (currentItem.power || 0) + ' ' + statType + ')</div>';
+    } else {
+        currentItemDisplay = '<div style="color: #888; font-size: 0.85em;">Currently equipped: Empty</div>';
+    }
+    
     var modalHTML = 
         '<div id="lootModal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000;">' +
             '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; padding: 30px; border-radius: 10px; border: 3px solid #ffd93d; max-width: 450px; width: 90%; text-align: center;">' +
@@ -5713,7 +5723,7 @@ if (fighter.level === 10) {
                     '<button class="btn" style="background: #ffd93d; color: #333; padding: 12px 30px; font-size: 1.1em;" onclick="sellLoot(' + sellPrice + ')">Sell (' + sellPrice + ' 💎)</button>' +
                 '</div>' +
                 
-                (currentItem ? '<div style="color: #888; font-size: 0.85em;">Current: ' + (currentItem.name || 'Empty') + ' (+' + (currentItem.power || 0) + ' ' + statType + ')</div>' : '') +
+                currentItemDisplay +
             '</div>' +
         '</div>';
     
