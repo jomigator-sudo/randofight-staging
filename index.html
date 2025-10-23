@@ -4937,15 +4937,30 @@ function startFight(player, opponent, isDiamondFight) {
 // Check if special attack should be used
 var shouldUseSpecial = false;
 
-if (attacker.level >= 10 && attacker.specialAttack) {
+if (attacker.level >= 10 && attacker.specialAttack && attacker.specialAvailable && !attacker.specialUsed) {
     if (attackerType === 'player' && attacker.useSpecialNext) {
         shouldUseSpecial = true;
         attacker.useSpecialNext = false;
-    } else if (attackerType === 'opponent' && attacker.specialMeter >= 100) {
-        // Bot uses special when meter is full
-        shouldUseSpecial = true;
-        attacker.specialMeter = 0;
-        document.getElementById('player2Special').style.width = '0%';
+        attacker.specialUsed = true;
+    } else if (attackerType === 'opponent') {
+        // AI uses special attack strategically:
+        // - 30% chance when opponent HP is below 40% (finishing move)
+        // - 20% chance when own HP is below 30% (desperation move)
+        // - 10% chance randomly each turn
+        var opponentHpPercent = (defender.currentHp / defender.maxHp) * 100;
+        var ownHpPercent = (attacker.currentHp / attacker.maxHp) * 100;
+        var useChance = 10; // Base 10% chance
+        
+        if (opponentHpPercent < 40) {
+            useChance = 30; // Higher chance to finish off weak opponent
+        } else if (ownHpPercent < 30) {
+            useChance = 20; // Use as desperation move
+        }
+        
+        if (Math.random() * 100 < useChance) {
+            shouldUseSpecial = true;
+            attacker.specialUsed = true;
+        }
     }
 }
 
