@@ -4933,12 +4933,6 @@ function startFight(player, opponent, isDiamondFight) {
     defender.currentHp = Math.max(0, defender.currentHp - damage);
     
     addToFightLog(attackText);
-// Special meter only gains from taking damage (comeback mechanic)
-if (attackerType === 'player') {
-    updateSpecialMeter(defender, 20, false); // Opponent gains meter when hit
-} else {
-    updateSpecialMeter(defender, 20, true); // Player gains meter when hit
-}
                 
 // Check if special attack should be used
 var shouldUseSpecial = false;
