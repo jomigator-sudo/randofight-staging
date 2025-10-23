@@ -1,0 +1,70 @@
+User-agent: *
+Allow: /
+Sitemap: https://randofight.com/sitemap.xml
+```
+
+**D. Submit to Google Search Console:**
+1. Go to https://search.google.com/search-console
+2. Add your property (randofight.com)
+3. Verify ownership
+4. Submit your sitemap
+5. Request indexing
+
+## 2. **Google Ads - PAID but immediate traffic**
+
+**Campaign Strategy:**
+
+**A. Search Ads (Text Ads):**
+- **Budget**: Start with $10-20/day
+- **Keywords to target**:
+  - "browser fighting game"
+  - "free online rpg"
+  - "text-based fighting game"
+  - "pvp browser game"
+  - "incremental rpg game"
+  - "idle fighting game"
+  - "free browser game"
+
+**Sample Ad Copy:**
+```
+Headline 1: Free PvP Fighting Game
+Headline 2: Battle Players Worldwide
+Headline 3: No Download Required
+Description: Level up your fighter, collect epic loot, and dominate tournaments. Play RandoFight now - 100% free browser game!
+```
+
+**B. Display Ads (Banner Ads):**
+- Target gaming websites and forums
+- Create eye-catching banners (728x90, 300x250)
+- Use your game's visual style
+
+**C. YouTube Ads:**
+- Create a 15-30 second gameplay trailer
+- Target gaming channels and similar games
+
+## 3. **Social Media Marketing - FREE/PAID**
+
+**A. Reddit:**
+- Post in relevant subreddits (with permission):
+  - r/WebGames
+  - r/incremental_games
+  - r/browserGames
+  - r/gaming
+  - r/IndieGaming
+- Don't spam - engage with the community first
+
+**Sample Reddit Post:**
+```
+Title: I made a free browser-based PvP fighting game - RandoFight
+
+Hey everyone! I've been working on RandoFight, a text-based fighting game where you:
+- Battle real players in PvP
+- Level up and customize your fighter
+- Collect legendary loot
+- Compete in weekly tournaments
+
+It's completely free and runs in your browser - no download needed!
+
+[Link to game]
+
+I'd love to hear your feedback!
