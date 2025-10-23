@@ -6130,6 +6130,9 @@ function initGame() {
     
     updateLoadingProgress(10, 'Initializing...');
     
+    // Check for referral code in URL
+    checkReferralCode();
+    
     // Force clear any password reset tokens first
     console.log('Clearing any existing reset tokens...');
     localStorage.removeItem('reset_token_demo');
