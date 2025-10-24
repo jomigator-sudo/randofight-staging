@@ -843,31 +843,35 @@ function showCreationScreen() {
                 '<p style="margin-bottom: 20px; color: #ccc; font-size: 0.9em;">Purchase diamonds to unlock slots, fight without cooldown, and more!</p>' +
                 '<div style="display: grid; gap: 15px; margin-bottom: 20px;">' +
                     '<div class="diamond-pack" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; border: 1px solid #666;">' +
-                        '<div style="color: #ffd93d; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">50 💎</div>' +
-                        '<div style="color: #4ecdc4; font-size: 1.2em; margin-bottom: 10px;">$0.99</div>' +
+                        '<div style="color: #ffd93d; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">100 💎</div>' +
+                        '<div style="color: #4ecdc4; font-size: 1.2em; margin-bottom: 5px;">$0.99</div>' +
+                        '<div style="color: #888; font-size: 0.75em; margin-bottom: 10px;">$0.0099 per diamond</div>' +
                         '<div style="background: rgba(255,255,255,0.95); padding: 10px; border-radius: 6px; min-height: 40px;">' +
                             '<div id="pack1Button"></div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="diamond-pack" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; border: 1px solid #666;">' +
-                        '<div style="color: #ffd93d; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">120 💎</div>' +
-                        '<div style="color: #4ecdc4; font-size: 1.2em; margin-bottom: 10px;">$1.99</div>' +
+                        '<div style="color: #ffd93d; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">250 💎</div>' +
+                        '<div style="color: #4ecdc4; font-size: 1.2em; margin-bottom: 5px;">$1.99</div>' +
+                        '<div style="color: #888; font-size: 0.75em; margin-bottom: 10px;">$0.0080 per diamond <span style="color: #6bcf7f;">(19% bonus!)</span></div>' +
                         '<div style="background: rgba(255,255,255,0.95); padding: 10px; border-radius: 6px; min-height: 40px;">' +
                             '<div id="pack2Button"></div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="diamond-pack" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; border: 1px solid #666; border-color: #ff6b6b;">' +
                         '<div style="color: #ff6b6b; font-size: 0.8em; margin-bottom: 5px;">POPULAR</div>' +
-                        '<div style="color: #ffd93d; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">350 💎</div>' +
-                        '<div style="color: #4ecdc4; font-size: 1.2em; margin-bottom: 10px;">$4.99</div>' +
+                        '<div style="color: #ffd93d; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">700 💎</div>' +
+                        '<div style="color: #4ecdc4; font-size: 1.2em; margin-bottom: 5px;">$4.99</div>' +
+                        '<div style="color: #888; font-size: 0.75em; margin-bottom: 10px;">$0.0071 per diamond <span style="color: #6bcf7f;">(40% bonus!)</span></div>' +
                         '<div style="background: rgba(255,255,255,0.95); padding: 10px; border-radius: 6px; min-height: 40px;">' +
                             '<div id="pack3Button"></div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="diamond-pack" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; border: 1px solid #666; border-color: #ffd700;">' +
                         '<div style="color: #ffd700; font-size: 0.8em; margin-bottom: 5px;">BEST VALUE</div>' +
-                        '<div style="color: #ffd93d; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">800 💎</div>' +
-                        '<div style="color: #4ecdc4; font-size: 1.2em; margin-bottom: 10px;">$9.99</div>' +
+                        '<div style="color: #ffd93d; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">1,700 💎</div>' +
+                        '<div style="color: #4ecdc4; font-size: 1.2em; margin-bottom: 5px;">$9.99</div>' +
+                        '<div style="color: #888; font-size: 0.75em; margin-bottom: 10px;">$0.0059 per diamond <span style="color: #6bcf7f;">(70% bonus!)</span></div>' +
                         '<div style="background: rgba(255,255,255,0.95); padding: 10px; border-radius: 6px; min-height: 40px;">' +
                             '<div id="pack4Button"></div>' +
                         '</div>' +
@@ -881,16 +885,16 @@ function showCreationScreen() {
     
     // Initialize PayPal buttons for each pack
     if (typeof paypal !== 'undefined') {
-        initShopPayPalButton('pack1Button', '0.99', 50);
-        initShopPayPalButton('pack2Button', '1.99', 120);
-        initShopPayPalButton('pack3Button', '4.99', 350);
-        initShopPayPalButton('pack4Button', '9.99', 800);
+        initShopPayPalButton('pack1Button', '0.99', 100);
+        initShopPayPalButton('pack2Button', '1.99', 250);
+        initShopPayPalButton('pack3Button', '4.99', 700);
+        initShopPayPalButton('pack4Button', '9.99', 1700);
     } else {
         // Fallback if PayPal not available
-        document.getElementById('pack1Button').innerHTML = '<button class="btn btn-primary" onclick="fallbackPurchase(50)" style="width: 100%; font-size: 0.9em;">Purchase (Test)</button>';
-        document.getElementById('pack2Button').innerHTML = '<button class="btn btn-primary" onclick="fallbackPurchase(120)" style="width: 100%; font-size: 0.9em;">Purchase (Test)</button>';
-        document.getElementById('pack3Button').innerHTML = '<button class="btn btn-primary" onclick="fallbackPurchase(350)" style="width: 100%; font-size: 0.9em;">Purchase (Test)</button>';
-        document.getElementById('pack4Button').innerHTML = '<button class="btn btn-primary" onclick="fallbackPurchase(800)" style="width: 100%; font-size: 0.9em;">Purchase (Test)</button>';
+        document.getElementById('pack1Button').innerHTML = '<button class="btn btn-primary" onclick="fallbackPurchase(100)" style="width: 100%; font-size: 0.9em;">Purchase (Test)</button>';
+        document.getElementById('pack2Button').innerHTML = '<button class="btn btn-primary" onclick="fallbackPurchase(250)" style="width: 100%; font-size: 0.9em;">Purchase (Test)</button>';
+        document.getElementById('pack3Button').innerHTML = '<button class="btn btn-primary" onclick="fallbackPurchase(700)" style="width: 100%; font-size: 0.9em;">Purchase (Test)</button>';
+        document.getElementById('pack4Button').innerHTML = '<button class="btn btn-primary" onclick="fallbackPurchase(1700)" style="width: 100%; font-size: 0.9em;">Purchase (Test)</button>';
     }
 }
 
