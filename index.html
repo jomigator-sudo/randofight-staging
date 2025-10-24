@@ -6235,6 +6235,65 @@ function claimReferralReward(newUserId) {
         console.error('Error claiming referral rewards:', error);
     });
 }
+function showCreditsModal() {
+    var existingModal = document.getElementById('creditsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    var modalHTML = 
+        '<div id="creditsModal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; overflow-y: auto;">' +
+            '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; padding: 40px; border-radius: 15px; border: 3px solid #4ecdc4; max-width: 500px; width: 90%; box-shadow: 0 0 30px rgba(78, 205, 196, 0.3);">' +
+                '<h2 style="color: #4ecdc4; text-align: center; margin-bottom: 30px; font-size: 2em;">🎮 RandoFight Credits</h2>' +
+                
+                '<div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px;">' +
+                    '<h3 style="color: #ffd93d; text-align: center; margin-bottom: 15px; font-size: 1.3em;">Developer</h3>' +
+                    '<div style="text-align: center; margin-bottom: 15px;">' +
+                        '<p style="color: #fff; font-size: 1.1em; margin-bottom: 5px;">JM Contreras</p>' +
+                        '<p style="color: #888; font-size: 0.9em;">Lead Developer</p>' +
+                    '</div>' +
+                '</div>' +
+                
+                '<div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px;">' +
+                    '<h3 style="color: #ffd93d; text-align: center; margin-bottom: 15px; font-size: 1.3em;">Studio</h3>' +
+                    '<div style="text-align: center;">' +
+                        '<p style="color: #fff; font-size: 1.1em; margin-bottom: 10px;">Ninja Roo Games</p>' +
+                        '<img src="https://randofight.com/ninja%20roo%20logo%20white.png" alt="Ninja Roo Games" style="width: 80px; margin: 10px auto; display: block; opacity: 0.8;">' +
+                    '</div>' +
+                '</div>' +
+                
+                '<div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 25px;">' +
+                    '<h3 style="color: #ffd93d; text-align: center; margin-bottom: 15px; font-size: 1.3em;">Special Thanks</h3>' +
+                    '<div style="text-align: center;">' +
+                        '<p style="color: #ccc; font-size: 0.95em; margin-bottom: 8px;">• Claude AI - Development Assistant</p>' +
+                        '<p style="color: #ccc; font-size: 0.95em; margin-bottom: 8px;">• All our amazing players</p>' +
+                        '<p style="color: #ccc; font-size: 0.95em;">• The RandoFight community</p>' +
+                    '</div>' +
+                '</div>' +
+                
+                '<div style="text-align: center; margin-bottom: 25px;">' +
+                    '<p style="color: #888; font-size: 0.9em; margin-bottom: 10px;">Contact Us:</p>' +
+                    '<a href="mailto:ninjaroogames@gmail.com" style="color: #4ecdc4; text-decoration: none; font-size: 1em; font-weight: bold;">ninjaroogames@gmail.com</a>' +
+                '</div>' +
+                
+                '<div style="text-align: center; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">' +
+                    '<p style="color: #666; font-size: 0.8em;">© 2025 Ninja Roo Games. All rights reserved.</p>' +
+                    '<p style="color: #666; font-size: 0.8em; margin-top: 5px;">Version 1.0</p>' +
+                '</div>' +
+                
+                '<button class="btn btn-secondary" onclick="closeCreditsModal()" style="width: 100%; margin-top: 20px; padding: 12px;">Close</button>' +
+            '</div>' +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeCreditsModal() {
+    var modal = document.getElementById('creditsModal');
+    if (modal) {
+        modal.remove();
+    }
+}
         
 function initGame() {
     console.log('RandoFight initializing...');
