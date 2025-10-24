@@ -799,6 +799,52 @@ function showTitleScreen() {
         updateFighterSlots();
         updateDiamondDisplay();
         
+        // Update the logout/create account button based on account type
+        var logoutBtn = document.querySelector('button[onclick="logoutUser()"]') || 
+                       document.querySelector('.btn-secondary[onclick="logoutUser()"]');
+        
+        // Also check for the create account button
+        if (!logoutBtn) {
+            var allButtons = document.querySelectorAll('#titleScreen button');
+            for (var i = 0; i < allButtons.length; i++) {
+                if (allButtons[i].textContent.includes('Logout') || allButtons[i].textContent.includes('Create Account')) {
+                    logoutBtn = allButtons[i];
+                    break;
+                }
+            }
+        }
+        
+        if (logoutBtn) {
+            // Check if user is a guest
+            if (gameState.currentUser && gameState.currentUser.isGuest) {
+                console.log('Setting button to Create Account for guest');
+                logoutBtn.textContent = 'Create Account';
+                logoutBtn.removeAttribute('onclick');
+                logoutBtn.onclick = createAccountFromGuest;
+            } else {
+                console.log('Setting button to Logout for logged-in user');
+                logoutBtn.textContent = 'Logout';
+                logoutBtn.removeAttribute('onclick');
+                logoutBtn.onclick = logoutUser;
+            }
+        }
+        
+        // Update cloud save message based on account type
+        var cloudSaveMessage = document.querySelector('div[style*="background: rgba(34, 197, 94, 0.2)"]') ||
+                              document.querySelector('div[style*="background: rgba(245, 158, 11, 0.2)"]');
+        
+        if (cloudSaveMessage) {
+            if (gameState.currentUser && gameState.currentUser.isGuest) {
+                cloudSaveMessage.innerHTML = '<p style="color: #f59e0b; font-size: 0.9em; margin: 0;">⚠️ <strong>Playing as Guest:</strong> Your progress is saved locally. Create an account to sync across devices!</p>';
+                cloudSaveMessage.style.background = 'rgba(245, 158, 11, 0.2)';
+                cloudSaveMessage.style.borderColor = '#f59e0b';
+            } else {
+                cloudSaveMessage.innerHTML = '<p style="color: #22c55e; font-size: 0.9em; margin: 0;">✅ <strong>Cloud Save Enabled:</strong> Your characters are automatically saved and will persist across devices and sessions!</p>';
+                cloudSaveMessage.style.background = 'rgba(34, 197, 94, 0.2)';
+                cloudSaveMessage.style.borderColor = '#22c55e';
+            }
+        }
+        
         // Check for weekly prizes when entering title screen
         setTimeout(function() {
             try {
