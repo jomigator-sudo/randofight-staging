@@ -346,47 +346,58 @@
 
     <div class="creation-form">
         <div id="loginForm">
-            <h3 style="text-align: center; margin-bottom: 20px; color: #4ecdc4;">Login</h3>
-            <div class="form-group">
-                <label for="loginEmail">Email:</label>
-                <input type="email" id="loginEmail" placeholder="Enter your email">
-            </div>
-            <div class="form-group">
-                <label for="loginPassword">Password:</label>
-                <input type="password" id="loginPassword" placeholder="Enter your password">
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn btn-primary" onclick="loginUser()">Login</button>
-                <button class="btn btn-secondary" onclick="showSignupForm()">Create Account</button>
-            </div>
-            <div style="text-align: center; margin-top: 15px;">
-                <button class="btn" style="background: #6c757d; color: #fff; font-size: 0.9em;" onclick="showForgotPasswordForm()">Forgot Password?</button>
-            </div>
-            <div style="text-align: center; margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
-                <button class="btn" style="background: #28a745; color: #fff; font-size: 1em; padding: 12px 24px;" onclick="playAsGuest()">Play as Guest</button>
-                <p style="color: #888; font-size: 0.8em; margin-top: 10px;">Play without an account (progress saved locally)</p>
-            </div>
+    <h3 style="text-align: center; margin-bottom: 20px; color: #4ecdc4;">Login</h3>
+    <div class="form-group">
+        <label for="loginEmail">Email:</label>
+        <input type="email" id="loginEmail" placeholder="Enter your email">
+    </div>
+    <div class="form-group">
+        <label for="loginPassword">Password:</label>
+        <div style="position: relative;">
+            <input type="password" id="loginPassword" placeholder="Enter your password" style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('loginPassword', 'loginPasswordToggle')" id="loginPasswordToggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; padding: 5px; color: #4ecdc4; font-size: 1.2em;">
+                👁️
+            </button>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <button class="btn btn-primary" onclick="loginUser()">Login</button>
+        <button class="btn btn-secondary" onclick="showSignupForm()">Create Account</button>
+    </div>
+    <div style="text-align: center; margin-top: 15px;">
+        <button class="btn" style="background: #6c757d; color: #fff; font-size: 0.9em;" onclick="showForgotPasswordForm()">Forgot Password?</button>
+    </div>
+    <div style="text-align: center; margin-top: 20px; border-top: 1px solid #444; padding-top: 15px;">
+        <button class="btn" style="background: #28a745; color: #fff; font-size: 1em; padding: 12px 24px;" onclick="playAsGuest()">Play as Guest</button>
+        <p style="color: #888; font-size: 0.8em; margin-top: 10px;">Play without an account (progress saved locally)</p>
+    </div>
+</div>
         </div>
 
         <div id="signupForm" style="display: none;">
-            <h3 style="text-align: center; margin-bottom: 20px; color: #4ecdc4;">Create Account</h3>
-            <div class="form-group">
-                <label for="signupEmail">Email:</label>
-                <input type="email" id="signupEmail" placeholder="Enter your email">
-            </div>
-            <div class="form-group">
-                <label for="signupPassword">Password:</label>
-                <input type="password" id="signupPassword" placeholder="Choose a password (min 6 characters)">
-            </div>
-            <div class="form-group">
-                <label for="signupUsername">Username:</label>
-                <input type="text" id="signupUsername" placeholder="Choose a username" maxlength="20">
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn btn-primary" onclick="signupUser()">Create Account</button>
-                <button class="btn btn-secondary" onclick="showLoginForm()">Back to Login</button>
-            </div>
+    <h3 style="text-align: center; margin-bottom: 20px; color: #4ecdc4;">Create Account</h3>
+    <div class="form-group">
+        <label for="signupEmail">Email:</label>
+        <input type="email" id="signupEmail" placeholder="Enter your email">
+    </div>
+    <div class="form-group">
+        <label for="signupPassword">Password:</label>
+        <div style="position: relative;">
+            <input type="password" id="signupPassword" placeholder="Choose a password (min 6 characters)" style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('signupPassword', 'signupPasswordToggle')" id="signupPasswordToggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; padding: 5px; color: #4ecdc4; font-size: 1.2em;">
+                👁️
+            </button>
         </div>
+    </div>
+    <div class="form-group">
+        <label for="signupUsername">Username:</label>
+        <input type="text" id="signupUsername" placeholder="Choose a username" maxlength="20">
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <button class="btn btn-primary" onclick="signupUser()">Create Account</button>
+        <button class="btn btn-secondary" onclick="showLoginForm()">Back to Login</button>
+    </div>
+</div>
 
         <div id="forgotPasswordForm" style="display: none;">
             <h3 style="text-align: center; margin-bottom: 20px; color: #4ecdc4;">Reset Password</h3>
@@ -404,23 +415,33 @@
         </div>
 
         <div id="resetPasswordForm" style="display: none;">
-            <h3 style="text-align: center; margin-bottom: 20px; color: #4ecdc4;">Set New Password</h3>
-            <p style="text-align: center; margin-bottom: 20px; color: #ccc; font-size: 0.9em;">
-                Enter your new password below.
-            </p>
-            <div class="form-group">
-                <label for="newPassword">New Password:</label>
-                <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)">
-            </div>
-            <div class="form-group">
-                <label for="confirmPassword">Confirm Password:</label>
-                <input type="password" id="confirmPassword" placeholder="Confirm new password">
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn btn-primary" onclick="resetPassword()">Update Password</button>
-                <button class="btn btn-secondary" onclick="showLoginForm()">Back to Login</button>
-            </div>
+    <h3 style="text-align: center; margin-bottom: 20px; color: #4ecdc4;">Set New Password</h3>
+    <p style="text-align: center; margin-bottom: 20px; color: #ccc; font-size: 0.9em;">
+        Enter your new password below.
+    </p>
+    <div class="form-group">
+        <label for="newPassword">New Password:</label>
+        <div style="position: relative;">
+            <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('newPassword', 'newPasswordToggle')" id="newPasswordToggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; padding: 5px; color: #4ecdc4; font-size: 1.2em;">
+                👁️
+            </button>
         </div>
+    </div>
+    <div class="form-group">
+        <label for="confirmPassword">Confirm Password:</label>
+        <div style="position: relative;">
+            <input type="password" id="confirmPassword" placeholder="Confirm new password" style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('confirmPassword', 'confirmPasswordToggle')" id="confirmPasswordToggle" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; padding: 5px; color: #4ecdc4; font-size: 1.2em;">
+                👁️
+            </button>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <button class="btn btn-primary" onclick="resetPassword()">Update Password</button>
+        <button class="btn btn-secondary" onclick="showLoginForm()">Back to Login</button>
+    </div>
+</div>
     </div>
     
     <!-- Developer Credits -->
@@ -667,6 +688,23 @@ function hideLoadingScreen() {
 function closeDiscordModal() {
     var modal = document.getElementById('discordModal');
     if (modal) modal.remove();
+}
+        
+        function togglePasswordVisibility(inputId, buttonId) {
+    var input = document.getElementById(inputId);
+    var button = document.getElementById(buttonId);
+    
+    if (!input || !button) return;
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.textContent = '🙈'; // Closed eye emoji
+        button.style.color = '#ff6b6b'; // Red color when showing password
+    } else {
+        input.type = 'password';
+        button.textContent = '👁️'; // Open eye emoji
+        button.style.color = '#4ecdc4'; // Original color
+    }
 }
         
         // Special attack word combinations for dynamic generation
