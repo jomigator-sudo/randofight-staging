@@ -548,12 +548,12 @@
     <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; padding: 0 10px;">
     
     <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; padding: 0 10px;">
-    <button class="btn btn-fight" onclick="findFight()" id="fightBtn" style="padding: 10px 18px; font-size: 0.9em;">Find Fight</button>
-    <button class="btn btn-primary" onclick="fightWithoutRest()" id="fightWithoutRestBtn" style="padding: 10px 18px; font-size: 0.9em;">Fight 💎</button>
-    <button class="btn" style="background: #ffd93d; color: #333; padding: 10px 18px; font-size: 0.9em;" onclick="showWeeklyTournamentFromFighter()">🏆 Weekly Tournament</button>
-    <button class="btn" style="background: #4ecdc4; color: #fff; padding: 10px 18px; font-size: 0.9em;" onclick="showDailyTasks()">📅 Daily</button>
-    <div id="fighterPaypalButton" class="paypal-button-container"></div>
-</div>
+        <button class="btn btn-fight" onclick="findFight()" id="fightBtn" style="padding: 10px 18px; font-size: 0.9em;">Find Fight</button>
+        <button class="btn btn-primary" onclick="fightWithoutRest()" id="fightWithoutRestBtn" style="padding: 10px 18px; font-size: 0.9em;">Fight 💎</button>
+        <button class="btn" style="background: #ffd93d; color: #333; padding: 10px 18px; font-size: 0.9em;" onclick="showWeeklyTournamentFromFighter()">🏆 Weekly Tournament</button>
+        <button class="btn" style="background: #4ecdc4; color: #fff; padding: 10px 18px; font-size: 0.9em;" onclick="showDailyTasks()">📅 Daily</button>
+        <div id="fighterPaypalButton" class="paypal-button-container"></div>
+    </div>
     </div>
     <div class="fight-status">
         <div class="diamonds-display">Diamonds: <span id="diamonds">0</span> 💎</div>
@@ -571,11 +571,13 @@
         </div>
     </div>
     
-       <!-- Delete Fighter button at bottom -->
+    <!-- Delete Fighter button at bottom -->
     <div style="text-align: center; margin: 30px 0 20px 0;">
         <button class="btn" style="background: #e74c3c; color: #fff; padding: 12px 30px;" onclick="deleteFighter();">Delete Fighter</button>
     </div>
-</div>  <!-- This closes fighterScreen -->
+    
+    <!-- NO DEVELOPER CREDITS HERE -->
+</div>
 
 <!-- Fight Screen -->
 <div id="fightScreen" class="game-screen">
