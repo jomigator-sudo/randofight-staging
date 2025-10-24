@@ -1271,41 +1271,49 @@ function showCreationScreen() {
                     body: JSON.stringify(newUser)
                 })
                 .then(function(response) {
-                    if (response.ok) {
-                        // If we have guest data, transfer it to the new account
-                        if (guestData) {
-                            gameState.currentUser = newUser;
-                            gameState.isLoggedIn = true;
-                            gameState.fighters = guestData.fighters;
-                            gameState.diamonds = guestData.diamonds;
-                            gameState.fightCooldownEnd = guestData.fightCooldownEnd;
-                            gameState.unlockedSlots = guestData.unlockedSlots;
-                            
-                            // Save guest data to the cloud
-                            saveToSupabase();
-                            
-                            localStorage.setItem('randofight_session', JSON.stringify({
-                                user_id: newUser.user_id,
-                                email: newUser.email,
-                                username: newUser.username,
-                                loginTime: Date.now()
-                            }));
-                            
-                            alert('Account created successfully and your guest progress has been transferred to the cloud!');
-                            document.getElementById('usernameDisplay').textContent = newUser.username;
-                            showTitleScreen();
-                        } else {
-                            alert('Account created successfully! Please login with your new credentials.');
-                            showLoginForm();
-                        }
-                        
-                        document.getElementById('signupEmail').value = '';
-                        document.getElementById('signupPassword').value = '';
-                        document.getElementById('signupUsername').value = '';
-                    } else {
-                        throw new Error('Signup failed: ' + response.status);
-                    }
-                });
+    if (response.ok) {
+        // If we have guest data, transfer it to the new account
+        if (guestData) {
+            gameState.currentUser = newUser;
+            gameState.isLoggedIn = true;
+            gameState.fighters = guestData.fighters;
+            gameState.diamonds = guestData.diamonds;
+            gameState.fightCooldownEnd = guestData.fightCooldownEnd;
+            gameState.unlockedSlots = guestData.unlockedSlots;
+            
+            // Save guest data to the cloud
+            saveToSupabase();
+            
+            localStorage.setItem('randofight_session', JSON.stringify({
+                user_id: newUser.user_id,
+                email: newUser.email,
+                username: newUser.username,
+                loginTime: Date.now()
+            }));
+            
+            alert('Account created successfully and your guest progress has been transferred to the cloud!');
+            document.getElementById('usernameDisplay').textContent = newUser.username;
+            
+            // Clear form fields
+            document.getElementById('signupEmail').value = '';
+            document.getElementById('signupPassword').value = '';
+            document.getElementById('signupUsername').value = '';
+            
+            // Show title screen - this will trigger the button fix
+            showTitleScreen();
+        } else {
+            alert('Account created successfully! Please login with your new credentials.');
+            showLoginForm();
+            
+            // Clear form fields
+            document.getElementById('signupEmail').value = '';
+            document.getElementById('signupPassword').value = '';
+            document.getElementById('signupUsername').value = '';
+        }
+    } else {
+        throw new Error('Signup failed: ' + response.status);
+    }
+});
             })
             .catch(function(error) {
                 if (error !== 'Email exists' && error !== 'Username exists') {
