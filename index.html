@@ -4591,6 +4591,20 @@ function createBotOpponent(player, opponentLevel, loseStreak) {
         isRealPlayer: false
     };
     
+    // Safety check: Ensure player has stats
+    if (!player || !player.stats) {
+        console.error('Player stats are undefined, using default values');
+        // Return a basic opponent without scaling
+        opponent.maxHp = 100 + (opponentLevel - 1) * 10 + opponent.stats.toughness * 5;
+        opponent.currentHp = opponent.maxHp;
+        
+        if (opponentLevel >= 10) {
+            opponent.specialAttack = generateSpecialAttack();
+        }
+        
+        return opponent;
+    }
+    
     // Calculate level difference for scaling
     var levelDiff = opponentLevel - player.level;
     var scalingFactor = 1.0;
@@ -4608,20 +4622,25 @@ function createBotOpponent(player, opponentLevel, loseStreak) {
     }
     
     // Analyze player's stat distribution
-    var playerTotalStats = player.stats.strength + player.stats.toughness + 
-                          player.stats.agility + player.stats.luck + player.stats.speed;
+    var playerTotalStats = (player.stats.strength || 1) + (player.stats.toughness || 1) + 
+                          (player.stats.agility || 1) + (player.stats.luck || 1) + (player.stats.speed || 1);
     
     var playerPrimaryFocus = 'balanced';
-    var playerMaxStat = Math.max(player.stats.strength, player.stats.toughness, 
-                                 player.stats.agility, player.stats.luck, player.stats.speed);
+    var playerMaxStat = Math.max(
+        player.stats.strength || 1, 
+        player.stats.toughness || 1, 
+        player.stats.agility || 1, 
+        player.stats.luck || 1, 
+        player.stats.speed || 1
+    );
     
-    if (player.stats.strength === playerMaxStat && player.stats.strength > playerTotalStats * 0.4) {
+    if ((player.stats.strength || 1) === playerMaxStat && (player.stats.strength || 1) > playerTotalStats * 0.4) {
         playerPrimaryFocus = 'strength';
-    } else if (player.stats.toughness === playerMaxStat && player.stats.toughness > playerTotalStats * 0.4) {
+    } else if ((player.stats.toughness || 1) === playerMaxStat && (player.stats.toughness || 1) > playerTotalStats * 0.4) {
         playerPrimaryFocus = 'tank';
-    } else if (player.stats.agility === playerMaxStat && player.stats.agility > playerTotalStats * 0.4) {
+    } else if ((player.stats.agility || 1) === playerMaxStat && (player.stats.agility || 1) > playerTotalStats * 0.4) {
         playerPrimaryFocus = 'agility';
-    } else if (player.stats.speed === playerMaxStat && player.stats.speed > playerTotalStats * 0.35) {
+    } else if ((player.stats.speed || 1) === playerMaxStat && (player.stats.speed || 1) > playerTotalStats * 0.35) {
         playerPrimaryFocus = 'speed';
     }
     
@@ -4663,13 +4682,15 @@ function createBotOpponent(player, opponentLevel, loseStreak) {
         opponent.stats.speed = baseStats + Math.floor(statShare);
     }
     
-    // Calculate player's total equipment power
-    var playerWeaponPower = player.equipment.weapon ? player.equipment.weapon.power : 0;
+    // Calculate player's total equipment power with safety checks
+    var playerWeaponPower = (player.equipment && player.equipment.weapon) ? player.equipment.weapon.power : 0;
     var playerArmorPower = 0;
-    if (player.equipment.helmet) playerArmorPower += player.equipment.helmet.power;
-    if (player.equipment.chest) playerArmorPower += player.equipment.chest.power;
-    if (player.equipment.gloves) playerArmorPower += player.equipment.gloves.power;
-    if (player.equipment.boots) playerArmorPower += player.equipment.boots.power;
+    if (player.equipment) {
+        if (player.equipment.helmet) playerArmorPower += player.equipment.helmet.power || 0;
+        if (player.equipment.chest) playerArmorPower += player.equipment.chest.power || 0;
+        if (player.equipment.gloves) playerArmorPower += player.equipment.gloves.power || 0;
+        if (player.equipment.boots) playerArmorPower += player.equipment.boots.power || 0;
+    }
     
     var playerTotalPower = playerWeaponPower + playerArmorPower;
     var targetOpponentPower = Math.floor(playerTotalPower * scalingFactor);
