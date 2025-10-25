@@ -5643,13 +5643,13 @@ function startFight(player, opponent, isDiamondFight) {
         
         if (eventEffect.effect === 'avoided') {
             // Player avoided the attack completely
-            addToFightLog('<span class="dodge">' + defender.name + ' avoided the attack thanks to the event!</span>');
+            addToFightLog('<span class="dodge">⚡ EVENT BONUS: ' + defender.name + ' avoided the attack thanks to the event!</span>');
             return;
         } else if (eventEffect.effect === 'counter') {
             // Player counters - opponent takes damage instead
             var counterDamage = Math.floor((10 + (defender.stats.strength - 1) * 2) * 1.5);
             attacker.currentHp = Math.max(0, attacker.currentHp - counterDamage);
-            addToFightLog('<span style="color: #6bcf7f; font-weight: bold;">' + defender.name + ' counters for ' + counterDamage + ' damage!</span>');
+            addToFightLog('<span style="color: #6bcf7f; font-weight: bold;">⚡ EVENT BONUS: ' + defender.name + ' counters for <span class="damage">' + counterDamage + '</span> damage!</span>');
             
             if (attackerType === 'player') {
                 var opponentHpPercent = (attacker.currentHp / attacker.maxHp) * 100;
