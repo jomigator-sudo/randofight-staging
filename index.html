@@ -5297,11 +5297,26 @@ var battleEvents = [
 var currentBattleEvent = null;
 var eventTimer = null;
 
-function shouldTriggerBattleEvent(turnCount) {
-    // 25% chance to trigger on turn 3-6
-    if (turnCount >= 3 && turnCount <= 6 && !currentBattleEvent) {
+function shouldTriggerBattleEvent(turnCount, player, opponent) {
+    // Only trigger once per battle
+    if (currentBattleEvent) {
+        return false;
+    }
+    
+    // Check if either player is below 50% HP - don't trigger event if fight is almost over
+    var playerHpPercent = (player.currentHp / player.maxHp) * 100;
+    var opponentHpPercent = (opponent.currentHp / opponent.maxHp) * 100;
+    
+    if (playerHpPercent < 50 || opponentHpPercent < 50) {
+        console.log('Event skipped: One fighter below 50% HP');
+        return false;
+    }
+    
+    // 25% chance to trigger on turns 2-5 (early/mid fight)
+    if (turnCount >= 2 && turnCount <= 5) {
         return Math.random() * 100 < 25;
     }
+    
     return false;
 }
 
