@@ -4368,246 +4368,385 @@ function fightWithoutRest() {
     });
 }
 
-        function generateOpponent(level, guaranteedLoss) {
-    var names = ['ShadowKnight92', 'DragonSlayer', 'IronFist2024', 'BlazeFighter', 'StormWarrior', 'NightHunter', 'FlameStrike', 'IceBlade77', 'ThunderFist', 'DarkRaven','ShadowByteX', 'CrimsonNova', 'FrostClaw77', 'PixelRogue', 'BlazeSniper',
-'IronWraith', 'VoidReaper', 'EchoFang', 'ToxicSpiral', 'NebulaHawk',
-'GlitchFury', 'NightVortex', 'CyberWarden', 'StealthPulse', 'RapidVenom',
-'DarkNovaX', 'PhantomCircuit', 'BlitzStriker', 'FrozenNemesis', 'QuantumDrift',
-'RogueHydra', 'InfernoRift', 'SilentCry', 'ChaosHawk', 'StormCrawler',
-'PulseReaper', 'ViralAssault', 'TitanGhost', 'HexVandal', 'SteelSpecter',
-'LunarSnare', 'VortexShade', 'PixelMarauder', 'NebulaSplice', 'VenomCraze',
-'SniperVeil', 'CrushDrifter', 'XenoQuake', 'AshRider', 'RageCircuit',
-'StormFlicker', 'WarpedSoul', 'IonViper', 'DarkenedScope', 'ZeroDagger',
-'ObsidianStrike', 'FuryPylon', 'EchoKnight', 'NitroPhantom', 'ShadowServo',
-'MystSniper', 'TundraEdge', 'StaticBrawler', 'NovaWitch', 'TwilightFury',
-'VoltageMancer', 'CryoSpark', 'SavageHound', 'StealthNova', 'WiredBane',
-'NullByte', 'StrikerRift', 'FeralTracer', 'FrostHex', 'TerminalWraith',
-'RiftRanger', 'ChaosByte', 'PulseHunter', 'IgnisShroud', 'CodedVenom',
-'WildQuasar', 'BloodRayneX', 'SilentPhreak', 'DreadReactor', 'NovaTracer',
-'FireHavoc', 'KarmaSnare', 'ToxicWarden', 'QuantumBlitz', 'FadedCore',
-'IronLancer', 'GlitchKnight', 'NightmareXeno', 'PixelShade', 'BlitzGhoul',
-'WraithForge', 'FrozenByte', 'ShockPulse', 'HoloDagger', 'CrimsonCrawler',
-'NeoViperX', 'WarpFury', 'StaticScythe', 'GrimDrift', 'FuryQuanta',
-'SnareWolf', 'SpectralCrush', 'NitroVenom', 'DarkTideX', 'OmegaCraze',
-'FlameSnare', 'OblivionCore', 'StealthBlitz', 'ZenithGhoul', 'ZeroSnare'];
-    var places = ['New York', 'London', 'Tokyo', 'Paris', 'Sydney'];
+        function generateName() {
+    var prefixes = [
+        'Dark', 'Shadow', 'Blood', 'Iron', 'Steel', 'Thunder', 'Storm', 'Fire', 'Ice', 'Death',
+        'Crimson', 'Golden', 'Silver', 'Mystic', 'Ancient', 'Eternal', 'Phantom', 'Demon', 'Dragon', 'Rogue',
+        'Swift', 'Deadly', 'Savage', 'Wild', 'Grim', 'Frost', 'Flame', 'Void', 'Chaos', 'Venom'
+    ];
     
-    var opponentLevel;
-    if (guaranteedLoss) {
-        opponentLevel = Math.max(1, level - 2); // 2 levels lower
-    } else {
-        opponentLevel = Math.max(1, level + Math.floor(Math.random() * 3) - 1);
-    }
+    var suffixes = [
+        'Slayer', 'Bane', 'Reaper', 'Hunter', 'Killer', 'Warrior', 'Knight', 'Champion', 'Destroyer', 'Crusher',
+        'Blade', 'Fist', 'Claw', 'Fang', 'Strike', 'Storm', 'Fury', 'Rage', 'Wrath', 'Doom',
+        'Master', 'Lord', 'King', 'Emperor', 'Tyrant', 'Executioner', 'Assassin', 'Berserker', 'Gladiator', 'Sentinel'
+    ];
     
-    // Calculate HP with scaling based on level
-var hpGain = 0;
-for (var lvl = 1; lvl < opponentLevel; lvl++) {
-    if (lvl > 50) {
-        hpGain += 50;
-    } else if (lvl > 30) {
-        hpGain += 35;
-    } else if (lvl > 15) {
-        hpGain += 25;
+    var titles = [
+        'the Mighty', 'the Fearless', 'the Brutal', 'the Merciless', 'the Unstoppable', 'the Immortal',
+        'the Destroyer', 'the Conqueror', 'the Undefeated', 'the Relentless', 'the Savage', 'the Cruel',
+        'the Bloodthirsty', 'the Ruthless', 'the Vengeful', 'the Fierce', 'the Legendary', 'the Eternal',
+        'the Invincible', 'the Supreme'
+    ];
+    
+    var nameStyle = Math.random();
+    
+    if (nameStyle < 0.4) {
+        // Style 1: Prefix + Suffix (40% chance)
+        // Example: "Shadow Reaper", "Iron Fist"
+        return prefixes[Math.floor(Math.random() * prefixes.length)] + ' ' + 
+               suffixes[Math.floor(Math.random() * suffixes.length)];
+    } else if (nameStyle < 0.7) {
+        // Style 2: Prefix + Suffix + Title (30% chance)
+        // Example: "Dark Slayer the Merciless", "Storm Warrior the Invincible"
+        return prefixes[Math.floor(Math.random() * prefixes.length)] + ' ' + 
+               suffixes[Math.floor(Math.random() * suffixes.length)] + ' ' +
+               titles[Math.floor(Math.random() * titles.length)];
     } else {
-        hpGain += 20;
+        // Style 3: Just Suffix + Title (30% chance)
+        // Example: "Reaper the Mighty", "Champion the Fearless"
+        return suffixes[Math.floor(Math.random() * suffixes.length)] + ' ' +
+               titles[Math.floor(Math.random() * titles.length)];
     }
 }
-var opponentMaxHp = Math.floor(100 + hpGain);
+
+        function generateOpponent(player, callback) {
+    // Check for losing streak - easier opponents after losses
+    var loseStreak = player.loseStreak || 0;
+    var levelAdjustment = 0;
     
-    // If guaranteed loss, reduce HP further
-    if (guaranteedLoss) {
-        opponentMaxHp = Math.floor(opponentMaxHp * 0.7); // 30% less HP
+    if (loseStreak >= 3) {
+        levelAdjustment = -2; // Much easier opponent
+    } else if (loseStreak >= 2) {
+        levelAdjustment = -1; // Easier opponent
     }
     
-    // REBALANCED weapon variety based on level
-    var weaponOptions = {
-        low: [ // Levels 1-5
-            { name: 'Rusty Sword', power: 5, rarity: 'common' },
-            { name: 'Wooden Club', power: 4, rarity: 'common' },
-            { name: 'Stone Axe', power: 6, rarity: 'common' },
-            { name: 'Copper Dagger', power: 5, rarity: 'common' },
-            { name: 'Training Staff', power: 4, rarity: 'common' }
-        ],
-        mid: [ // Levels 6-15
-            { name: 'Iron Sword', power: 10, rarity: 'common' },
-            { name: 'Steel Mace', power: 12, rarity: 'uncommon' },
-            { name: 'Battle Axe', power: 11, rarity: 'common' },
-            { name: 'War Hammer', power: 13, rarity: 'uncommon' },
-            { name: 'Fine Spear', power: 11, rarity: 'uncommon' }
-        ],
-        high: [ // Levels 16-30
-            { name: 'Knight\'s Blade', power: 18, rarity: 'uncommon' },
-            { name: 'Tempered Sword', power: 22, rarity: 'rare' },
-            { name: 'Warlord\'s Axe', power: 25, rarity: 'rare' },
-            { name: 'Crystal Staff', power: 20, rarity: 'rare' },
-            { name: 'Assassin\'s Edge', power: 23, rarity: 'rare' }
-        ],
-        elite: [ // Levels 31-50
-            { name: 'Dragonslayer', power: 30, rarity: 'epic' },
-            { name: 'Void Crusher', power: 35, rarity: 'epic' },
-            { name: 'Phoenix Talon', power: 33, rarity: 'epic' },
-            { name: 'Stormbreaker', power: 38, rarity: 'epic' },
-            { name: 'Shadowfang', power: 36, rarity: 'epic' }
-        ],
-        master: [ // Levels 51-70
-            { name: 'Champion\'s Edge', power: 40, rarity: 'epic' },
-            { name: 'Royal Guard', power: 45, rarity: 'epic' },
-            { name: 'Ancient Relic', power: 43, rarity: 'epic' },
-            { name: 'Moonlight Blade', power: 48, rarity: 'epic' },
-            { name: 'Sunfire Axe', power: 46, rarity: 'epic' }
-        ],
-        legendary: [ // Levels 71+
-            { name: 'Apocalypse', power: 50, rarity: 'legendary' },
-            { name: 'Ragnarok', power: 55, rarity: 'legendary' },
-            { name: 'Godslayer', power: 60, rarity: 'mythic' },
-            { name: 'Eternal Flame', power: 58, rarity: 'legendary' },
-            { name: 'Cosmic Reaper', power: 65, rarity: 'mythic' }
-        ]
-    };
+    var targetLevel = Math.max(1, player.level + levelAdjustment);
+    var levelRange = 2; // Search within +/- 2 levels
     
-    // Select weapon tier based on level - REBALANCED
-    var weaponTier;
-    if (opponentLevel <= 5) {
-        weaponTier = weaponOptions.low;
-    } else if (opponentLevel <= 15) {
-        weaponTier = weaponOptions.mid;
-    } else if (opponentLevel <= 30) {
-        weaponTier = weaponOptions.high;
-    } else if (opponentLevel <= 50) {
-        weaponTier = weaponOptions.elite;
-    } else if (opponentLevel <= 70) {
-        weaponTier = weaponOptions.master;
-    } else {
-        weaponTier = weaponOptions.legendary;
-    }
+    console.log('Matchmaking: Looking for real players at level', targetLevel, '+/-', levelRange);
     
-    // Random weapon from appropriate tier
-    var selectedWeapon = weaponTier[Math.floor(Math.random() * weaponTier.length)];
-    
-    // REDUCED weapon scaling for better balance
-    var weaponPowerBonus = Math.floor(opponentLevel * 0.5); // Reduced from 0.8
-    selectedWeapon.power = selectedWeapon.power + weaponPowerBonus;
-    
-    // Weaker weapons for guaranteed losses
-    if (guaranteedLoss && selectedWeapon.power > 5) {
-        selectedWeapon.power = Math.floor(selectedWeapon.power * 0.6);
-    }
-    
-    // Generate armor for bots
-    var botEquipment = {
-        weapon: {
-            name: selectedWeapon.name,
-            rarity: selectedWeapon.rarity,
-            power: selectedWeapon.power,
-            statType: 'Damage'
-        }
-    };
-    
-    // Add defensive equipment for higher level bots - HEAVILY REDUCED
-if (opponentLevel >= 5) {
-    var armorPower = Math.floor(3 + opponentLevel * 0.4); // Reduced from 1.2
-    
-    if (opponentLevel >= 10) {
-        botEquipment.chest = {
-            name: 'Battle Armor',
-            rarity: opponentLevel >= 15 ? 'rare' : 'uncommon',
-            power: armorPower,
-            statType: 'Defense'
-        };
-    }
-    
-    if (opponentLevel >= 15) {
-        botEquipment.helmet = {
-            name: 'War Helm',
-            rarity: opponentLevel >= 20 ? 'epic' : 'rare',
-            power: Math.floor(armorPower * 0.7),
-            statType: 'Defense'
-        };
-        
-        botEquipment.offhand = {
-            name: 'Tower Shield',
-            rarity: opponentLevel >= 20 ? 'epic' : 'rare',
-            power: Math.floor(armorPower * 0.8),
-            statType: 'Defense'
-        };
-    }
-    
-    if (opponentLevel >= 20) {
-        botEquipment.boots = {
-            name: 'Plated Boots',
-            rarity: 'epic',
-            power: Math.floor(armorPower * 0.5),
-            statType: 'Defense'
-        };
-        
-        botEquipment.gloves = {
-            name: 'Gauntlets',
-            rarity: 'epic',
-            power: Math.floor(armorPower * 0.5),
-            statType: 'Defense'
-        };
-    }
-}
-    
-    // Stats distribution
-    var stats = {
-        strength: 1,
-        toughness: 1,
-        agility: 1,
-        luck: 1,
-        speed: 1
-    };
-    
-    // For guaranteed losses, don't allocate all stat points
-    var extraPoints = guaranteedLoss 
-        ? Math.floor((opponentLevel - 1) * 0.5)
-        : opponentLevel - 1;
-    
-    // For high-level bots, ensure minimum stats but more balanced
-    if (opponentLevel >= 15 && !guaranteedLoss) {
-        stats.strength = Math.min(4, Math.floor(opponentLevel / 5));
-        stats.toughness = Math.min(4, Math.floor(opponentLevel / 5));
-        stats.speed = Math.min(3, Math.floor(opponentLevel / 8)); // Give bots some speed
-        extraPoints -= (stats.strength - 1) + (stats.toughness - 1) + (stats.speed - 1);
-    }
-    
-    // Distribute remaining points with more balanced weights
-    var statNames = ['strength', 'toughness', 'agility', 'luck', 'speed'];
-    for (var i = 0; i < extraPoints; i++) {
-        var weights = opponentLevel >= 15 
-            ? [25, 30, 15, 15, 15] // Better speed allocation for high level bots
-            : [30, 25, 15, 15, 15]; // More balanced for all levels
+    // ALWAYS try to find a real player first
+    fetchRealPlayerOpponent(player, targetLevel, levelRange, function(realPlayer) {
+        if (realPlayer) {
+            console.log('✅ Matched with real player:', realPlayer.name, 'Level:', realPlayer.level);
             
-        var totalWeight = weights.reduce(function(sum, w) { return sum + w; }, 0);
-        var random = Math.random() * totalWeight;
+            // Use the real player as opponent
+            var opponent = {
+                name: realPlayer.name,
+                level: realPlayer.level,
+                wins: realPlayer.wins,
+                losses: realPlayer.losses,
+                stats: realPlayer.stats,
+                equipment: realPlayer.equipment,
+                specialAttack: realPlayer.specialAttack,
+                isRealPlayer: true,
+                fighterIdentifier: realPlayer.user_id + '_' + realPlayer.name,
+                userId: realPlayer.user_id,
+                maxHp: realPlayer.maxHp || (100 + (realPlayer.level - 1) * 10 + realPlayer.stats.toughness * 5),
+                currentHp: 0
+            };
+            
+            opponent.currentHp = opponent.maxHp;
+            
+            if (callback) callback(opponent);
+            return opponent;
+        } else {
+            console.log('❌ No real players available, generating bot opponent');
+            
+            // No real players available, generate a bot
+            var opponentLevel = Math.max(1, player.level + Math.floor(Math.random() * 5) - 2 + levelAdjustment);
+            
+            var opponent = createBotOpponent(player, opponentLevel, loseStreak);
+            
+            if (callback) callback(opponent);
+            return opponent;
+        }
+    });
+}
+
+function fetchRealPlayerOpponent(player, targetLevel, levelRange, callback) {
+    var minLevel = Math.max(1, targetLevel - levelRange);
+    var maxLevel = targetLevel + levelRange;
+    
+    // Get list of recent opponents to avoid
+    var recentOpponents = player.recentOpponents || [];
+    var lastOpponent = recentOpponents.length > 0 ? recentOpponents[recentOpponents.length - 1] : null;
+    
+    console.log('Searching for opponents between level', minLevel, 'and', maxLevel);
+    console.log('Avoiding recent opponents:', recentOpponents);
+    
+    // Build query to find real players in level range, excluding self
+    var url = SUPABASE_URL + '/rest/v1/game_data?level=gte.' + minLevel + 
+              '&level=lte.' + maxLevel + 
+              '&user_id=neq.' + getUserId() +
+              '&select=*';
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(players) {
+        console.log('Found', players.length, 'potential opponents');
         
-        var currentWeight = 0;
-        for (var j = 0; j < statNames.length; j++) {
-            currentWeight += weights[j];
-            if (random <= currentWeight) {
-                stats[statNames[j]]++;
-                break;
+        if (!players || players.length === 0) {
+            console.log('No players found in database');
+            callback(null);
+            return;
+        }
+        
+        // Filter out players with no fighters
+        var validPlayers = [];
+        for (var i = 0; i < players.length; i++) {
+            var p = players[i];
+            if (p.fighters && p.fighters.length > 0) {
+                // Get all fighters from this player
+                for (var j = 0; j < p.fighters.length; j++) {
+                    var fighter = p.fighters[j];
+                    if (fighter && fighter.name) {
+                        var fighterIdentifier = p.user_id + '_' + fighter.name;
+                        
+                        // Skip if this is the last opponent fought
+                        if (fighterIdentifier === lastOpponent) {
+                            console.log('Skipping last opponent:', fighter.name);
+                            continue;
+                        }
+                        
+                        // Skip if in recent opponents list (fought in last 3 matches)
+                        if (recentOpponents.indexOf(fighterIdentifier) !== -1) {
+                            console.log('Skipping recent opponent:', fighter.name);
+                            continue;
+                        }
+                        
+                        // Add this fighter as a potential opponent
+                        validPlayers.push({
+                            user_id: p.user_id,
+                            name: fighter.name,
+                            level: fighter.level,
+                            wins: fighter.wins || 0,
+                            losses: fighter.losses || 0,
+                            stats: fighter.stats,
+                            equipment: fighter.equipment,
+                            specialAttack: fighter.specialAttack,
+                            maxHp: 100 + (fighter.level - 1) * 10 + fighter.stats.toughness * 5
+                        });
+                    }
+                }
             }
         }
+        
+        console.log('Valid opponents after filtering:', validPlayers.length);
+        
+        if (validPlayers.length === 0) {
+            callback(null);
+            return;
+        }
+        
+        // Prefer opponents closer to target level
+        validPlayers.sort(function(a, b) {
+            var aDiff = Math.abs(a.level - targetLevel);
+            var bDiff = Math.abs(b.level - targetLevel);
+            return aDiff - bDiff;
+        });
+        
+        // Pick from top candidates (closest levels)
+        var topCandidates = validPlayers.slice(0, Math.min(5, validPlayers.length));
+        var selectedOpponent = topCandidates[Math.floor(Math.random() * topCandidates.length)];
+        
+        console.log('Selected opponent:', selectedOpponent.name, 'Level:', selectedOpponent.level);
+        callback(selectedOpponent);
+    })
+    .catch(function(error) {
+        console.error('Error fetching real player opponents:', error);
+        callback(null);
+    });
+}
+
+function createBotOpponent(player, opponentLevel, loseStreak) {
+    var opponent = {
+        name: generateName(),
+        level: opponentLevel,
+        wins: Math.floor(opponentLevel * 2 + Math.random() * opponentLevel * 3),
+        losses: Math.floor(opponentLevel * 1.5 + Math.random() * opponentLevel * 2),
+        stats: {
+            strength: 1,
+            toughness: 1,
+            agility: 1,
+            luck: 1,
+            speed: 1
+        },
+        equipment: {
+            weapon: null,
+            helmet: null,
+            chest: null,
+            gloves: null,
+            boots: null
+        },
+        specialAttack: null,
+        isRealPlayer: false
+    };
+    
+    // Calculate level difference for scaling
+    var levelDiff = opponentLevel - player.level;
+    var scalingFactor = 1.0;
+    
+    if (levelDiff > 0) {
+        scalingFactor = 1.0 + (levelDiff * 0.10);
+    } else if (levelDiff < 0) {
+        scalingFactor = 1.0 + (levelDiff * 0.10);
     }
     
-    return {
-        name: names[Math.floor(Math.random() * names.length)],
-        birthplace: places[Math.floor(Math.random() * places.length)],
-        level: opponentLevel,
-        hp: opponentMaxHp,
-        maxHp: opponentMaxHp,
-        currentHp: opponentMaxHp,
-        wins: Math.floor(opponentLevel * 3),
-        stats: stats,
-        equipment: botEquipment,
-        specialAttack: opponentLevel >= 10 ? {
-            name: generateSpecialAttackName()
-        } : null,
-        isRealPlayer: false,
-        isBot: true
-    };
+    // Apply losing streak handicap
+    if (loseStreak >= 2) {
+        scalingFactor *= (1.0 - (loseStreak * 0.05));
+        scalingFactor = Math.max(0.7, scalingFactor);
+    }
+    
+    // Analyze player's stat distribution
+    var playerTotalStats = player.stats.strength + player.stats.toughness + 
+                          player.stats.agility + player.stats.luck + player.stats.speed;
+    
+    var playerPrimaryFocus = 'balanced';
+    var playerMaxStat = Math.max(player.stats.strength, player.stats.toughness, 
+                                 player.stats.agility, player.stats.luck, player.stats.speed);
+    
+    if (player.stats.strength === playerMaxStat && player.stats.strength > playerTotalStats * 0.4) {
+        playerPrimaryFocus = 'strength';
+    } else if (player.stats.toughness === playerMaxStat && player.stats.toughness > playerTotalStats * 0.4) {
+        playerPrimaryFocus = 'tank';
+    } else if (player.stats.agility === playerMaxStat && player.stats.agility > playerTotalStats * 0.4) {
+        playerPrimaryFocus = 'agility';
+    } else if (player.stats.speed === playerMaxStat && player.stats.speed > playerTotalStats * 0.35) {
+        playerPrimaryFocus = 'speed';
+    }
+    
+    var opponentStatPoints = (opponentLevel - 1) * 3;
+    var baseStats = 5;
+    opponentStatPoints = Math.floor(opponentStatPoints * scalingFactor);
+    
+    // Distribute stats to counter player's build
+    if (playerPrimaryFocus === 'strength') {
+        opponent.stats.toughness = baseStats + Math.floor(opponentStatPoints * 0.45);
+        opponent.stats.agility = baseStats + Math.floor(opponentStatPoints * 0.25);
+        opponent.stats.strength = baseStats + Math.floor(opponentStatPoints * 0.15);
+        opponent.stats.speed = baseStats + Math.floor(opponentStatPoints * 0.10);
+        opponent.stats.luck = baseStats + Math.floor(opponentStatPoints * 0.05);
+    } else if (playerPrimaryFocus === 'tank') {
+        opponent.stats.strength = baseStats + Math.floor(opponentStatPoints * 0.40);
+        opponent.stats.luck = baseStats + Math.floor(opponentStatPoints * 0.25);
+        opponent.stats.toughness = baseStats + Math.floor(opponentStatPoints * 0.20);
+        opponent.stats.speed = baseStats + Math.floor(opponentStatPoints * 0.10);
+        opponent.stats.agility = baseStats + Math.floor(opponentStatPoints * 0.05);
+    } else if (playerPrimaryFocus === 'agility') {
+        opponent.stats.luck = baseStats + Math.floor(opponentStatPoints * 0.30);
+        opponent.stats.speed = baseStats + Math.floor(opponentStatPoints * 0.25);
+        opponent.stats.strength = baseStats + Math.floor(opponentStatPoints * 0.25);
+        opponent.stats.toughness = baseStats + Math.floor(opponentStatPoints * 0.15);
+        opponent.stats.agility = baseStats + Math.floor(opponentStatPoints * 0.05);
+    } else if (playerPrimaryFocus === 'speed') {
+        opponent.stats.toughness = baseStats + Math.floor(opponentStatPoints * 0.35);
+        opponent.stats.strength = baseStats + Math.floor(opponentStatPoints * 0.30);
+        opponent.stats.agility = baseStats + Math.floor(opponentStatPoints * 0.20);
+        opponent.stats.luck = baseStats + Math.floor(opponentStatPoints * 0.10);
+        opponent.stats.speed = baseStats + Math.floor(opponentStatPoints * 0.05);
+    } else {
+        var statShare = opponentStatPoints / 5;
+        opponent.stats.strength = baseStats + Math.floor(statShare);
+        opponent.stats.toughness = baseStats + Math.floor(statShare);
+        opponent.stats.agility = baseStats + Math.floor(statShare);
+        opponent.stats.luck = baseStats + Math.floor(statShare);
+        opponent.stats.speed = baseStats + Math.floor(statShare);
+    }
+    
+    // Calculate player's total equipment power
+    var playerWeaponPower = player.equipment.weapon ? player.equipment.weapon.power : 0;
+    var playerArmorPower = 0;
+    if (player.equipment.helmet) playerArmorPower += player.equipment.helmet.power;
+    if (player.equipment.chest) playerArmorPower += player.equipment.chest.power;
+    if (player.equipment.gloves) playerArmorPower += player.equipment.gloves.power;
+    if (player.equipment.boots) playerArmorPower += player.equipment.boots.power;
+    
+    var playerTotalPower = playerWeaponPower + playerArmorPower;
+    var targetOpponentPower = Math.floor(playerTotalPower * scalingFactor);
+    
+    // Generate weapon
+    var weaponPower = Math.floor(targetOpponentPower * 0.40);
+    if (weaponPower > 0) {
+        opponent.equipment.weapon = {
+            name: generateWeaponName(),
+            slot: 'weapon',
+            power: weaponPower,
+            statType: 'damage',
+            rarity: determineRarity(weaponPower),
+            itemLevel: opponentLevel
+        };
+    }
+    
+    // Generate armor
+    var armorPowerPerPiece = Math.floor((targetOpponentPower * 0.60) / 4);
+    if (armorPowerPerPiece > 0) {
+        var armorSlots = ['helmet', 'chest', 'gloves', 'boots'];
+        for (var i = 0; i < armorSlots.length; i++) {
+            var slot = armorSlots[i];
+            var variance = Math.floor(armorPowerPerPiece * 0.2);
+            var power = armorPowerPerPiece + (Math.random() > 0.5 ? 1 : -1) * Math.floor(Math.random() * variance);
+            power = Math.max(1, power);
+            
+            opponent.equipment[slot] = {
+                name: generateArmorName(slot),
+                slot: slot,
+                power: power,
+                statType: 'defense',
+                rarity: determineRarity(power),
+                itemLevel: opponentLevel
+            };
+        }
+    }
+    
+    if (opponentLevel >= 10) {
+        opponent.specialAttack = generateSpecialAttack();
+    }
+    
+    opponent.maxHp = Math.floor((100 + (opponentLevel - 1) * 10 + opponent.stats.toughness * 5) * scalingFactor);
+    opponent.currentHp = opponent.maxHp;
+    
+    return opponent;
 }
+
+function determineRarity(power) {
+    if (power >= 80) return 'mythic';
+    if (power >= 60) return 'legendary';
+    if (power >= 40) return 'epic';
+    if (power >= 25) return 'rare';
+    if (power >= 15) return 'uncommon';
+    return 'common';
+}
+
+function generateWeaponName() {
+    var prefixes = ['Rusty', 'Iron', 'Steel', 'Silver', 'Golden', 'Enchanted', 'Legendary', 'Mythic', 'Ancient', 'Cursed'];
+    var weapons = ['Sword', 'Blade', 'Axe', 'Hammer', 'Spear', 'Dagger', 'Staff', 'Mace', 'Greatsword'];
+    return prefixes[Math.floor(Math.random() * prefixes.length)] + ' ' + 
+           weapons[Math.floor(Math.random() * weapons.length)];
+}
+
+function generateArmorName(slot) {
+    var prefixes = ['Worn', 'Leather', 'Iron', 'Steel', 'Silver', 'Golden', 'Enchanted', 'Legendary', 'Mythic', 'Dragon'];
+    var slotNames = {
+        helmet: ['Helmet', 'Helm', 'Cap', 'Crown', 'Hood'],
+        chest: ['Chestplate', 'Armor', 'Tunic', 'Mail', 'Plate'],
+        gloves: ['Gloves', 'Gauntlets', 'Grips', 'Handwraps'],
+        boots: ['Boots', 'Greaves', 'Shoes', 'Treads']
+    };
+    
+    return prefixes[Math.floor(Math.random() * prefixes.length)] + ' ' + 
+           slotNames[slot][Math.floor(Math.random() * slotNames[slot].length)];
+}
+        
 function generateBossOpponent(playerLevel) {
     var bossNames = [
         'The Devourer', 'Shadow Tyrant', 'Crimson Overlord', 'Void Emperor', 'Death Incarnate',
