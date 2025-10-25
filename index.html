@@ -383,18 +383,18 @@
         <label for="signupEmail">Email:</label>
         <input type="email" id="signupEmail" placeholder="Enter your email">
     </div>
-    <div class="form-group">
-        <label for="signupPassword">Password:</label>
-        <div style="position: relative;">
-            <input type="password" id="signupPassword" placeholder="Choose a password (min 6 characters)" style="padding-right: 40px;">
-            <button type="button" onclick="togglePasswordVisibility('signupPassword', 'signupPasswordToggle')" id="signupPasswordToggle" class="password-toggle-btn">
-                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-            </button>
-        </div> <!-- CLOSE the position: relative div -->
-    </div> <!-- CLOSE the form-group div -->
+<div class="form-group">
+    <label for="signupPassword">Password:</label>
+    <div style="position: relative;">
+        <input type="password" id="signupPassword" placeholder="Choose a password (min 6 characters)" style="padding-right: 40px;">
+        <button type="button" onclick="togglePasswordVisibility('signupPassword', 'signupPasswordToggle')" id="signupPasswordToggle" class="password-toggle-btn">
+            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+        </button>
+    </div>
+</div>
     <div class="form-group">
         <label for="signupUsername">Username:</label>
         <input type="text" id="signupUsername" placeholder="Choose a username" maxlength="20">
@@ -425,30 +425,30 @@
     <p style="text-align: center; margin-bottom: 20px; color: #ccc; font-size: 0.9em;">
         Enter your new password below.
     </p>
-    <div class="form-group">
-        <label for="newPassword">New Password:</label>
-        <div style="position: relative;">
-            <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" style="padding-right: 40px;">
-            <button type="button" onclick="togglePasswordVisibility('newPassword', 'newPasswordToggle')" id="newPasswordToggle" class="password-toggle-btn">
-                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-            </button>
-        </div> <!-- CLOSE the position: relative div -->
-    </div> <!-- CLOSE the form-group div -->
-    <div class="form-group">
-        <label for="confirmPassword">Confirm Password:</label>
-        <div style="position: relative;">
-            <input type="password" id="confirmPassword" placeholder="Confirm new password" style="padding-right: 40px;">
-            <button type="button" onclick="togglePasswordVisibility('confirmPassword', 'confirmPasswordToggle')" id="confirmPasswordToggle" class="password-toggle-btn">
-                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-            </button>
-        </div> <!-- CLOSE the position: relative div -->
-    </div> <!-- CLOSE the form-group div -->
+<div class="form-group">
+    <label for="newPassword">New Password:</label>
+    <div style="position: relative;">
+        <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" style="padding-right: 40px;">
+        <button type="button" onclick="togglePasswordVisibility('newPassword', 'newPasswordToggle')" id="newPasswordToggle" class="password-toggle-btn">
+            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+        </button>
+    </div>
+</div>
+<div class="form-group">
+    <label for="confirmPassword">Confirm Password:</label>
+    <div style="position: relative;">
+        <input type="password" id="confirmPassword" placeholder="Confirm new password" style="padding-right: 40px;">
+        <button type="button" onclick="togglePasswordVisibility('confirmPassword', 'confirmPasswordToggle')" id="confirmPasswordToggle" class="password-toggle-btn">
+            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+        </button>
+    </div>
+</div>
     <div style="text-align: center; margin-top: 20px;">
         <button class="btn btn-primary" onclick="resetPassword()">Update Password</button>
         <button class="btn btn-secondary" onclick="showLoginForm()">Back to Login</button>
