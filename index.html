@@ -4890,6 +4890,560 @@ html +=
     });
 }
 
+        // Battle Events System
+var battleEvents = [
+    {
+        id: 'thrown_rock',
+        title: '🪨 INCOMING PROJECTILE!',
+        description: '{opponent} picks up a rock and hurls it at you with tremendous force!',
+        options: [
+            {
+                name: 'Dodge',
+                stat: 'agility',
+                description: 'Use your agility to sidestep the rock',
+                successEffect: 'avoided',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You nimbly dodge the rock!',
+                    fail: 'The rock hits you!'
+                }
+            },
+            {
+                name: 'Block',
+                stat: 'toughness',
+                description: 'Brace yourself and block with your arms',
+                successEffect: 'reduced',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You block most of the impact!',
+                    fail: 'The rock breaks through your guard!'
+                }
+            },
+            {
+                name: 'Pray to Lady Luck',
+                stat: 'luck',
+                description: 'Hope the rock misses you',
+                successEffect: 'avoided',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'The rock miraculously veers off course!',
+                    fail: 'Lady Luck abandons you - the rock hits!'
+                }
+            }
+        ]
+    },
+    {
+        id: 'dust_cloud',
+        title: '💨 BLINDING DUST!',
+        description: '{opponent} kicks up a massive cloud of dust, obscuring your vision!',
+        options: [
+            {
+                name: 'Close Eyes & Listen',
+                stat: 'agility',
+                description: 'Rely on hearing to anticipate the attack',
+                successEffect: 'counter',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You hear the attack coming and counter perfectly!',
+                    fail: 'You misjudge the direction and get hit!'
+                }
+            },
+            {
+                name: 'Stand Ground',
+                stat: 'toughness',
+                description: 'Protect yourself and endure the attack',
+                successEffect: 'reduced',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You weather the blind assault!',
+                    fail: 'The surprise attack overwhelms you!'
+                }
+            },
+            {
+                name: 'Charge Forward',
+                stat: 'strength',
+                description: 'Rush through the dust and attack',
+                successEffect: 'counter',
+                failEffect: 'increased',
+                effectText: {
+                    success: 'You land a devastating blow through the dust!',
+                    fail: 'You stumble blindly and take extra damage!'
+                }
+            }
+        ]
+    },
+    {
+        id: 'weapon_break',
+        title: '⚔️ WEAPON CLASH!',
+        description: 'Your weapons collide with incredible force! One might break!',
+        options: [
+            {
+                name: 'Overpower',
+                stat: 'strength',
+                description: 'Use raw strength to dominate',
+                successEffect: 'counter',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You overpower your opponent and strike!',
+                    fail: 'Your opponent pushes you back and attacks!'
+                }
+            },
+            {
+                name: 'Deflect',
+                stat: 'agility',
+                description: 'Use finesse to redirect the force',
+                successEffect: 'avoided',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You skillfully deflect and avoid damage!',
+                    fail: 'The deflection fails and you take the hit!'
+                }
+            },
+            {
+                name: 'Hold Firm',
+                stat: 'toughness',
+                description: 'Lock weapons and endure the strain',
+                successEffect: 'reduced',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You hold firm and minimize the impact!',
+                    fail: 'Your defense crumbles under pressure!'
+                }
+            }
+        ]
+    },
+    {
+        id: 'ground_shake',
+        title: '⚡ GROUND TREMOR!',
+        description: '{opponent} strikes the ground, causing it to shake violently beneath you!',
+        options: [
+            {
+                name: 'Jump',
+                stat: 'agility',
+                description: 'Leap into the air to avoid the shockwave',
+                successEffect: 'avoided',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You leap over the shockwave gracefully!',
+                    fail: 'You mistimed the jump and fall hard!'
+                }
+            },
+            {
+                name: 'Plant Feet',
+                stat: 'toughness',
+                description: 'Root yourself and resist the tremor',
+                successEffect: 'reduced',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You stand firm like a mountain!',
+                    fail: 'The tremor knocks you off balance!'
+                }
+            },
+            {
+                name: 'Roll Away',
+                stat: 'speed',
+                description: 'Quickly roll to stable ground',
+                successEffect: 'avoided',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You swiftly roll to safety!',
+                    fail: 'You stumble while rolling and get hit!'
+                }
+            }
+        ]
+    },
+    {
+        id: 'feint_attack',
+        title: '🎭 DECEPTIVE STRIKE!',
+        description: '{opponent} feints an attack! Can you read their true intention?',
+        options: [
+            {
+                name: 'Predict Movement',
+                stat: 'luck',
+                description: 'Trust your instincts',
+                successEffect: 'counter',
+                failEffect: 'increased',
+                effectText: {
+                    success: 'You predicted correctly and counter!',
+                    fail: 'You fell for the feint completely!'
+                }
+            },
+            {
+                name: 'React Quickly',
+                stat: 'speed',
+                description: 'Wait and react to the real attack',
+                successEffect: 'avoided',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'Your quick reflexes save you!',
+                    fail: 'You react too late!'
+                }
+            },
+            {
+                name: 'Full Defense',
+                stat: 'toughness',
+                description: 'Guard against all possibilities',
+                successEffect: 'reduced',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'Your solid defense holds!',
+                    fail: 'The attack finds a gap in your defense!'
+                }
+            }
+        ]
+    },
+    {
+        id: 'spinning_attack',
+        title: '🌪️ WHIRLWIND ASSAULT!',
+        description: '{opponent} begins spinning rapidly with weapon extended!',
+        options: [
+            {
+                name: 'Backstep',
+                stat: 'speed',
+                description: 'Quickly retreat out of range',
+                successEffect: 'avoided',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You retreat just in time!',
+                    fail: 'You weren\'t fast enough to escape!'
+                }
+            },
+            {
+                name: 'Duck Under',
+                stat: 'agility',
+                description: 'Slide beneath the spinning blade',
+                successEffect: 'counter',
+                failEffect: 'increased',
+                effectText: {
+                    success: 'You slide under and strike from below!',
+                    fail: 'The blade catches you while ducking!'
+                }
+            },
+            {
+                name: 'Endure',
+                stat: 'toughness',
+                description: 'Brace for the spinning strikes',
+                successEffect: 'reduced',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You endure the assault with minimal damage!',
+                    fail: 'The spinning attack batters you!'
+                }
+            }
+        ]
+    },
+    {
+        id: 'overhead_smash',
+        title: '💥 DEVASTATING OVERHEAD!',
+        description: '{opponent} raises their weapon high for a crushing overhead smash!',
+        options: [
+            {
+                name: 'Side Roll',
+                stat: 'agility',
+                description: 'Roll to the side at the last moment',
+                successEffect: 'avoided',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You roll aside as the weapon crashes down!',
+                    fail: 'You didn\'t roll far enough!'
+                }
+            },
+            {
+                name: 'Parry Upward',
+                stat: 'strength',
+                description: 'Meet the attack with your own force',
+                successEffect: 'counter',
+                failEffect: 'increased',
+                effectText: {
+                    success: 'You deflect the attack and counter!',
+                    fail: 'The overhead attack crushes through your parry!'
+                }
+            },
+            {
+                name: 'Cross Block',
+                stat: 'toughness',
+                description: 'Block with weapon held horizontally',
+                successEffect: 'reduced',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'Your block absorbs most of the force!',
+                    fail: 'The overhead attack breaks through!'
+                }
+            }
+        ]
+    },
+    {
+        id: 'charge_attack',
+        title: '🐂 CHARGING RUSH!',
+        description: '{opponent} lowers their stance and charges at you like a bull!',
+        options: [
+            {
+                name: 'Sidestep',
+                stat: 'speed',
+                description: 'Move out of the way quickly',
+                successEffect: 'avoided',
+                failEffect: 'increased',
+                effectText: {
+                    success: 'You sidestep elegantly!',
+                    fail: 'The charge catches you!'
+                }
+            },
+            {
+                name: 'Stand Firm',
+                stat: 'strength',
+                description: 'Meet the charge head-on',
+                successEffect: 'counter',
+                failEffect: 'increased',
+                effectText: {
+                    success: 'You stop the charge and counter!',
+                    fail: 'You get bowled over!'
+                }
+            },
+            {
+                name: 'Brace for Impact',
+                stat: 'toughness',
+                description: 'Prepare to absorb the collision',
+                successEffect: 'reduced',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You weather the charge!',
+                    fail: 'The impact staggers you!'
+                }
+            }
+        ]
+    },
+    {
+        id: 'throwing_knife',
+        title: '🗡️ HIDDEN BLADE!',
+        description: '{opponent} suddenly produces a throwing knife and aims at you!',
+        options: [
+            {
+                name: 'Deflect',
+                stat: 'agility',
+                description: 'Swat the knife away',
+                successEffect: 'avoided',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You deflect the knife with your weapon!',
+                    fail: 'The knife grazes you!'
+                }
+            },
+            {
+                name: 'Matrix Dodge',
+                stat: 'luck',
+                description: 'Attempt an impossible dodge',
+                successEffect: 'counter',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You dodge impossibly and counter-attack!',
+                    fail: 'The knife finds its mark!'
+                }
+            },
+            {
+                name: 'Tank It',
+                stat: 'toughness',
+                description: 'Let your armor absorb it',
+                successEffect: 'reduced',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'Your armor deflects the blade!',
+                    fail: 'The knife pierces through!'
+                }
+            }
+        ]
+    },
+    {
+        id: 'grapple_attempt',
+        title: '🤼 GRAPPLE ATTEMPT!',
+        description: '{opponent} rushes in to grab and grapple you!',
+        options: [
+            {
+                name: 'Break Free',
+                stat: 'strength',
+                description: 'Use raw power to escape',
+                successEffect: 'counter',
+                failEffect: 'increased',
+                effectText: {
+                    success: 'You break free and strike back!',
+                    fail: 'You\'re caught in the grapple!'
+                }
+            },
+            {
+                name: 'Slip Away',
+                stat: 'agility',
+                description: 'Use technique to escape the hold',
+                successEffect: 'avoided',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You slip out of the grapple!',
+                    fail: 'You get caught!'
+                }
+            },
+            {
+                name: 'Counter-Grapple',
+                stat: 'toughness',
+                description: 'Reverse the grapple',
+                successEffect: 'reduced',
+                failEffect: 'normal',
+                effectText: {
+                    success: 'You reverse the position!',
+                    fail: 'The grapple overwhelms you!'
+                }
+            }
+        ]
+    }
+];
+
+var currentBattleEvent = null;
+var eventTimer = null;
+
+function shouldTriggerBattleEvent(turnCount) {
+    // 25% chance to trigger on turn 3-6
+    if (turnCount >= 3 && turnCount <= 6 && !currentBattleEvent) {
+        return Math.random() * 100 < 25;
+    }
+    return false;
+}
+
+function triggerBattleEvent(player, opponent) {
+    // Select random event
+    var randomEvent = battleEvents[Math.floor(Math.random() * battleEvents.length)];
+    currentBattleEvent = {
+        event: randomEvent,
+        player: player,
+        opponent: opponent,
+        resolved: false
+    };
+    
+    showBattleEventModal(randomEvent, player, opponent);
+}
+
+function showBattleEventModal(event, player, opponent) {
+    var description = event.description.replace('{opponent}', opponent.name);
+    
+    var optionsHTML = '';
+    for (var i = 0; i < event.options.length; i++) {
+        var option = event.options[i];
+        var stat = option.stat;
+        var statValue = player.stats[stat];
+        var successChance = calculateEventSuccessChance(statValue);
+        
+        optionsHTML += 
+            '<div class="event-option" onclick="selectEventOption(' + i + ')">' +
+                '<div class="event-option-title">' + option.name + '</div>' +
+                '<div class="event-option-stat">' + stat.charAt(0).toUpperCase() + stat.slice(1) + ' ' + statValue + '</div>' +
+                '<div class="event-option-chance">' + successChance + '% Success Chance</div>' +
+                '<div class="event-option-effect">' + option.description + '</div>' +
+            '</div>';
+    }
+    
+    var modalHTML = 
+        '<div id="battleEventModal" class="event-modal">' +
+            '<div class="event-container">' +
+                '<div class="event-title">' + event.title + '</div>' +
+                '<div class="event-description">' + description + '</div>' +
+                '<div class="event-timer" id="eventTimer">Time remaining: <span id="eventTimerCount">30</span>s</div>' +
+                '<div class="event-options">' + optionsHTML + '</div>' +
+            '</div>' +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    startEventTimer();
+}
+
+function calculateEventSuccessChance(statValue) {
+    // Formula: Base 10% + (stat value * 2%)
+    // Example: Stat 10 = 30%, Stat 25 = 60%, Stat 50 = 100%
+    return Math.min(100, 10 + (statValue * 2));
+}
+
+function startEventTimer() {
+    var timeLeft = 30;
+    var timerElement = document.getElementById('eventTimerCount');
+    var timerContainer = document.getElementById('eventTimer');
+    
+    eventTimer = setInterval(function() {
+        timeLeft--;
+        if (timerElement) {
+            timerElement.textContent = timeLeft;
+        }
+        
+        if (timeLeft <= 10 && timerContainer) {
+            timerContainer.classList.add('urgent');
+        }
+        
+        if (timeLeft <= 0) {
+            clearInterval(eventTimer);
+            // Auto-select random option
+            var randomOption = Math.floor(Math.random() * currentBattleEvent.event.options.length);
+            selectEventOption(randomOption, true);
+        }
+    }, 1000);
+}
+
+function selectEventOption(optionIndex, autoSelected) {
+    if (!currentBattleEvent || currentBattleEvent.resolved) return;
+    
+    clearInterval(eventTimer);
+    
+    var event = currentBattleEvent.event;
+    var option = event.options[optionIndex];
+    var player = currentBattleEvent.player;
+    var statValue = player.stats[option.stat];
+    var successChance = calculateEventSuccessChance(statValue);
+    
+    var success = Math.random() * 100 < successChance;
+    
+    currentBattleEvent.resolved = true;
+    currentBattleEvent.result = {
+        option: option,
+        success: success,
+        autoSelected: autoSelected
+    };
+    
+    closeBattleEventModal();
+    showEventResult(option, success, autoSelected);
+}
+
+function closeBattleEventModal() {
+    var modal = document.getElementById('battleEventModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function showEventResult(option, success, autoSelected) {
+    var resultText = success ? option.effectText.success : option.effectText.fail;
+    
+    if (autoSelected) {
+        addToFightLog('<span style="color: #888;">⏱️ Time ran out! Randomly chose: ' + option.name + '</span>');
+    }
+    
+    if (success) {
+        addToFightLog('<span style="color: #6bcf7f; font-weight: bold;">✅ EVENT SUCCESS! ' + resultText + '</span>');
+    } else {
+        addToFightLog('<span style="color: #ff6b6b; font-weight: bold;">❌ EVENT FAILED! ' + resultText + '</span>');
+    }
+}
+
+function getEventEffect() {
+    if (!currentBattleEvent || !currentBattleEvent.resolved) {
+        return null;
+    }
+    
+    var result = currentBattleEvent.result;
+    var effect = result.success ? result.option.successEffect : result.option.failEffect;
+    
+    // Clear the event after getting the effect
+    var eventEffect = {
+        effect: effect,
+        applied: false
+    };
+    
+    return eventEffect;
+}
+
 function startFight(player, opponent, isDiamondFight) {
     hideAll();
     var fightScreen = document.getElementById('fightScreen');
