@@ -5556,27 +5556,33 @@ function startFight(player, opponent, isDiamondFight) {
         function simulateFight(player, opponent) {
     var turnCount = 1;
     var maxTurns = 100;
-    
-    // Arrays for varied combat text
-    var attackVerbs = ['strikes', 'slashes', 'punches', 'kicks', 'smashes', 'hammers', 'pounds', 'batters', 'thrashes', 'wallops'];
-    var dodgeTexts = ['sidesteps the attack', 'ducks under the blow', 'weaves away', 'rolls to safety', 'leaps back', 'twists away', 'slips aside', 'dances away from danger', 'evades with grace', 'narrowly avoids the strike'];
-    var critTexts = ['finds a weak spot', 'lands a devastating blow', 'strikes with perfect form', 'connects with brutal force', 'delivers a crushing hit', 'finds an opening', 'strikes with deadly precision', 'unleashes their full power'];
-    var weaponHits = ['blade cuts deep', 'weapon finds its mark', 'steel bites flesh', 'iron meets bone', 'weapon strikes true', 'blade slices through defenses'];
-    var bodyParts = ['chest', 'shoulder', 'arm', 'leg', 'ribs', 'side', 'back'];
-    var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles', 'cries out', 'gasps'];
+    currentBattleEvent = null; // Reset event for new fight
     
     function fightTurn() {
-    if (turnCount > maxTurns || player.currentHp <= 0 || opponent.currentHp <= 0) {
-        endCombat(player, opponent);
-        return;
-    }
-    
-    // NERFED: Calculate speed-based extra attacks (0.5% per point instead of 1%)
-    var playerSpeedChance = Math.min(50, (player.stats.speed - 1) * 0.5); // Changed from 1
-    var playerExtraAttack = Math.random() * 100 < playerSpeedChance;
-    
-    var opponentSpeedChance = Math.min(50, (opponent.stats.speed - 1) * 0.5); // Changed from 1
-    var opponentExtraAttack = Math.random() * 100 < opponentSpeedChance;
+        if (turnCount > maxTurns || player.currentHp <= 0 || opponent.currentHp <= 0) {
+            endCombat(player, opponent);
+            return;
+        }
+        
+        // Check for battle event trigger
+        if (shouldTriggerBattleEvent(turnCount)) {
+            triggerBattleEvent(player, opponent);
+            // Wait for event to resolve before continuing
+            var checkResolved = setInterval(function() {
+                if (currentBattleEvent && currentBattleEvent.resolved) {
+                    clearInterval(checkResolved);
+                    setTimeout(fightTurn, 1000); // Continue fight after event
+                }
+            }, 100);
+            return;
+        }
+        
+        // NERFED: Calculate speed-based extra attacks (0.5% per point instead of 1%)
+        var playerSpeedChance = Math.min(50, (player.stats.speed - 1) * 0.5);
+        var playerExtraAttack = Math.random() * 100 < playerSpeedChance;
+        
+        var opponentSpeedChance = Math.min(50, (opponent.stats.speed - 1) * 0.5);
+        var opponentExtraAttack = Math.random() * 100 < opponentSpeedChance;
         
         // Player attacks first
         if (player.currentHp > 0) {
@@ -5629,6 +5635,36 @@ function startFight(player, opponent, isDiamondFight) {
 }
             
             function performAttack(attacker, defender, attackerType) {
+    // Check for event effects
+    var eventEffect = getEventEffect();
+    
+    if (eventEffect && !eventEffect.applied && attackerType === 'opponent') {
+        eventEffect.applied = true;
+        
+        if (eventEffect.effect === 'avoided') {
+            // Player avoided the attack completely
+            addToFightLog('<span class="dodge">' + defender.name + ' avoided the attack thanks to the event!</span>');
+            return;
+        } else if (eventEffect.effect === 'counter') {
+            // Player counters - opponent takes damage instead
+            var counterDamage = Math.floor((10 + (defender.stats.strength - 1) * 2) * 1.5);
+            attacker.currentHp = Math.max(0, attacker.currentHp - counterDamage);
+            addToFightLog('<span style="color: #6bcf7f; font-weight: bold;">' + defender.name + ' counters for ' + counterDamage + ' damage!</span>');
+            
+            if (attackerType === 'player') {
+                var opponentHpPercent = (attacker.currentHp / attacker.maxHp) * 100;
+                document.getElementById('player2HP').style.width = opponentHpPercent + '%';
+                document.getElementById('player2HPText').textContent = Math.floor(attacker.currentHp) + '/' + attacker.maxHp;
+            } else {
+                var playerHpPercent = (attacker.currentHp / attacker.maxHp) * 100;
+                document.getElementById('player1HP').style.width = playerHpPercent + '%';
+                document.getElementById('player1HPText').textContent = Math.floor(attacker.currentHp) + '/' + attacker.maxHp;
+            }
+            return;
+        }
+        // 'reduced' and 'increased' effects are handled below in damage calculation
+    }
+    
     var baseDamage = 10 + (attacker.stats.strength - 1) * 2;
     
     // Equipment bonus
@@ -5678,12 +5714,22 @@ function startFight(player, opponent, isDiamondFight) {
     }
     
     // Defense reduction from armor (capped at 60%)
-    var defenseReduction = Math.min(60, totalDefense * 0.25);
-    damage = Math.floor(damage * (1 - defenseReduction / 100));
-    
-    // Toughness check - chance to reduce damage by 50%
-    var toughnessChance = Math.min(50, (defender.stats.toughness - 1) * 0.5); // 0.5% per point, max 50%
-    var toughnessProc = Math.random() * 100 < toughnessChance;
+var defenseReduction = Math.min(60, totalDefense * 0.25);
+damage = Math.floor(damage * (1 - defenseReduction / 100));
+
+// Apply event effect modifiers
+if (eventEffect && !eventEffect.applied && attackerType === 'opponent') {
+    eventEffect.applied = true;
+    if (eventEffect.effect === 'reduced') {
+        damage = Math.floor(damage * 0.5); // Take 50% less damage
+    } else if (eventEffect.effect === 'increased') {
+        damage = Math.floor(damage * 1.5); // Take 50% more damage
+    }
+}
+
+// Toughness check - chance to reduce damage by 50%
+var toughnessChance = Math.min(50, (defender.stats.toughness - 1) * 0.5);
+var toughnessProc = Math.random() * 100 < toughnessChance;
     
     if (toughnessProc) {
         damage = Math.floor(damage * 0.5); // 50% damage reduction when it procs
