@@ -4417,6 +4417,14 @@ function fightWithoutRest() {
         return null;
     }
     
+    // Validate player level
+    if (!player.level || isNaN(player.level) || player.level < 1) {
+        console.error('Player level is invalid:', player.level);
+        alert('Error: Your fighter data is corrupted. Please refresh the page or create a new fighter.');
+        if (callback) callback(null);
+        return null;
+    }
+    
     // Initialize player stats if they don't exist
     if (!player.stats) {
         console.warn('Player stats missing, initializing with defaults');
@@ -4465,22 +4473,21 @@ function fightWithoutRest() {
             var opponent = {
                 name: realPlayer.name,
                 level: realPlayer.level,
-                wins: realPlayer.wins,
-                losses: realPlayer.losses,
+                wins: realPlayer.wins || 0,
+                losses: realPlayer.losses || 0,
                 stats: realPlayer.stats,
                 equipment: realPlayer.equipment,
                 specialAttack: realPlayer.specialAttack,
                 isRealPlayer: true,
                 fighterIdentifier: realPlayer.user_id + '_' + realPlayer.name,
                 userId: realPlayer.user_id,
-                maxHp: realPlayer.maxHp || (100 + (realPlayer.level - 1) * 10 + realPlayer.stats.toughness * 5),
+                maxHp: realPlayer.maxHp || (100 + (realPlayer.level - 1) * 10 + (realPlayer.stats.toughness || 1) * 5),
                 currentHp: 0
             };
             
             opponent.currentHp = opponent.maxHp;
             
             if (callback) callback(opponent);
-            return opponent;
         } else {
             console.log('❌ No real players available, generating bot opponent');
             
@@ -4489,8 +4496,14 @@ function fightWithoutRest() {
             
             var opponent = createBotOpponent(player, opponentLevel, loseStreak);
             
+            // Validate bot opponent was created successfully
+            if (!opponent || !opponent.level) {
+                console.error('Failed to create bot opponent');
+                if (callback) callback(null);
+                return;
+            }
+            
             if (callback) callback(opponent);
-            return opponent;
         }
     });
 }
