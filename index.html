@@ -5062,24 +5062,33 @@ if (attacker.level >= 10 && attacker.specialAttack && attacker.specialAvailable 
             btn.style.opacity = '0.5';
         }
     } else if (attackerType === 'opponent') {
-        // AI uses special attack strategically:
-        // - 30% chance when opponent HP is below 40% (finishing move)
-        // - 20% chance when own HP is below 30% (desperation move)
-        // - 10% chance randomly each turn
-        var opponentHpPercent = (defender.currentHp / defender.maxHp) * 100;
+        // Check if opponent is in critical health (below 25%) - MUST use special before dying
         var ownHpPercent = (attacker.currentHp / attacker.maxHp) * 100;
-        var useChance = 10; // Base 10% chance
+        var opponentHpPercent = (defender.currentHp / defender.maxHp) * 100;
         
-        if (opponentHpPercent < 40) {
-            useChance = 30; // Higher chance to finish off weak opponent
-        } else if (ownHpPercent < 30) {
-            useChance = 20; // Use as desperation move
-        }
-        
-        if (Math.random() * 100 < useChance) {
-            console.log('Opponent using special attack!');
+        // Critical condition: If bot HP is below 25%, use special immediately
+        if (ownHpPercent < 25) {
+            console.log('Opponent using special attack (critical HP)!');
             shouldUseSpecial = true;
             attacker.specialUsed = true;
+        } else {
+            // Normal strategic usage:
+            // - 40% chance when opponent HP is below 40% (finishing move)
+            // - 25% chance when own HP is below 50% (desperation move)
+            // - 15% chance randomly each turn
+            var useChance = 15; // Base 15% chance
+            
+            if (opponentHpPercent < 40) {
+                useChance = 40; // Higher chance to finish off weak opponent
+            } else if (ownHpPercent < 50) {
+                useChance = 25; // Use as desperation move
+            }
+            
+            if (Math.random() * 100 < useChance) {
+                console.log('Opponent using special attack!');
+                shouldUseSpecial = true;
+                attacker.specialUsed = true;
+            }
         }
     }
 }
@@ -5088,6 +5097,23 @@ if (shouldUseSpecial) {
     setTimeout(function() {
         performSpecialAttack(attacker, defender, attackerType);
     }, 500);
+}
+
+// NEW: Check if opponent should use special attack as last resort before dying
+if (attackerType === 'player' && defender.level >= 10 && defender.specialAttack && 
+    defender.specialAvailable && !defender.specialUsed && defender.currentHp > 0) {
+    
+    // If opponent HP is critically low (below 20%) after taking damage, use special immediately
+    var opponentHpPercent = (defender.currentHp / defender.maxHp) * 100;
+    if (opponentHpPercent < 20) {
+        console.log('Opponent using special attack as last resort!');
+        defender.specialUsed = true;
+        setTimeout(function() {
+            if (defender.currentHp > 0) { // Make sure still alive
+                performSpecialAttack(defender, attacker, 'opponent');
+            }
+        }, 1000);
+    }
 }
     
     // Update HP bars
