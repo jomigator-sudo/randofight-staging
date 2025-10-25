@@ -5905,7 +5905,6 @@ function playerUseSpecial() {
     }
                 
     var specialBaseDamage = attacker.level * 4 + 20;
-    var specialStrengthBonus = (attacker.stats.strength - 1) * 2;
     var specialDamage = specialBaseDamage + specialStrengthBonus;
     
     if (attacker.equipment && attacker.equipment.weapon) {
