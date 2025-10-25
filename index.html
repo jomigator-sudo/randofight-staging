@@ -3705,12 +3705,12 @@ html += '<div class="leaderboard-entry"' + highlightStyle + '>' +
                 return;
             }
             
-            if (gameState.diamonds < 100) {
-                alert('You need 100 diamonds to unlock this slot! You currently have ' + gameState.diamonds + ' diamonds.');
+            if (gameState.diamonds < 200) {
+                alert('You need 200 diamonds to unlock this slot! You currently have ' + gameState.diamonds + ' diamonds.');
                 return;
             }
             
-            gameState.diamonds -= 100;
+            gameState.diamonds -= 200;
             gameState.unlockedSlots[slotIndex] = true;
             updateDiamondDisplay();
             updateFighterSlots();
