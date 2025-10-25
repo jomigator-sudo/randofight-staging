@@ -4410,18 +4410,49 @@ function fightWithoutRest() {
 }
 
         function generateOpponent(player, callback) {
+    // Safety check: Ensure player object is valid
+    if (!player) {
+        console.error('Invalid player object passed to generateOpponent');
+        if (callback) callback(null);
+        return null;
+    }
+    
+    // Initialize player stats if they don't exist
+    if (!player.stats) {
+        console.warn('Player stats missing, initializing with defaults');
+        player.stats = {
+            strength: 1,
+            toughness: 1,
+            agility: 1,
+            luck: 1,
+            speed: 1
+        };
+    }
+    
+    // Initialize player equipment if it doesn't exist
+    if (!player.equipment) {
+        console.warn('Player equipment missing, initializing with defaults');
+        player.equipment = {
+            weapon: null,
+            helmet: null,
+            chest: null,
+            gloves: null,
+            boots: null
+        };
+    }
+    
     // Check for losing streak - easier opponents after losses
     var loseStreak = player.loseStreak || 0;
     var levelAdjustment = 0;
     
     if (loseStreak >= 3) {
-        levelAdjustment = -2; // Much easier opponent
+        levelAdjustment = -2;
     } else if (loseStreak >= 2) {
-        levelAdjustment = -1; // Easier opponent
+        levelAdjustment = -1;
     }
     
     var targetLevel = Math.max(1, player.level + levelAdjustment);
-    var levelRange = 2; // Search within +/- 2 levels
+    var levelRange = 2;
     
     console.log('Matchmaking: Looking for real players at level', targetLevel, '+/-', levelRange);
     
