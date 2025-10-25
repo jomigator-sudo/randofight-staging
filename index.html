@@ -5421,9 +5421,25 @@ function showEventResult(option, success, autoSelected) {
     }
     
     if (success) {
-        addToFightLog('<span style="color: #6bcf7f; font-weight: bold;">✅ EVENT SUCCESS! ' + resultText + '</span>');
+        addToFightLog('<span style="color: #6bcf7f; font-weight: bold; font-size: 1.1em;">✅ EVENT SUCCESS! ' + resultText + '</span>');
+        
+        // Show what effect will happen
+        if (option.successEffect === 'avoided') {
+            addToFightLog('<span style="color: #6bcf7f;">→ You will take NO damage from the next attack!</span>');
+        } else if (option.successEffect === 'counter') {
+            addToFightLog('<span style="color: #6bcf7f;">→ You will COUNTER the next attack!</span>');
+        } else if (option.successEffect === 'reduced') {
+            addToFightLog('<span style="color: #6bcf7f;">→ You will take 50% LESS damage from the next attack!</span>');
+        }
     } else {
-        addToFightLog('<span style="color: #ff6b6b; font-weight: bold;">❌ EVENT FAILED! ' + resultText + '</span>');
+        addToFightLog('<span style="color: #ff6b6b; font-weight: bold; font-size: 1.1em;">❌ EVENT FAILED! ' + resultText + '</span>');
+        
+        // Show what effect will happen
+        if (option.failEffect === 'normal') {
+            addToFightLog('<span style="color: #888;">→ You will take normal damage from the next attack.</span>');
+        } else if (option.failEffect === 'increased') {
+            addToFightLog('<span style="color: #ff6b6b;">→ You will take 50% MORE damage from the next attack!</span>');
+        }
     }
 }
 
