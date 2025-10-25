@@ -5353,9 +5353,10 @@ function showBattleEventModal(event, player, opponent) {
 }
 
 function calculateEventSuccessChance(statValue) {
-    // Formula: Base 10% + (stat value * 2%)
-    // Example: Stat 10 = 30%, Stat 25 = 60%, Stat 50 = 100%
-    return Math.min(100, 10 + (statValue * 2));
+    // New Formula: Base 5% + (stat value * 1.5%)
+    // Example: Stat 1 = 6.5%, Stat 10 = 20%, Stat 25 = 42.5%, Stat 50 = 80%, Stat 63+ = 100%
+    // This makes low stats much harder and requires higher investment for guaranteed success
+    return Math.min(100, 5 + (statValue * 1.5));
 }
 
 function startEventTimer() {
