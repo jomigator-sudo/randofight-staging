@@ -5485,8 +5485,7 @@ function getEventEffect() {
         objectName = 'dust cloud attack';
     }
     
-    // Mark event as used so it doesn't apply again
-    currentBattleEvent.effectUsed = true;
+    // DON'T mark as used here - let performAttack mark it when actually applied
     
     return {
         effect: effect,
