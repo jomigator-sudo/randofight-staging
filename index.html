@@ -5464,6 +5464,11 @@ function getEventEffect() {
         return null;
     }
     
+    // If already used, don't return it again
+    if (currentBattleEvent.effectUsed) {
+        return null;
+    }
+    
     var result = currentBattleEvent.result;
     var effect = result.success ? result.option.successEffect : result.option.failEffect;
     
@@ -5479,6 +5484,9 @@ function getEventEffect() {
     } else if (eventId === 'dust_cloud') {
         objectName = 'dust cloud attack';
     }
+    
+    // Mark event as used so it doesn't apply again
+    currentBattleEvent.effectUsed = true;
     
     return {
         effect: effect,
