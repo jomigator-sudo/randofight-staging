@@ -5785,14 +5785,14 @@ damage = Math.floor(damage * (1 - defenseReduction / 100));
 
 // Apply event effect modifiers for damage reduction/increase
 // This must happen BEFORE toughness check
-if (eventEffect && attackerType === 'opponent') {
+if (pendingEventEffect && attackerType === 'opponent') {
     var originalDamage = damage;
     
-    if (eventEffect.effect === 'reduced') {
+    if (pendingEventEffect === 'reduced') {
         damage = Math.floor(damage * 0.5); // Take 50% less damage
         var damageReduced = originalDamage - damage;
         addToFightLog('<span style="color: #6bcf7f;">⚡ EVENT BONUS: Damage reduced by ' + damageReduced + '! (From ' + originalDamage + ' to ' + damage + ')</span>');
-    } else if (eventEffect.effect === 'increased') {
+    } else if (pendingEventEffect === 'increased') {
         damage = Math.floor(damage * 1.5); // Take 50% more damage
         var damageIncreased = damage - originalDamage;
         addToFightLog('<span style="color: #ff6b6b;">❌ EVENT PENALTY: Damage increased by ' + damageIncreased + '! (From ' + originalDamage + ' to ' + damage + ')</span>');
