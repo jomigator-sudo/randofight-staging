@@ -5930,9 +5930,9 @@ function playerUseSpecial() {
     if (attackerType === 'opponent') {
         addToFightLog('<span style="color: #ff6b6b; font-weight: bold;">⚠️ ' + attacker.name + ' prepares their special attack!</span>');
     }
-                
-    var specialBaseDamage = attacker.level * 4 + 20;
-    var specialDamage = specialBaseDamage + specialStrengthBonus;
+    
+    // Calculate special attack damage - NO STRENGTH BONUS
+    var specialDamage = attacker.level * 4 + 20;
     
     if (attacker.equipment && attacker.equipment.weapon) {
         specialDamage += attacker.equipment.weapon.power || 0;
@@ -5958,7 +5958,7 @@ function playerUseSpecial() {
     
     // Toughness check
     var toughnessChance = Math.min(50, (defender.stats.toughness - 1) * 0.5);
-var toughnessProc = Math.random() * 100 < toughnessChance;
+    var toughnessProc = Math.random() * 100 < toughnessChance;
     
     if (toughnessProc) {
         specialDamage = Math.floor(specialDamage * 0.5);
@@ -5970,7 +5970,7 @@ var toughnessProc = Math.random() * 100 < toughnessChance;
     specialDamage = Math.max(3, specialDamage);
     
     defender.currentHp = Math.max(0, defender.currentHp - specialDamage);
-    // Special attacks don't generate meter
+    
     // Determine name classes
     var attackerNameClass = attackerType === 'player' ? 'player-name' : 'opponent-name';
     var defenderNameClass = attackerType === 'player' ? 'opponent-name' : 'player-name';
