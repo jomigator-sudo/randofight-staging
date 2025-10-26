@@ -5801,28 +5801,38 @@ var toughnessProc = Math.random() * 100 < toughnessChance;
     
     var attackText = '';
     
-    if (isCrit) {
-        damage = Math.floor(damage * 2.0);
-        damage = Math.max(2, damage);
-        // Enhanced critical hit display
-        var critTexts = [
-            '<span class="critical-hit-text">⚡ CRITICAL HIT! ⚡</span> ' + attackerNameText + ' finds a weak spot with their ' + weaponText + ' and deals <span class="damage">' + damage + '</span> massive damage!',
-            '<span class="critical-hit-text">💥 CRITICAL STRIKE! 💥</span> ' + attackerNameText + ' lands a devastating blow with their ' + weaponText + ' for <span class="damage">' + damage + '</span> damage!',
-            '<span class="critical-hit-text">🔥 CRITICAL! 🔥</span> ' + attackerNameText + '\'s ' + weaponText + ' strikes true for <span class="damage">' + damage + '</span> crushing damage!'
-        ];
-        attackText = critTexts[Math.floor(Math.random() * critTexts.length)];
-    } else {
-        // Regular attacks with highlighted names
-        var bodyParts = ['chest', 'shoulder', 'arm', 'leg', 'ribs', 'side', 'back'];
-        var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles'];
-        
-        var attackVariations = [
-            attackerNameText + ' strikes with their ' + weaponText + ', dealing <span class="damage">' + damage + '</span> damage to ' + defenderNameText + '!',
-            attackerNameText + '\'s ' + weaponText + ' hits ' + defenderNameText + '\'s ' + bodyParts[Math.floor(Math.random() * bodyParts.length)] + ' for <span class="damage">' + damage + '</span> damage!',
-            defenderNameText + ' ' + painSounds[Math.floor(Math.random() * painSounds.length)] + ' as ' + attackerNameText + '\'s ' + weaponText + ' connects for <span class="damage">' + damage + '</span> damage!'
-        ];
-        attackText = attackVariations[Math.floor(Math.random() * attackVariations.length)];
-    }
+    // Determine what weapon/object was used
+var displayWeapon;
+if (attackSource) {
+    // Event object (rock, knife, etc.)
+    displayWeapon = '<span class="uncommon">' + attackSource + '</span>';
+} else {
+    // Regular weapon
+    displayWeapon = weaponText;
+}
+
+if (isCrit) {
+    damage = Math.floor(damage * 2.0);
+    damage = Math.max(2, damage);
+    // Enhanced critical hit display
+    var critTexts = [
+        '<span class="critical-hit-text">⚡ CRITICAL HIT! ⚡</span> ' + attackerNameText + ' finds a weak spot with their ' + displayWeapon + ' and deals <span class="damage">' + damage + '</span> massive damage!',
+        '<span class="critical-hit-text">💥 CRITICAL STRIKE! 💥</span> ' + attackerNameText + ' lands a devastating blow with their ' + displayWeapon + ' for <span class="damage">' + damage + '</span> damage!',
+        '<span class="critical-hit-text">🔥 CRITICAL! 🔥</span> ' + attackerNameText + '\'s ' + displayWeapon + ' strikes true for <span class="damage">' + damage + '</span> crushing damage!'
+    ];
+    attackText = critTexts[Math.floor(Math.random() * critTexts.length)];
+} else {
+    // Regular attacks with highlighted names
+    var bodyParts = ['chest', 'shoulder', 'arm', 'leg', 'ribs', 'side', 'back'];
+    var painSounds = ['grunts in pain', 'winces', 'staggers', 'reels back', 'stumbles'];
+    
+    var attackVariations = [
+        attackerNameText + ' strikes with their ' + displayWeapon + ', dealing <span class="damage">' + damage + '</span> damage to ' + defenderNameText + '!',
+        attackerNameText + '\'s ' + displayWeapon + ' hits ' + defenderNameText + '\'s ' + bodyParts[Math.floor(Math.random() * bodyParts.length)] + ' for <span class="damage">' + damage + '</span> damage!',
+        defenderNameText + ' ' + painSounds[Math.floor(Math.random() * painSounds.length)] + ' as ' + attackerNameText + '\'s ' + displayWeapon + ' connects for <span class="damage">' + damage + '</span> damage!'
+    ];
+    attackText = attackVariations[Math.floor(Math.random() * attackVariations.length)];
+}
     
     defender.currentHp = Math.max(0, defender.currentHp - damage);
     
