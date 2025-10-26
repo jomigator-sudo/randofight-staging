@@ -5688,45 +5688,48 @@ if (shouldTriggerBattleEvent(turnCount, player, opponent)) {
             
             function performAttack(attacker, defender, attackerType) {
     // Check for event effects at the START of the attack
-var eventEffect = getEventEffect();
-var attackSource = null; // Track what caused the damage
+    var eventEffect = getEventEffect();
+    var attackSource = null; // Track what caused the damage
+    var pendingEventEffect = null; // Store the effect type for later use
 
-if (eventEffect && !eventEffect.applied) {
-    eventEffect.applied = true;
-    
-    // Event effects only apply when OPPONENT attacks PLAYER
-    if (attackerType === 'opponent') {
-        // If event uses an object, track it for later
-        if (eventEffect.usesObject && eventEffect.objectName) {
-            attackSource = eventEffect.objectName;
-        }
+    if (eventEffect && !eventEffect.applied) {
+        eventEffect.applied = true;
         
-        if (eventEffect.effect === 'avoided') {
-            // Player avoided the attack completely
-            addToFightLog('<span class="dodge">⚡ EVENT BONUS: ' + defender.name + ' avoided the ' + (attackSource || 'attack') + ' thanks to the event!</span>');
-            return; // Skip the entire attack
-        } else if (eventEffect.effect === 'counter') {
-            // Player counters - opponent takes damage instead
-            var counterDamage = Math.floor((10 + (defender.stats.strength - 1) * 2) * 1.5);
-            
-            // Apply weapon bonus to counter
-            if (defender.equipment && defender.equipment.weapon) {
-                counterDamage += defender.equipment.weapon.power || 0;
+        // Event effects only apply when OPPONENT attacks PLAYER
+        if (attackerType === 'opponent') {
+            // If event uses an object, track it for later
+            if (eventEffect.usesObject && eventEffect.objectName) {
+                attackSource = eventEffect.objectName;
             }
             
-            attacker.currentHp = Math.max(0, attacker.currentHp - counterDamage);
-            addToFightLog('<span style="color: #6bcf7f; font-weight: bold;">⚡ EVENT BONUS: ' + defender.name + ' counters the ' + (attackSource || 'attack') + ' for <span class="damage">' + counterDamage + '</span> damage!</span>');
-            
-            // Update opponent HP
-            var opponentHpPercent = (attacker.currentHp / attacker.maxHp) * 100;
-            document.getElementById('player2HP').style.width = opponentHpPercent + '%';
-            document.getElementById('player2HPText').textContent = Math.floor(attacker.currentHp) + '/' + attacker.maxHp;
-            
-            return; // Skip the normal attack
+            if (eventEffect.effect === 'avoided') {
+                // Player avoided the attack completely
+                addToFightLog('<span class="dodge">⚡ EVENT BONUS: ' + defender.name + ' avoided the ' + (attackSource || 'attack') + ' thanks to the event!</span>');
+                return; // Skip the entire attack
+            } else if (eventEffect.effect === 'counter') {
+                // Player counters - opponent takes damage instead
+                var counterDamage = Math.floor((10 + (defender.stats.strength - 1) * 2) * 1.5);
+                
+                // Apply weapon bonus to counter
+                if (defender.equipment && defender.equipment.weapon) {
+                    counterDamage += defender.equipment.weapon.power || 0;
+                }
+                
+                attacker.currentHp = Math.max(0, attacker.currentHp - counterDamage);
+                addToFightLog('<span style="color: #6bcf7f; font-weight: bold;">⚡ EVENT BONUS: ' + defender.name + ' counters the ' + (attackSource || 'attack') + ' for <span class="damage">' + counterDamage + '</span> damage!</span>');
+                
+                // Update opponent HP
+                var opponentHpPercent = (attacker.currentHp / attacker.maxHp) * 100;
+                document.getElementById('player2HP').style.width = opponentHpPercent + '%';
+                document.getElementById('player2HPText').textContent = Math.floor(attacker.currentHp) + '/' + attacker.maxHp;
+                
+                return; // Skip the normal attack
+            } else if (eventEffect.effect === 'reduced' || eventEffect.effect === 'increased') {
+                // Store for later application in damage calculation
+                pendingEventEffect = eventEffect.effect;
+            }
         }
-        // 'reduced' and 'increased' effects are handled in damage calculation below
     }
-}
     
     var baseDamage = 10 + (attacker.stats.strength - 1) * 2;
     
