@@ -5754,9 +5754,9 @@ if (shouldTriggerBattleEvent(turnCount, player, opponent)) {
 var defenseReduction = Math.min(60, totalDefense * 0.25);
 damage = Math.floor(damage * (1 - defenseReduction / 100));
 
-// Apply event effect modifiers
-if (eventEffect && !eventEffect.applied && attackerType === 'opponent') {
-    eventEffect.applied = true;
+// Apply event effect modifiers for damage reduction/increase
+// This must happen BEFORE toughness check
+if (eventEffect && attackerType === 'opponent') {
     var originalDamage = damage;
     
     if (eventEffect.effect === 'reduced') {
