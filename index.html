@@ -5467,13 +5467,11 @@ function getEventEffect() {
     var result = currentBattleEvent.result;
     var effect = result.success ? result.option.successEffect : result.option.failEffect;
     
-    // Clear the event after getting the effect
-    var eventEffect = {
+    // Return the effect without clearing the event yet
+    return {
         effect: effect,
-        applied: false
+        applied: false // Will be marked as applied in performAttack
     };
-    
-    return eventEffect;
 }
 
 function startFight(player, opponent, isDiamondFight) {
