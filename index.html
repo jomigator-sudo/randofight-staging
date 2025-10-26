@@ -5467,10 +5467,24 @@ function getEventEffect() {
     var result = currentBattleEvent.result;
     var effect = result.success ? result.option.successEffect : result.option.failEffect;
     
-    // Return the effect without clearing the event yet
+    // Determine if this event involves a projectile/object
+    var eventId = currentBattleEvent.event.id;
+    var usesObject = ['thrown_rock', 'throwing_knife', 'dust_cloud'].indexOf(eventId) !== -1;
+    var objectName = '';
+    
+    if (eventId === 'thrown_rock') {
+        objectName = 'rock';
+    } else if (eventId === 'throwing_knife') {
+        objectName = 'throwing knife';
+    } else if (eventId === 'dust_cloud') {
+        objectName = 'dust cloud attack';
+    }
+    
     return {
         effect: effect,
-        applied: false // Will be marked as applied in performAttack
+        applied: false,
+        usesObject: usesObject,
+        objectName: objectName
     };
 }
 
