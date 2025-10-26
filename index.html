@@ -5694,6 +5694,7 @@ if (shouldTriggerBattleEvent(turnCount, player, opponent)) {
     // Event effects only apply when OPPONENT attacks PLAYER
     if (eventEffect && !eventEffect.applied && attackerType === 'opponent') {
         eventEffect.applied = true;
+        currentBattleEvent.effectUsed = true;
         
         // If event uses an object, track it for later
         if (eventEffect.usesObject && eventEffect.objectName) {
