@@ -3842,21 +3842,14 @@ function updateFighterDisplay() {
 
     var specialDisplay;
 if (fighter.specialAttack && fighter.specialAttack.name) {
-    // Updated formula to match the balanced version
-    var specialBaseDamage = fighter.level * 4 + 20; // Changed from * 8 + 15
-    var specialStrengthBonus = (fighter.stats.strength - 1) * 2; // Changed from * 4
+    // Special attack damage (no strength bonus)
+    var specialBaseDamage = fighter.level * 4 + 20;
     
-    // Display format: Attack Name (base + bonus damage)
-    if (specialStrengthBonus > 0) {
-        specialDisplay = '<div class="stat-row"><span>Special Attack:</span> <span class="special">' + 
-            fighter.specialAttack.name + ' (' + specialBaseDamage + ' + ' + specialStrengthBonus + ' damage)</span></div>';
-    } else {
-        specialDisplay = '<div class="stat-row"><span>Special Attack:</span> <span class="special">' + 
-            fighter.specialAttack.name + ' (' + specialBaseDamage + ' damage)</span></div>';
-    }
+    specialDisplay = '<div class="stat-row"><span>Special Attack:</span> <span class="special">' + 
+        fighter.specialAttack.name + ' (' + specialBaseDamage + ' damage)</span></div>';
 } else {
-        specialDisplay = '<div class="stat-row"><span>Special Attack:</span> <span style="color: #888;">Unlocks at Level 10</span></div>';
-    }
+    specialDisplay = '<div class="stat-row"><span>Special Attack:</span> <span style="color: #888;">Unlocks at Level 10</span></div>';
+}
 
     var strengthBonus = (fighter.stats.strength - 1) * 2;
 var toughnessBonus = fighter.stats.toughness >= 2 ? Math.min(50, (fighter.stats.toughness - 1) * 0.6) : 0; // 0.6% per point, max 50%
