@@ -7044,6 +7044,65 @@ function claimReferralReward(newUserId) {
         console.error('Error claiming referral rewards:', error);
     });
 }
+
+        function showNewsModal() {
+    var existingModal = document.getElementById('newsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    var modalHTML = 
+        '<div id="newsModal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; overflow-y: auto;">' +
+            '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; padding: 40px; border-radius: 15px; border: 3px solid #ffd93d; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 0 30px rgba(255, 217, 61, 0.3);">' +
+                '<h2 style="color: #ffd93d; text-align: center; margin-bottom: 30px; font-size: 2em;">📰 Game News & Updates</h2>' +
+                
+                // Latest update
+                '<div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #4ecdc4;">' +
+                    '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">' +
+                        '<h3 style="color: #4ecdc4; margin: 0; font-size: 1.3em;">Version 1.0 Launch!</h3>' +
+                        '<span style="color: #888; font-size: 0.85em;">Jan 2025</span>' +
+                    '</div>' +
+                    '<div style="color: #ccc; font-size: 0.95em; line-height: 1.6;">' +
+                        '<p style="margin-bottom: 10px;">🎉 <strong>Welcome to RandoFight!</strong></p>' +
+                        '<ul style="margin-left: 20px; margin-bottom: 10px;">' +
+                            '<li>⚔️ Real-time PvP battles</li>' +
+                            '<li>🎯 Battle events system</li>' +
+                            '<li>🏆 Weekly tournaments with prizes</li>' +
+                            '<li>📅 Daily task rewards</li>' +
+                            '<li>💎 Equipment loot system</li>' +
+                            '<li>⚡ Special attacks at level 10</li>' +
+                            '<li>👥 Referral rewards</li>' +
+                        '</ul>' +
+                        '<p style="margin-top: 10px; color: #6bcf7f;"><strong>Thank you for playing!</strong></p>' +
+                    '</div>' +
+                '</div>' +
+                
+                // Placeholder for future updates
+                '<div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #888;">' +
+                    '<h3 style="color: #888; margin: 0 0 10px 0; font-size: 1.1em;">Coming Soon...</h3>' +
+                    '<div style="color: #888; font-size: 0.9em;">' +
+                        '<p>Stay tuned for future updates and new features!</p>' +
+                    '</div>' +
+                '</div>' +
+                
+                '<div style="text-align: center; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">' +
+                    '<p style="color: #666; font-size: 0.8em;">Follow us on social media for the latest news!</p>' +
+                '</div>' +
+                
+                '<button class="btn btn-secondary" onclick="closeNewsModal()" style="width: 100%; margin-top: 20px; padding: 12px;">Close</button>' +
+            '</div>' +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeNewsModal() {
+    var modal = document.getElementById('newsModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+        
 function showCreditsModal() {
     var existingModal = document.getElementById('creditsModal');
     if (existingModal) {
