@@ -6130,6 +6130,248 @@ function playerUseSpecial() {
         document.getElementById('player1HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
     }
 }
+
+        var clashTimer = null;
+var clashTimeLeft = 10;
+
+function showSpecialClashPrompt(playerDamage, opponentDamage, playerSpecialName, opponentSpecialName) {
+    clashTimeLeft = 10;
+    
+    var modalHTML = 
+        '<div id="clashPromptModal" class="clash-modal">' +
+            '<div class="clash-container">' +
+                '<div class="clash-title">⚡ SPECIAL ATTACK CLASH! ⚡</div>' +
+                '<div class="clash-timer">Counter in: <span id="clashTimerCount">' + clashTimeLeft + '</span>s</div>' +
+                
+                '<div class="clash-info">' +
+                    '<p style="color: #fff; text-align: center; margin-bottom: 15px; font-size: 1.1em;">' +
+                        'Your opponent is using their special attack!' +
+                    '</p>' +
+                    '<p style="color: #ffd93d; text-align: center; font-size: 0.95em;">' +
+                        'Counter with your own special attack to clash!' +
+                    '</p>' +
+                '</div>' +
+                
+                '<div class="clash-fighters">' +
+                    '<div class="clash-fighter">' +
+                        '<div class="clash-fighter-name">You</div>' +
+                        '<div class="clash-attack-name">' + playerSpecialName + '</div>' +
+                        '<div class="clash-damage">' + playerDamage + ' damage</div>' +
+                    '</div>' +
+                    '<div class="clash-vs">VS</div>' +
+                    '<div class="clash-fighter">' +
+                        '<div class="clash-fighter-name" style="color: #ff6b6b;">Opponent</div>' +
+                        '<div class="clash-attack-name">' + opponentSpecialName + '</div>' +
+                        '<div class="clash-damage">' + opponentDamage + ' damage</div>' +
+                    '</div>' +
+                '</div>' +
+                
+                '<div style="display: flex; gap: 15px; margin-top: 25px;">' +
+                    '<button class="btn btn-primary" onclick="acceptSpecialClash()" style="flex: 1; padding: 15px; font-size: 1.2em; font-weight: bold;">⚡ COUNTER!</button>' +
+                    '<button class="btn btn-secondary" onclick="declineSpecialClash()" style="flex: 1; padding: 15px;">Defend</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Start countdown timer
+    clashTimer = setInterval(function() {
+        clashTimeLeft--;
+        var timerElement = document.getElementById('clashTimerCount');
+        if (timerElement) {
+            timerElement.textContent = clashTimeLeft;
+        }
+        
+        if (clashTimeLeft <= 0) {
+            clearInterval(clashTimer);
+            declineSpecialClash(); // Auto-decline if time runs out
+        }
+    }, 1000);
+}
+
+function acceptSpecialClash() {
+    clearInterval(clashTimer);
+    var modal = document.getElementById('clashPromptModal');
+    if (modal) {
+        modal.remove();
+    }
+    
+    // Mark player special as used
+    gameState.currentFighter.specialUsed = true;
+    var btn = document.getElementById('player1SpecialBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⚡ Special Used';
+        btn.style.opacity = '0.5';
+    }
+    
+    // Start the clash animation
+    startSpecialClash();
+}
+
+function declineSpecialClash() {
+    clearInterval(clashTimer);
+    var modal = document.getElementById('clashPromptModal');
+    if (modal) {
+        modal.remove();
+    }
+    
+    // Opponent's special attack goes through normally
+    continueOpponentSpecial();
+}
+
+function startSpecialClash() {
+    var player = gameState.currentFighter;
+    var opponent = player.currentOpponent;
+    
+    // Calculate both special attack damages
+    var playerDamage = calculateSpecialDamage(player, opponent);
+    var opponentDamage = calculateSpecialDamage(opponent, player);
+    
+    var modalHTML = 
+        '<div id="clashAnimationModal" class="clash-modal">' +
+            '<div class="clash-container clashing">' +
+                '<div class="clash-title">⚔️ CLASH IN PROGRESS! ⚔️</div>' +
+                
+                '<div class="clash-fighters" style="margin-bottom: 30px;">' +
+                    '<div class="clash-fighter">' +
+                        '<div class="clash-fighter-name">' + player.name + '</div>' +
+                        '<div class="clash-attack-name">' + player.specialAttack.name + '</div>' +
+                        '<div class="clash-damage">' + playerDamage + ' damage</div>' +
+                    '</div>' +
+                    '<div class="clash-vs">⚔️</div>' +
+                    '<div class="clash-fighter">' +
+                        '<div class="clash-fighter-name" style="color: #ff6b6b;">' + opponent.name + '</div>' +
+                        '<div class="clash-attack-name">' + opponent.specialAttack.name + '</div>' +
+                        '<div class="clash-damage">' + opponentDamage + ' damage</div>' +
+                    '</div>' +
+                '</div>' +
+                
+                '<div class="clash-bar-container">' +
+                    '<div class="clash-bar clash-bar-player" id="clashBarPlayer" style="width: 50%;"></div>' +
+                    '<div class="clash-bar clash-bar-opponent" id="clashBarOpponent" style="width: 50%;"></div>' +
+                    '<div class="clash-center-line"></div>' +
+                '</div>' +
+                
+                '<div style="text-align: center; color: #ffd93d; font-size: 1.1em; font-weight: bold;">The stronger attack will prevail!</div>' +
+            '</div>' +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Animate the clash bars
+    animateClash(playerDamage, opponentDamage);
+}
+
+function animateClash(playerDamage, opponentDamage) {
+    var playerBar = document.getElementById('clashBarPlayer');
+    var opponentBar = document.getElementById('clashBarOpponent');
+    
+    if (!playerBar || !opponentBar) return;
+    
+    var totalDamage = playerDamage + opponentDamage;
+    var playerPercent = (playerDamage / totalDamage) * 100;
+    var opponentPercent = (opponentDamage / totalDamage) * 100;
+    
+    // Animate bars pushing against each other
+    setTimeout(function() {
+        playerBar.style.width = playerPercent + '%';
+        opponentBar.style.width = opponentPercent + '%';
+    }, 100);
+    
+    // After 2 seconds, resolve the clash
+    setTimeout(function() {
+        resolveSpecialClash(playerDamage, opponentDamage);
+    }, 2500);
+}
+
+function resolveSpecialClash(playerDamage, opponentDamage) {
+    var modal = document.getElementById('clashAnimationModal');
+    if (modal) {
+        modal.remove();
+    }
+    
+    var player = gameState.currentFighter;
+    var opponent = player.currentOpponent;
+    
+    if (playerDamage > opponentDamage) {
+        // Player wins clash
+        var damageDiff = playerDamage - opponentDamage;
+        opponent.currentHp = Math.max(0, opponent.currentHp - damageDiff);
+        
+        addToFightLog('<span style="color: #6bcf7f; font-size: 1.2em; font-weight: bold;">⚡ CLASH VICTORY! ⚡</span>');
+        addToFightLog('<span class="player-name">' + player.name + '</span>\'s <span class="special">' + player.specialAttack.name + '</span> overpowers <span class="opponent-name">' + opponent.name + '</span>\'s <span class="special">' + opponent.specialAttack.name + '</span>!');
+        addToFightLog('<span class="opponent-name">' + opponent.name + '</span> takes <span class="damage">' + damageDiff + '</span> damage from the clash!');
+        
+        // Update opponent HP
+        var opponentHpPercent = (opponent.currentHp / opponent.maxHp) * 100;
+        document.getElementById('player2HP').style.width = opponentHpPercent + '%';
+        document.getElementById('player2HPText').textContent = Math.floor(opponent.currentHp) + '/' + opponent.maxHp;
+        
+    } else if (opponentDamage > playerDamage) {
+        // Opponent wins clash
+        var damageDiff = opponentDamage - playerDamage;
+        player.currentHp = Math.max(0, player.currentHp - damageDiff);
+        
+        addToFightLog('<span style="color: #ff6b6b; font-size: 1.2em; font-weight: bold;">⚔️ CLASH DEFEAT! ⚔️</span>');
+        addToFightLog('<span class="opponent-name">' + opponent.name + '</span>\'s <span class="special">' + opponent.specialAttack.name + '</span> overpowers <span class="player-name">' + player.name + '</span>\'s <span class="special">' + player.specialAttack.name + '</span>!');
+        addToFightLog('<span class="player-name">' + player.name + '</span> takes <span class="damage">' + damageDiff + '</span> damage from the clash!');
+        
+        // Update player HP
+        var playerHpPercent = (player.currentHp / player.maxHp) * 100;
+        document.getElementById('player1HP').style.width = playerHpPercent + '%';
+        document.getElementById('player1HPText').textContent = Math.floor(player.currentHp) + '/' + player.maxHp;
+        
+    } else {
+        // Perfect tie - no damage
+        addToFightLog('<span style="color: #ffd93d; font-size: 1.2em; font-weight: bold;">⚖️ PERFECT CLASH! ⚖️</span>');
+        addToFightLog('Both special attacks are perfectly matched! The attacks cancel each other out - no damage dealt!');
+    }
+    
+    // Clear opponent reference
+    player.currentOpponent = null;
+}
+
+function calculateSpecialDamage(attacker, defender) {
+    var specialDamage = attacker.level * 4 + 20;
+    
+    if (attacker.equipment && attacker.equipment.weapon) {
+        specialDamage += attacker.equipment.weapon.power || 0;
+    }
+    
+    // Apply defense
+    var totalDefense = 0;
+    if (defender.equipment) {
+        var equipmentSlotNames = ['offhand', 'helmet', 'shoulders', 'gloves', 'chest', 'greaves', 'boots'];
+        for (var i = 0; i < equipmentSlotNames.length; i++) {
+            var slot = equipmentSlotNames[i];
+            var item = defender.equipment[slot];
+            if (item && item.statType === 'Defense') {
+                totalDefense += item.power || 0;
+            }
+        }
+    }
+    
+    var defenseReduction = Math.min(60, totalDefense * 0.25);
+    specialDamage = Math.floor(specialDamage * (1 - defenseReduction / 100));
+    
+    return Math.max(3, specialDamage);
+}
+
+function continueOpponentSpecial() {
+    // This is called when player declines to clash or time runs out
+    // The opponent's special attack continues normally
+    var player = gameState.currentFighter;
+    var opponent = player.currentOpponent;
+    
+    if (opponent && opponent.currentHp > 0) {
+        performSpecialAttack(opponent, player, 'opponent');
+    }
+    
+    // Clear opponent reference
+    player.currentOpponent = null;
+}
             
             function endCombat(player, opponent) {
     var playerWon = player.currentHp > 0;
