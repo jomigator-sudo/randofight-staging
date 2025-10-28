@@ -5894,10 +5894,27 @@ function performAttack(attacker, defender, attackerType) {
     }
 
     // If using special attack, do that instead of normal attack
-    if (shouldUseSpecial) {
+if (shouldUseSpecial) {
+    // Check if this is opponent using special and player can counter
+    if (attackerType === 'opponent' && defender.level >= 10 && defender.specialAttack && 
+        defender.specialAvailable && !defender.specialUsed) {
+        
+        // Store opponent reference for clash
+        defender.currentOpponent = attacker;
+        
+        // Calculate damages for display
+        var playerDamage = calculateSpecialDamage(defender, attacker);
+        var opponentDamage = calculateSpecialDamage(attacker, defender);
+        
+        // Show clash prompt to player
+        showSpecialClashPrompt(playerDamage, opponentDamage, defender.specialAttack.name, attacker.specialAttack.name);
+        return; // Wait for player decision
+    } else {
+        // Normal special attack (no clash possible)
         performSpecialAttack(attacker, defender, attackerType);
-        return; // Exit early, don't do normal attack
+        return;
     }
+}
     
     var baseDamage = 10 + (attacker.stats.strength - 1) * 2;
     
