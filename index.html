@@ -6255,13 +6255,11 @@ function startSpecialClash() {
                     '<div class="clash-fighter">' +
                         '<div class="clash-fighter-name">' + player.name + '</div>' +
                         '<div class="clash-attack-name">' + player.specialAttack.name + '</div>' +
-                        '<div class="clash-damage">' + playerDamage + ' damage</div>' +
                     '</div>' +
                     '<div class="clash-vs">⚔️</div>' +
                     '<div class="clash-fighter">' +
                         '<div class="clash-fighter-name" style="color: #ff6b6b;">' + opponent.name + '</div>' +
                         '<div class="clash-attack-name">' + opponent.specialAttack.name + '</div>' +
-                        '<div class="clash-damage">' + opponentDamage + ' damage</div>' +
                     '</div>' +
                 '</div>' +
                 
@@ -6271,7 +6269,7 @@ function startSpecialClash() {
                     '<div class="clash-center-line"></div>' +
                 '</div>' +
                 
-                '<div style="text-align: center; color: #ffd93d; font-size: 1.1em; font-weight: bold;">The stronger attack will prevail!</div>' +
+                '<div style="text-align: center; color: #ffd93d; font-size: 1.1em; font-weight: bold; margin-top: 20px;">The stronger attack will prevail!</div>' +
             '</div>' +
         '</div>';
     
@@ -6291,30 +6289,38 @@ function animateClash(playerDamage, opponentDamage) {
     var playerPercent = (playerDamage / totalDamage) * 100;
     var opponentPercent = (opponentDamage / totalDamage) * 100;
     
-    // Create back-and-forth animation with multiple phases
+    // Determine who wins
+    var playerWins = playerDamage > opponentDamage;
+    
+    // Create slower, more dramatic back-and-forth animation
     var animationPhases = [
         // Start at 50/50
         { player: 50, opponent: 50, delay: 100 },
-        // First push
-        { player: 65, opponent: 35, delay: 400 },
-        // Counter push
-        { player: 35, opponent: 65, delay: 800 },
-        // Back and forth rapidly
-        { player: 55, opponent: 45, delay: 1200 },
-        { player: 45, opponent: 55, delay: 1500 },
-        { player: 60, opponent: 40, delay: 1800 },
-        { player: 40, opponent: 60, delay: 2100 },
-        { player: 55, opponent: 45, delay: 2400 },
-        { player: 45, opponent: 55, delay: 2700 },
-        // Getting more intense
-        { player: 70, opponent: 30, delay: 3000 },
-        { player: 30, opponent: 70, delay: 3300 },
-        { player: 60, opponent: 40, delay: 3600 },
-        { player: 40, opponent: 60, delay: 3900 },
-        // Building to final position
-        { player: playerPercent > 50 ? 75 : 25, opponent: playerPercent > 50 ? 25 : 75, delay: 4200 },
-        // Final resolution - slowly move to actual percentages
-        { player: playerPercent, opponent: opponentPercent, delay: 4500 }
+        
+        // Phase 1: Player pushes forward (0-3 seconds)
+        { player: 55, opponent: 45, delay: 500 },
+        { player: 60, opponent: 40, delay: 1000 },
+        { player: 70, opponent: 30, delay: 1500 },
+        { player: 75, opponent: 25, delay: 2000 },
+        { player: 80, opponent: 20, delay: 2500 },
+        { player: 85, opponent: 15, delay: 3000 },
+        
+        // Phase 2: Opponent pushes back (3-6 seconds)
+        { player: 75, opponent: 25, delay: 3500 },
+        { player: 65, opponent: 35, delay: 4000 },
+        { player: 50, opponent: 50, delay: 4500 },
+        { player: 35, opponent: 65, delay: 5000 },
+        { player: 25, opponent: 75, delay: 5500 },
+        { player: 15, opponent: 85, delay: 6000 },
+        
+        // Phase 3: Winner starts to dominate (6-8 seconds)
+        { player: playerWins ? 30 : 10, opponent: playerWins ? 70 : 90, delay: 6500 },
+        { player: playerWins ? 50 : 5, opponent: playerWins ? 50 : 95, delay: 7000 },
+        { player: playerWins ? 70 : 3, opponent: playerWins ? 30 : 97, delay: 7500 },
+        { player: playerWins ? 90 : 0, opponent: playerWins ? 10 : 100, delay: 7800 },
+        
+        // Final: Winner takes all
+        { player: playerWins ? 100 : 0, opponent: playerWins ? 0 : 100, delay: 8000 }
     ];
     
     // Animate through each phase
@@ -6324,22 +6330,21 @@ function animateClash(playerDamage, opponentDamage) {
                 playerBar.style.width = phase.player + '%';
                 opponentBar.style.width = phase.opponent + '%';
                 
-                // Add extra shake effect during intense moments
+                // Add extra shake effect during big pushes
                 var container = document.querySelector('.clash-container');
-                if (container && (phase.player >= 70 || phase.opponent >= 70)) {
-                    container.style.animation = 'clashShake 0.1s';
-                    setTimeout(function() {
-                        if (container) container.style.animation = '';
-                    }, 100);
+                if (container && (phase.player >= 80 || phase.opponent >= 80)) {
+                    container.classList.add('clashing');
+                } else if (container) {
+                    container.classList.remove('clashing');
                 }
             }
         }, phase.delay);
     });
     
-    // After 5 seconds, resolve the clash
+    // After 8 seconds, resolve the clash
     setTimeout(function() {
         resolveSpecialClash(playerDamage, opponentDamage);
-    }, 5000);
+    }, 8500);
 }
 
 function resolveSpecialClash(playerDamage, opponentDamage) {
