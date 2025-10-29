@@ -4264,10 +4264,7 @@ function confirmResetStats(diamondCost, allocatedPoints) {
         return;
     }
     
-    // Set cooldown immediately when regular fight starts
-    gameState.fightCooldownEnd = Date.now() + (60 * 1000);
-    saveToSupabase();
-    updateFightStatus();
+    // DON'T set cooldown here - it will be set when returning to fighter screen
     
     // Initialize fight tracking
     if (gameState.currentFighter.lossStreak === undefined) {
