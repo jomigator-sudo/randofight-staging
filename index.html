@@ -6964,15 +6964,22 @@ if (fighter.level === 10) {
         function endFight() {
     document.getElementById('endFightBtn').style.display = 'none';
     
-    // Restore the header and logo when leaving fight screen
+    // Restore the header when leaving fight screen
     var headerContainer = document.querySelector('h1.title');
     if (headerContainer) {
         headerContainer.style.display = 'block';
     }
     
+    // Set cooldown timer NOW (when returning to fighter screen) if it was a regular fight
+    var fighter = gameState.currentFighter;
+    if (fighter && !fighter.isDiamondFight) {
+        gameState.fightCooldownEnd = Date.now() + (60 * 1000);
+        saveToSupabase();
+    }
+    
     // Check if player lost to a boss - show rematch modal
     if (gameState.currentFighter && gameState.currentBoss && gameState.currentFighter.didLoseBossFight) {
-        gameState.currentFighter.didLoseBossFight = false; // Clear the flag
+        gameState.currentFighter.didLoseBossFight = false;
         showRematchModal(gameState.currentBoss);
         return;
     }
