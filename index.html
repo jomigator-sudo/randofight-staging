@@ -6241,8 +6241,10 @@ function declineSpecialClash() {
     
     // Opponent's special attack goes through normally
     continueOpponentSpecial();
+    
+    // RESUME THE FIGHT
+    fightPaused = false;
 }
-
 function startSpecialClash() {
     var player = gameState.currentFighter;
     var opponent = player.currentOpponent;
@@ -6397,8 +6399,10 @@ function resolveSpecialClash(playerDamage, opponentDamage) {
     
     // Clear opponent reference
     player.currentOpponent = null;
+    
+    // RESUME THE FIGHT
+    fightPaused = false;
 }
-
 function calculateSpecialDamage(attacker, defender) {
     var specialDamage = attacker.level * 4 + 20;
     
@@ -6437,6 +6441,9 @@ function continueOpponentSpecial() {
     
     // Clear opponent reference
     player.currentOpponent = null;
+    
+    // RESUME THE FIGHT
+    fightPaused = false;
 }
             
             function endCombat(player, opponent) {
