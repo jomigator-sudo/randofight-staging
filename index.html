@@ -5741,6 +5741,11 @@ function startFight(player, opponent, isDiamondFight) {
     currentBattleEvent = null; // Reset event for new fight
     
     function fightTurn() {
+        // Check if fight is paused (for clash)
+    if (fightPaused) {
+        setTimeout(fightTurn, 100); // Check again in 100ms
+        return;
+    }
         if (turnCount > maxTurns || player.currentHp <= 0 || opponent.currentHp <= 0) {
             endCombat(player, opponent);
             return;
