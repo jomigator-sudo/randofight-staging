@@ -6157,6 +6157,7 @@ function playerUseSpecial() {
 
 function showSpecialClashPrompt(playerDamage, opponentDamage, playerSpecialName, opponentSpecialName) {
     clashTimeLeft = 10;
+    fightPaused = true; // PAUSE THE FIGHT
     
     var modalHTML = 
         '<div id="clashPromptModal" class="clash-modal">' +
@@ -6206,7 +6207,7 @@ function showSpecialClashPrompt(playerDamage, opponentDamage, playerSpecialName,
         
         if (clashTimeLeft <= 0) {
             clearInterval(clashTimer);
-            declineSpecialClash(); // Auto-decline if time runs out
+            declineSpecialClash(); // Auto-defend if time runs out (changed from declineSpecialClash)
         }
     }, 1000);
 }
