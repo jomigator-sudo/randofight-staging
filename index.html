@@ -6364,13 +6364,12 @@ function resolveSpecialClash(playerDamage, opponentDamage) {
     var opponent = player.currentOpponent;
     
     if (playerDamage > opponentDamage) {
-        // Player wins clash
-        var damageDiff = playerDamage - opponentDamage;
-        opponent.currentHp = Math.max(0, opponent.currentHp - damageDiff);
+        // Player wins clash - deal FULL player special damage to opponent
+        opponent.currentHp = Math.max(0, opponent.currentHp - playerDamage);
         
         addToFightLog('<span style="color: #6bcf7f; font-size: 1.2em; font-weight: bold;">⚡ CLASH VICTORY! ⚡</span>');
         addToFightLog('<span class="player-name">' + player.name + '</span>\'s <span class="special">' + player.specialAttack.name + '</span> overpowers <span class="opponent-name">' + opponent.name + '</span>\'s <span class="special">' + opponent.specialAttack.name + '</span>!');
-        addToFightLog('<span class="opponent-name">' + opponent.name + '</span> takes <span class="damage">' + damageDiff + '</span> damage from the clash!');
+        addToFightLog('<span class="opponent-name">' + opponent.name + '</span> takes <span class="damage">' + playerDamage + '</span> damage from the clash!');
         
         // Update opponent HP
         var opponentHpPercent = (opponent.currentHp / opponent.maxHp) * 100;
@@ -6378,13 +6377,12 @@ function resolveSpecialClash(playerDamage, opponentDamage) {
         document.getElementById('player2HPText').textContent = Math.floor(opponent.currentHp) + '/' + opponent.maxHp;
         
     } else if (opponentDamage > playerDamage) {
-        // Opponent wins clash
-        var damageDiff = opponentDamage - playerDamage;
-        player.currentHp = Math.max(0, player.currentHp - damageDiff);
+        // Opponent wins clash - deal FULL opponent special damage to player
+        player.currentHp = Math.max(0, player.currentHp - opponentDamage);
         
         addToFightLog('<span style="color: #ff6b6b; font-size: 1.2em; font-weight: bold;">⚔️ CLASH DEFEAT! ⚔️</span>');
         addToFightLog('<span class="opponent-name">' + opponent.name + '</span>\'s <span class="special">' + opponent.specialAttack.name + '</span> overpowers <span class="player-name">' + player.name + '</span>\'s <span class="special">' + player.specialAttack.name + '</span>!');
-        addToFightLog('<span class="player-name">' + player.name + '</span> takes <span class="damage">' + damageDiff + '</span> damage from the clash!');
+        addToFightLog('<span class="player-name">' + player.name + '</span> takes <span class="damage">' + opponentDamage + '</span> damage from the clash!');
         
         // Update player HP
         var playerHpPercent = (player.currentHp / player.maxHp) * 100;
