@@ -919,6 +919,11 @@
         }
     }
 };
+
+var fightPaused = false;       
+var clashTimer = null;
+var clashTimeLeft = 10;
+        
 // Add these functions near the top of your script section, after the gameState declaration
 
 function updateLoadingProgress(percent, message) {
@@ -6143,10 +6148,7 @@ function playerUseSpecial() {
         document.getElementById('player1HP').style.width = playerHpPercent + '%';
         document.getElementById('player1HPText').textContent = Math.floor(defender.currentHp) + '/' + defender.maxHp;
     }
-}
-
-        var clashTimer = null;
-var clashTimeLeft = 10;
+}   
 
 function showSpecialClashPrompt(playerDamage, opponentDamage, playerSpecialName, opponentSpecialName) {
     clashTimeLeft = 10;
