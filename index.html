@@ -4531,19 +4531,19 @@ function fightWithoutRest() {
     }
     
     // Calculate HP with scaling based on level
-var hpGain = 0;
-for (var lvl = 1; lvl < opponentLevel; lvl++) {
-    if (lvl > 50) {
-        hpGain += 50;
-    } else if (lvl > 30) {
-        hpGain += 35;
-    } else if (lvl > 15) {
-        hpGain += 25;
-    } else {
-        hpGain += 20;
+    var hpGain = 0;
+    for (var lvl = 1; lvl < opponentLevel; lvl++) {
+        if (lvl > 50) {
+            hpGain += 50;
+        } else if (lvl > 30) {
+            hpGain += 35;
+        } else if (lvl > 15) {
+            hpGain += 25;
+        } else {
+            hpGain += 20;
+        }
     }
-}
-var opponentMaxHp = Math.floor(100 + hpGain);
+    var opponentMaxHp = Math.floor(100 + hpGain);
     
     // If guaranteed loss, reduce HP further
     if (guaranteedLoss) {
@@ -4596,7 +4596,32 @@ var opponentMaxHp = Math.floor(100 + hpGain);
         ]
     };
     
-    // Select weapon tier based on level - REBALANCED
+    // BALANCED weapon generation - match or slightly exceed player's weapon
+    var playerWeaponPower = 0;
+    var playerTotalArmor = 0;
+
+    // Safely check for player equipment
+    try {
+        if (gameState && gameState.currentFighter && gameState.currentFighter.equipment) {
+            if (gameState.currentFighter.equipment.weapon) {
+                playerWeaponPower = gameState.currentFighter.equipment.weapon.power || 0;
+            }
+            
+            // Calculate player's total armor
+            var armorSlots = ['offhand', 'helmet', 'shoulders', 'gloves', 'chest', 'greaves', 'boots'];
+            for (var i = 0; i < armorSlots.length; i++) {
+                var slot = armorSlots[i];
+                var item = gameState.currentFighter.equipment[slot];
+                if (item && item.statType === 'Defense') {
+                    playerTotalArmor += item.power || 0;
+                }
+            }
+        }
+    } catch (e) {
+        console.log('Error reading player equipment:', e);
+    }
+
+    // Select weapon tier based on level
     var weaponTier;
     if (opponentLevel <= 5) {
         weaponTier = weaponOptions.low;
@@ -4611,19 +4636,28 @@ var opponentMaxHp = Math.floor(100 + hpGain);
     } else {
         weaponTier = weaponOptions.legendary;
     }
-    
+
     // Random weapon from appropriate tier
     var selectedWeapon = weaponTier[Math.floor(Math.random() * weaponTier.length)];
-    
-    // REDUCED weapon scaling for better balance
-    var weaponPowerBonus = Math.floor(opponentLevel * 0.5); // Reduced from 0.8
-    selectedWeapon.power = selectedWeapon.power + weaponPowerBonus;
-    
-    // Weaker weapons for guaranteed losses
-    if (guaranteedLoss && selectedWeapon.power > 5) {
-        selectedWeapon.power = Math.floor(selectedWeapon.power * 0.6);
+
+    // Calculate weapon power
+    var weaponPowerBonus = Math.floor(opponentLevel * 0.5);
+    var baseWeaponPower = selectedWeapon.power + weaponPowerBonus;
+
+    // If player has a weapon, match it or make bot weapon similar
+    if (playerWeaponPower > 0) {
+        var minBotWeapon = Math.floor(playerWeaponPower * 0.9);
+        var maxBotWeapon = Math.floor(playerWeaponPower * 1.2);
+        baseWeaponPower = Math.max(minBotWeapon, Math.min(maxBotWeapon, baseWeaponPower));
     }
-    
+
+    // Weaker weapons for guaranteed losses
+    if (guaranteedLoss && baseWeaponPower > 5) {
+        baseWeaponPower = Math.floor(baseWeaponPower * 0.6);
+    }
+
+    selectedWeapon.power = baseWeaponPower;
+
     // Generate armor for bots
     var botEquipment = {
         weapon: {
@@ -4633,52 +4667,69 @@ var opponentMaxHp = Math.floor(100 + hpGain);
             statType: 'Damage'
         }
     };
-    
-    // Add defensive equipment for higher level bots - HEAVILY REDUCED
-if (opponentLevel >= 5) {
-    var armorPower = Math.floor(3 + opponentLevel * 0.4); // Reduced from 1.2
-    
-    if (opponentLevel >= 10) {
-        botEquipment.chest = {
-            name: 'Battle Armor',
-            rarity: opponentLevel >= 15 ? 'rare' : 'uncommon',
-            power: armorPower,
-            statType: 'Defense'
-        };
-    }
-    
-    if (opponentLevel >= 15) {
-        botEquipment.helmet = {
-            name: 'War Helm',
-            rarity: opponentLevel >= 20 ? 'epic' : 'rare',
-            power: Math.floor(armorPower * 0.7),
-            statType: 'Defense'
-        };
+
+    // Add defensive equipment for higher level bots
+    if (opponentLevel >= 5) {
+        var baseArmorPerSlot = playerTotalArmor > 0 ? Math.floor(playerTotalArmor / 7) : Math.floor(3 + opponentLevel * 0.4);
+        baseArmorPerSlot = Math.max(baseArmorPerSlot, Math.floor(3 + opponentLevel * 0.4));
         
-        botEquipment.offhand = {
-            name: 'Tower Shield',
-            rarity: opponentLevel >= 20 ? 'epic' : 'rare',
-            power: Math.floor(armorPower * 0.8),
-            statType: 'Defense'
-        };
-    }
-    
-    if (opponentLevel >= 20) {
-        botEquipment.boots = {
-            name: 'Plated Boots',
-            rarity: 'epic',
-            power: Math.floor(armorPower * 0.5),
-            statType: 'Defense'
-        };
+        if (opponentLevel >= 10) {
+            botEquipment.chest = {
+                name: 'Battle Armor',
+                rarity: opponentLevel >= 15 ? 'rare' : 'uncommon',
+                power: Math.floor(baseArmorPerSlot * 1.2),
+                statType: 'Defense'
+            };
+        }
         
-        botEquipment.gloves = {
-            name: 'Gauntlets',
-            rarity: 'epic',
-            power: Math.floor(armorPower * 0.5),
-            statType: 'Defense'
-        };
+        if (opponentLevel >= 15) {
+            botEquipment.helmet = {
+                name: 'War Helm',
+                rarity: opponentLevel >= 20 ? 'epic' : 'rare',
+                power: Math.floor(baseArmorPerSlot * 0.8),
+                statType: 'Defense'
+            };
+            
+            botEquipment.offhand = {
+                name: 'Tower Shield',
+                rarity: opponentLevel >= 20 ? 'epic' : 'rare',
+                power: Math.floor(baseArmorPerSlot * 1.0),
+                statType: 'Defense'
+            };
+        }
+        
+        if (opponentLevel >= 20) {
+            botEquipment.boots = {
+                name: 'Plated Boots',
+                rarity: 'epic',
+                power: Math.floor(baseArmorPerSlot * 0.6),
+                statType: 'Defense'
+            };
+            
+            botEquipment.gloves = {
+                name: 'Gauntlets',
+                rarity: 'epic',
+                power: Math.floor(baseArmorPerSlot * 0.6),
+                statType: 'Defense'
+            };
+        }
+        
+        if (opponentLevel >= 25) {
+            botEquipment.shoulders = {
+                name: 'Pauldrons',
+                rarity: 'epic',
+                power: Math.floor(baseArmorPerSlot * 0.7),
+                statType: 'Defense'
+            };
+            
+            botEquipment.greaves = {
+                name: 'Leg Guards',
+                rarity: 'epic',
+                power: Math.floor(baseArmorPerSlot * 0.7),
+                statType: 'Defense'
+            };
+        }
     }
-}
     
     // Stats distribution
     var stats = {
