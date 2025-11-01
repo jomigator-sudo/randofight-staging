@@ -6229,13 +6229,11 @@ function showSpecialClashPrompt(playerDamage, opponentDamage, playerSpecialName,
                     '<div class="clash-fighter">' +
                         '<div class="clash-fighter-name">You</div>' +
                         '<div class="clash-attack-name">' + playerSpecialName + '</div>' +
-                        '<div class="clash-damage">' + playerDamage + ' damage</div>' +
                     '</div>' +
                     '<div class="clash-vs">VS</div>' +
                     '<div class="clash-fighter">' +
                         '<div class="clash-fighter-name" style="color: #ff6b6b;">Opponent</div>' +
                         '<div class="clash-attack-name">' + opponentSpecialName + '</div>' +
-                        '<div class="clash-damage">' + opponentDamage + ' damage</div>' +
                     '</div>' +
                 '</div>' +
                 
@@ -6258,7 +6256,7 @@ function showSpecialClashPrompt(playerDamage, opponentDamage, playerSpecialName,
         
         if (clashTimeLeft <= 0) {
             clearInterval(clashTimer);
-            declineSpecialClash(); // Auto-defend if time runs out (changed from declineSpecialClash)
+            declineSpecialClash();
         }
     }, 1000);
 }
@@ -6350,36 +6348,105 @@ function animateClash(playerDamage, opponentDamage) {
     // Determine who wins
     var playerWins = playerDamage > opponentDamage;
     
-    // Create slower, more dramatic back-and-forth animation
-    var animationPhases = [
-        // Start at 50/50
-        { player: 50, opponent: 50, delay: 100 },
-        
-        // Phase 1: Player pushes forward (0-3 seconds)
-        { player: 55, opponent: 45, delay: 500 },
-        { player: 60, opponent: 40, delay: 1000 },
-        { player: 70, opponent: 30, delay: 1500 },
-        { player: 75, opponent: 25, delay: 2000 },
-        { player: 80, opponent: 20, delay: 2500 },
-        { player: 85, opponent: 15, delay: 3000 },
-        
-        // Phase 2: Opponent pushes back (3-6 seconds)
-        { player: 75, opponent: 25, delay: 3500 },
-        { player: 65, opponent: 35, delay: 4000 },
-        { player: 50, opponent: 50, delay: 4500 },
-        { player: 35, opponent: 65, delay: 5000 },
-        { player: 25, opponent: 75, delay: 5500 },
-        { player: 15, opponent: 85, delay: 6000 },
-        
-        // Phase 3: Winner starts to dominate (6-8 seconds)
-        { player: playerWins ? 30 : 10, opponent: playerWins ? 70 : 90, delay: 6500 },
-        { player: playerWins ? 50 : 5, opponent: playerWins ? 50 : 95, delay: 7000 },
-        { player: playerWins ? 70 : 3, opponent: playerWins ? 30 : 97, delay: 7500 },
-        { player: playerWins ? 90 : 0, opponent: playerWins ? 10 : 100, delay: 7800 },
-        
-        // Final: Winner takes all
-        { player: playerWins ? 100 : 0, opponent: playerWins ? 0 : 100, delay: 8000 }
-    ];
+    // Generate random animation pattern (5 different patterns)
+    var pattern = Math.floor(Math.random() * 5);
+    var animationPhases = [];
+    
+    if (pattern === 0) {
+        // Pattern 1: Player dominates early, opponent fights back, winner emerges
+        animationPhases = [
+            { player: 50, opponent: 50, delay: 100 },
+            { player: 60, opponent: 40, delay: 500 },
+            { player: 75, opponent: 25, delay: 1000 },
+            { player: 85, opponent: 15, delay: 1500 },
+            { player: 90, opponent: 10, delay: 2000 },
+            { player: 80, opponent: 20, delay: 2500 },
+            { player: 65, opponent: 35, delay: 3000 },
+            { player: 45, opponent: 55, delay: 3500 },
+            { player: 30, opponent: 70, delay: 4000 },
+            { player: 20, opponent: 80, delay: 4500 },
+            { player: playerWins ? 35 : 10, opponent: playerWins ? 65 : 90, delay: 5000 },
+            { player: playerWins ? 55 : 5, opponent: playerWins ? 45 : 95, delay: 5500 },
+            { player: playerWins ? 75 : 2, opponent: playerWins ? 25 : 98, delay: 6000 },
+            { player: playerWins ? 90 : 1, opponent: playerWins ? 10 : 99, delay: 6500 },
+            { player: playerWins ? 100 : 0, opponent: playerWins ? 0 : 100, delay: 7000 }
+        ];
+    } else if (pattern === 1) {
+        // Pattern 2: Opponent dominates early, player fights back, winner emerges
+        animationPhases = [
+            { player: 50, opponent: 50, delay: 100 },
+            { player: 40, opponent: 60, delay: 500 },
+            { player: 25, opponent: 75, delay: 1000 },
+            { player: 15, opponent: 85, delay: 1500 },
+            { player: 10, opponent: 90, delay: 2000 },
+            { player: 20, opponent: 80, delay: 2500 },
+            { player: 35, opponent: 65, delay: 3000 },
+            { player: 55, opponent: 45, delay: 3500 },
+            { player: 70, opponent: 30, delay: 4000 },
+            { player: 80, opponent: 20, delay: 4500 },
+            { player: playerWins ? 70 : 25, opponent: playerWins ? 30 : 75, delay: 5000 },
+            { player: playerWins ? 80 : 15, opponent: playerWins ? 20 : 85, delay: 5500 },
+            { player: playerWins ? 90 : 8, opponent: playerWins ? 10 : 92, delay: 6000 },
+            { player: playerWins ? 95 : 3, opponent: playerWins ? 5 : 97, delay: 6500 },
+            { player: playerWins ? 100 : 0, opponent: playerWins ? 0 : 100, delay: 7000 }
+        ];
+    } else if (pattern === 2) {
+        // Pattern 3: Even back and forth, sudden winner emergence
+        animationPhases = [
+            { player: 50, opponent: 50, delay: 100 },
+            { player: 60, opponent: 40, delay: 500 },
+            { player: 55, opponent: 45, delay: 900 },
+            { player: 45, opponent: 55, delay: 1300 },
+            { player: 40, opponent: 60, delay: 1700 },
+            { player: 50, opponent: 50, delay: 2100 },
+            { player: 60, opponent: 40, delay: 2500 },
+            { player: 50, opponent: 50, delay: 2900 },
+            { player: 40, opponent: 60, delay: 3300 },
+            { player: 50, opponent: 50, delay: 3700 },
+            { player: 55, opponent: 45, delay: 4100 },
+            { player: 45, opponent: 55, delay: 4500 },
+            { player: playerWins ? 60 : 35, opponent: playerWins ? 40 : 65, delay: 4900 },
+            { player: playerWins ? 80 : 20, opponent: playerWins ? 20 : 80, delay: 5300 },
+            { player: playerWins ? 95 : 5, opponent: playerWins ? 5 : 95, delay: 5700 },
+            { player: playerWins ? 100 : 0, opponent: playerWins ? 0 : 100, delay: 6100 }
+        ];
+    } else if (pattern === 3) {
+        // Pattern 4: Slow grind, one side slowly dominates
+        animationPhases = [
+            { player: 50, opponent: 50, delay: 100 },
+            { player: 55, opponent: 45, delay: 600 },
+            { player: 60, opponent: 40, delay: 1200 },
+            { player: 58, opponent: 42, delay: 1800 },
+            { player: 53, opponent: 47, delay: 2400 },
+            { player: 48, opponent: 52, delay: 3000 },
+            { player: 43, opponent: 57, delay: 3600 },
+            { player: 40, opponent: 60, delay: 4200 },
+            { player: playerWins ? 45 : 35, opponent: playerWins ? 55 : 65, delay: 4800 },
+            { player: playerWins ? 55 : 28, opponent: playerWins ? 45 : 72, delay: 5400 },
+            { player: playerWins ? 70 : 18, opponent: playerWins ? 30 : 82, delay: 6000 },
+            { player: playerWins ? 85 : 8, opponent: playerWins ? 15 : 92, delay: 6600 },
+            { player: playerWins ? 100 : 0, opponent: playerWins ? 0 : 100, delay: 7200 }
+        ];
+    } else {
+        // Pattern 5: Explosive start, calm middle, dramatic finish
+        animationPhases = [
+            { player: 50, opponent: 50, delay: 100 },
+            { player: 75, opponent: 25, delay: 400 },
+            { player: 30, opponent: 70, delay: 800 },
+            { player: 65, opponent: 35, delay: 1200 },
+            { player: 40, opponent: 60, delay: 1600 },
+            { player: 48, opponent: 52, delay: 2000 },
+            { player: 52, opponent: 48, delay: 2400 },
+            { player: 50, opponent: 50, delay: 2800 },
+            { player: 48, opponent: 52, delay: 3200 },
+            { player: 52, opponent: 48, delay: 3600 },
+            { player: playerWins ? 60 : 40, opponent: playerWins ? 40 : 60, delay: 4000 },
+            { player: playerWins ? 75 : 25, opponent: playerWins ? 25 : 75, delay: 4400 },
+            { player: playerWins ? 88 : 12, opponent: playerWins ? 12 : 88, delay: 4800 },
+            { player: playerWins ? 96 : 4, opponent: playerWins ? 4 : 96, delay: 5200 },
+            { player: playerWins ? 100 : 0, opponent: playerWins ? 0 : 100, delay: 5600 }
+        ];
+    }
     
     // Animate through each phase
     animationPhases.forEach(function(phase) {
@@ -6399,10 +6466,11 @@ function animateClash(playerDamage, opponentDamage) {
         }, phase.delay);
     });
     
-    // After 8 seconds, resolve the clash
+    // After animation completes, resolve the clash
+    var finalDelay = animationPhases[animationPhases.length - 1].delay + 500;
     setTimeout(function() {
         resolveSpecialClash(playerDamage, opponentDamage);
-    }, 8500);
+    }, finalDelay);
 }
 
 function resolveSpecialClash(playerDamage, opponentDamage) {
