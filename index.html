@@ -5967,7 +5967,41 @@ if (shouldUseSpecial) {
         // Show clash prompt to player
         showSpecialClashPrompt(playerDamage, opponentDamage, defender.specialAttack.name, attacker.specialAttack.name);
         return; // Wait for player decision
-    } else {
+    } 
+    // Check if this is player using special and bot can counter (and bot's special is stronger)
+    else if (attackerType === 'player' && defender.level >= 10 && defender.specialAttack && 
+             defender.specialAvailable && !defender.specialUsed) {
+        
+        // Calculate damages to see if bot should counter
+        var playerDamage = calculateSpecialDamage(attacker, defender);
+        var opponentDamage = calculateSpecialDamage(defender, attacker);
+        
+        // Bot counters if their special is stronger
+        if (opponentDamage > playerDamage) {
+            console.log('Bot countering player special attack!');
+            
+            // Mark bot special as used
+            defender.specialUsed = true;
+            
+            // Store player as opponent for clash
+            attacker.currentOpponent = defender;
+            
+            // Add log message
+            addToFightLog('<span style="color: #ff6b6b; font-weight: bold;">⚠️ ' + defender.name + ' counters with their own special attack!</span>');
+            
+            // Start clash immediately
+            fightPaused = true;
+            setTimeout(function() {
+                startSpecialClash();
+            }, 1000);
+            return;
+        } else {
+            // Bot's special is weaker, let player's special go through
+            performSpecialAttack(attacker, defender, attackerType);
+            return;
+        }
+    } 
+    else {
         // Normal special attack (no clash possible)
         performSpecialAttack(attacker, defender, attackerType);
         return;
