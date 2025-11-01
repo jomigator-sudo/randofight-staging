@@ -3516,11 +3516,11 @@ function checkWeeklyPrizes() {
             
             // Award prize based on BEST rank only (not for each fighter)
             var prizeAmount = 0;
-            if (bestRankForAccount === 1) prizeAmount = 100;
-            else if (bestRankForAccount === 2) prizeAmount = 50;
-            else if (bestRankForAccount === 3) prizeAmount = 25;
-            else if (bestRankForAccount >= 4 && bestRankForAccount <= 10) prizeAmount = 10;
-            
+            if (bestRankForAccount === 1) prizeAmount = 300;  // Changed from 100
+            else if (bestRankForAccount === 2) prizeAmount = 150;  // Changed from 50
+            else if (bestRankForAccount === 3) prizeAmount = 75;  // Changed from 25
+            else if (bestRankForAccount >= 4 && bestRankForAccount <= 10) prizeAmount = 30;  // Changed from 10
+                        
             if (prizeAmount > 0) {
                 // Award diamonds only once
                 gameState.diamonds += prizeAmount;
@@ -3618,10 +3618,10 @@ function updateWeeklyLeaderboard() {
                 var rank = i + 1;
                 
                 var prizeText = '';
-                if (rank === 1) prizeText = ' (100💎)';
-                else if (rank === 2) prizeText = ' (50💎)';
-                else if (rank === 3) prizeText = ' (25💎)';
-                else if (rank >= 4 && rank <= 10) prizeText = ' (10💎)';
+                if (rank === 1) prizeText = ' (300💎)';  // Changed from 100💎
+                else if (rank === 2) prizeText = ' (150💎)';  // Changed from 50💎
+                else if (rank === 3) prizeText = ' (75💎)';  // Changed from 25💎
+                else if (rank >= 4 && rank <= 10) prizeText = ' (30💎)';  // Changed from 10💎
                 
                 var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank + '.';
                 
