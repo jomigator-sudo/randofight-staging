@@ -3790,11 +3790,19 @@ if (isFirstFighter && gameState.currentUser && !gameState.currentUser.isGuest) {
     var userId = getUserId();
     processReferral(userId);
     
-    // Wait for save to complete, then claim rewards
+    // Give the new user their 50 diamonds immediately
     setTimeout(function() {
-        console.log('Attempting to claim referral rewards...');
-        claimReferralReward(userId);
-    }, 2000); // Increased delay to ensure save completes
+        var referrerId = localStorage.getItem('randofight_referrer');
+        if (referrerId) {
+            console.log('New user receiving referral bonus');
+            gameState.diamonds += 50;
+            updateDiamondDisplay();
+            saveToSupabase();
+            localStorage.removeItem('randofight_referrer');
+            
+            alert('🎉 Welcome bonus! You received 50 diamonds for using a referral link! 💎\n\nYour friend can claim their reward from the Referral menu.');
+        }
+    }, 1000);
 }
             
             showFighterScreen();
