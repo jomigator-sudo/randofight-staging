@@ -2199,6 +2199,7 @@ function setupLoginKeyHandlers() {
             
             // Also save to localStorage as backup
             saveGameData();
+            return true; // ADD THIS
         } else {
             console.error('Supabase save error:', response.status, response.statusText);
             return response.text().then(function(text) {
