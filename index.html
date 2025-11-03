@@ -7634,8 +7634,8 @@ function claimAllReferralRewards() {
         claimButton.textContent = 'Claiming...';
     }
     
-    // Get all unclaimed referrals
-    fetch(SUPABASE_URL + '/rest/v1/referrals?referrer_id=eq.' + encodeURIComponent(userId) + '&reward_claimed=eq.false', {
+    // Get ALL referrals for this user to debug
+    fetch(SUPABASE_URL + '/rest/v1/referrals?referrer_id=eq.' + encodeURIComponent(userId), {
         method: 'GET',
         headers: {
             'apikey': SUPABASE_ANON_KEY,
@@ -7644,28 +7644,46 @@ function claimAllReferralRewards() {
     })
     .then(function(response) {
         if (!response.ok) {
-            throw new Error('Failed to fetch referrals');
+            throw new Error('Failed to fetch referrals: ' + response.status);
         }
         return response.json();
     })
-    .then(function(unclaimedReferrals) {
+    .then(function(allReferrals) {
+        console.log('All referrals for user:', allReferrals);
+        
+        // Filter unclaimed referrals manually
+        var unclaimedReferrals = [];
+        for (var i = 0; i < allReferrals.length; i++) {
+            var ref = allReferrals[i];
+            console.log('Referral', i, '- reward_claimed:', ref.reward_claimed, 'type:', typeof ref.reward_claimed);
+            
+            // Check both false and null (in case field is null)
+            if (ref.reward_claimed === false || ref.reward_claimed === null || ref.reward_claimed === undefined) {
+                unclaimedReferrals.push(ref);
+            }
+        }
+        
         console.log('Unclaimed referrals found:', unclaimedReferrals.length);
         
         if (unclaimedReferrals.length === 0) {
-            alert('No unclaimed rewards!');
+            alert('No unclaimed rewards available!');
             closeReferralModal();
+            if (claimButton) {
+                claimButton.disabled = false;
+                claimButton.textContent = 'CLAIM';
+            }
             return Promise.reject('No unclaimed rewards');
         }
         
         var totalRewards = unclaimedReferrals.length * 50;
         
-        console.log('Found', unclaimedReferrals.length, 'unclaimed referrals. Total reward:', totalRewards);
+        console.log('Total reward to claim:', totalRewards, 'diamonds');
         
-        // Mark all referrals as claimed FIRST, before giving diamonds
+        // Mark all referrals as claimed FIRST
         var updatePromises = [];
         for (var i = 0; i < unclaimedReferrals.length; i++) {
             var referral = unclaimedReferrals[i];
-            console.log('Marking referral as claimed:', referral.id);
+            console.log('Updating referral ID:', referral.id);
             
             updatePromises.push(
                 fetch(SUPABASE_URL + '/rest/v1/referrals?id=eq.' + referral.id, {
@@ -7682,23 +7700,33 @@ function claimAllReferralRewards() {
                     })
                 })
                 .then(function(response) {
+                    console.log('Update response status:', response.status);
                     if (!response.ok) {
-                        throw new Error('Failed to update referral status');
+                        return response.text().then(function(text) {
+                            console.error('Update failed:', text);
+                            throw new Error('Failed to update referral: ' + response.status);
+                        });
                     }
                     return response.json();
+                })
+                .then(function(result) {
+                    console.log('Update successful:', result);
+                    return result;
                 })
             );
         }
         
         return Promise.all(updatePromises).then(function(results) {
-            console.log('All referrals marked as claimed:', results);
+            console.log('All referrals marked as claimed. Results:', results);
             
             // Now award diamonds
             gameState.diamonds += totalRewards;
             updateDiamondDisplay();
-            saveToSupabase();
             
-            return totalRewards;
+            // Save to database
+            return saveToSupabase().then(function() {
+                return totalRewards;
+            });
         });
     })
     .then(function(totalRewards) {
@@ -7720,7 +7748,7 @@ function claimAllReferralRewards() {
         }
         
         if (error !== 'No unclaimed rewards') {
-            alert('Error claiming rewards. Please try again.');
+            alert('Error claiming rewards: ' + error.message + '\nCheck console for details.');
         }
     });
 }
