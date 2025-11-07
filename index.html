@@ -980,14 +980,14 @@ function closeDiscordModal() {
     if (!input || !button) return;
     
     if (input.type === 'password') {
-        // Password is hidden, clicking will show it
+        // Password is currently hidden, show it
         input.type = 'text';
-        button.textContent = '👁️'; // Open eye when visible
+        button.textContent = 'Hide'; // Now showing, so button says "Hide"
         button.classList.add('showing');
     } else {
-        // Password is visible, clicking will hide it
+        // Password is currently visible, hide it
         input.type = 'password';
-        button.textContent = '🔒'; // Lock icon when hidden
+        button.textContent = 'Show'; // Now hidden, so button says "Show"
         button.classList.remove('showing');
     }
 }
