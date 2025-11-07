@@ -1527,25 +1527,48 @@ function showCreationScreen() {
 }
 
         function logoutUser() {
-            // Check if user is a guest
-            if (gameState.currentUser && gameState.currentUser.isGuest) {
-                if (confirm('You are playing as a guest. Your progress is only saved locally. Create an account to save your progress in the cloud?')) {
-                    showSignupFormWithData();
-                    return;
-                }
-            }
-            
-            gameState.currentUser = null;
-            gameState.isLoggedIn = false;
-            gameState.fighters = [];
-            gameState.currentFighter = null;
-            gameState.diamonds = 0;
-            
-            localStorage.removeItem('randofight_session');
-            
-            showLoginScreen();
-            console.log('User logged out');
+    // Check if user is a guest
+    if (gameState.currentUser && gameState.currentUser.isGuest) {
+        if (confirm('You are playing as a guest. Your progress is only saved locally. Create an account to save your progress in the cloud?')) {
+            showSignupFormWithData();
+            return;
         }
+    }
+    
+    // Clear all user data
+    gameState.currentUser = null;
+    gameState.isLoggedIn = false;
+    gameState.fighters = [];
+    gameState.currentFighter = null;
+    gameState.diamonds = 0;
+    gameState.fightCooldownEnd = 0;
+    gameState.unlockedSlots = [true, false, false, false, false];
+    gameState.currentSlotIndex = 0;
+    gameState.currentBoss = null;
+    gameState.dailyTasks = {
+        lastReset: new Date().toDateString(),
+        winsToday: 0,
+        claimed: {
+            win3: false,
+            win5: false,
+            win10: false,
+            win20: false,
+            win30: false
+        }
+    };
+    
+    // Clear ALL local storage data related to the game
+    localStorage.removeItem('randofight_session');
+    localStorage.removeItem('randofight_gamedata');
+    localStorage.removeItem('randofight_user_id');
+    localStorage.removeItem('randofight_referrer');
+    localStorage.removeItem('reset_token_demo');
+    localStorage.removeItem('reset_user_id');
+    
+    console.log('User logged out and all local data cleared');
+    
+    showLoginScreen();
+}
 
         function signupUser() {
             var email = document.getElementById('signupEmail').value.trim();
