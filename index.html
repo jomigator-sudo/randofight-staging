@@ -2395,15 +2395,16 @@ function retryCloudSave(previousRetryCount) {
         function saveGameData() {
     try {
         var gameData = JSON.stringify({
+            gameVersion: GAME_VERSION, // Add version number
             fighters: gameState.fighters,
             diamonds: gameState.diamonds,
             fightCooldownEnd: gameState.fightCooldownEnd,
             unlockedSlots: gameState.unlockedSlots,
-            dailyTasks: gameState.dailyTasks, // Add this line
+            dailyTasks: gameState.dailyTasks,
             lastSaved: Date.now()
         });
         localStorage.setItem('randofight_gamedata', gameData);
-        console.log('Game saved to localStorage');
+        console.log('Game saved to localStorage (version ' + GAME_VERSION + ')');
     } catch (e) {
         console.log('Save failed:', e);
     }
@@ -2414,6 +2415,23 @@ function retryCloudSave(previousRetryCount) {
         var gameData = localStorage.getItem('randofight_gamedata');
         if (gameData) {
             var data = JSON.parse(gameData);
+            
+            // Check if data is from old version
+            if (!data.gameVersion || data.gameVersion < GAME_VERSION) {
+                console.log('Old game data detected (version ' + (data.gameVersion || 1) + '). Wiping local data...');
+                localStorage.removeItem('randofight_gamedata');
+                localStorage.removeItem('randofight_session');
+                localStorage.removeItem('randofight_user_id');
+                
+                // Show notification to user
+                alert('🔄 Game has been updated to Version ' + GAME_VERSION + '!\n\nYour local data has been reset. Please log in to sync with the server.');
+                
+                // Reload to login screen
+                location.reload();
+                return;
+            }
+            
+            // Load data normally if version matches
             gameState.fighters = data.fighters || [];
             gameState.diamonds = data.diamonds || 0;
             gameState.fightCooldownEnd = data.fightCooldownEnd || 0;
@@ -2429,12 +2447,14 @@ function retryCloudSave(previousRetryCount) {
                     win30: false
                 }
             };
-            console.log('Game loaded from localStorage');
+            console.log('Game loaded from localStorage (version ' + GAME_VERSION + ')');
         } else {
             console.log('No saved data found');
         }
     } catch (e) {
         console.log('Load failed:', e);
+        // Clear corrupted data
+        localStorage.removeItem('randofight_gamedata');
     }
 }
 
