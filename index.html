@@ -1695,6 +1695,9 @@ function showCreationScreen() {
             document.getElementById('signupPassword').value = '';
             document.getElementById('signupUsername').value = '';
             
+            // Reload the page to refresh everything
+            location.reload();
+            
             // Show title screen - this will trigger the button fix
             showTitleScreen();
         } else {
@@ -1705,9 +1708,6 @@ function showCreationScreen() {
             document.getElementById('signupEmail').value = '';
             document.getElementById('signupPassword').value = '';
             document.getElementById('signupUsername').value = '';
-
-             // Reload the page to refresh everything
-            location.reload();
         }
     } else {
         throw new Error('Signup failed: ' + response.status);
