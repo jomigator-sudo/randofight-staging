@@ -1668,35 +1668,37 @@ function showCreationScreen() {
     if (response.ok) {
         // If we have guest data, transfer it to the new account
         if (guestData) {
-            gameState.currentUser = newUser;
-            gameState.currentUser.isGuest = false;
-            gameState.isLoggedIn = true;
-            gameState.fighters = guestData.fighters;
-            gameState.diamonds = guestData.diamonds;
-            gameState.fightCooldownEnd = guestData.fightCooldownEnd;
-            gameState.unlockedSlots = guestData.unlockedSlots;
-            
-            // Save guest data to the cloud
-            saveToSupabase();
-            
-            localStorage.setItem('randofight_session', JSON.stringify({
-                user_id: newUser.user_id,
-                email: newUser.email,
-                username: newUser.username,
-                loginTime: Date.now(),
-                isGuest: false
-            }));
-            
-            alert('Account created successfully and your guest progress has been transferred to the cloud!');
-            document.getElementById('usernameDisplay').textContent = newUser.username;
-            
-            // Clear form fields
-            document.getElementById('signupEmail').value = '';
-            document.getElementById('signupPassword').value = '';
-            document.getElementById('signupUsername').value = '';
-            
-            // Reload the page to refresh everything
-            location.reload();
+    gameState.currentUser = newUser;
+    gameState.currentUser.isGuest = false;
+    gameState.isLoggedIn = true;
+    gameState.fighters = guestData.fighters;
+    gameState.diamonds = guestData.diamonds;
+    gameState.fightCooldownEnd = guestData.fightCooldownEnd;
+    gameState.unlockedSlots = guestData.unlockedSlots;
+    
+    localStorage.setItem('randofight_session', JSON.stringify({
+        user_id: newUser.user_id,
+        email: newUser.email,
+        username: newUser.username,
+        loginTime: Date.now(),
+        isGuest: false
+    }));
+    
+    // Clear form fields
+    document.getElementById('signupEmail').value = '';
+    document.getElementById('signupPassword').value = '';
+    document.getElementById('signupUsername').value = '';
+    
+    alert('Account created successfully and your guest progress has been transferred to the cloud!');
+    
+    // Save guest data to the cloud, THEN reload
+    saveToSupabase();
+    
+    // Give it a moment to save, then reload
+    setTimeout(function() {
+        location.reload();
+    }, 1500);
+}
             
             // Show title screen - this will trigger the button fix
             showTitleScreen();
