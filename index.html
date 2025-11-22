@@ -1573,156 +1573,153 @@ function showCreationScreen() {
 }
 
         function signupUser() {
-            var email = document.getElementById('signupEmail').value.trim();
-            var password = document.getElementById('signupPassword').value;
-            var username = document.getElementById('signupUsername').value.trim();
-            
-            if (!email || !password || !username) {
-                alert('Please fill in all fields.');
-                return;
-            }
-            
-            if (password.length < 6) {
-                alert('Password must be at least 6 characters long.');
-                return;
-            }
-            
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                alert('Please enter a valid email address.');
-                return;
-            }
-            
-            if (username.length < 3) {
-                alert('Username must be at least 3 characters long.');
-                return;
-            }
-            
-            console.log('Attempting signup for:', email);
-            
-            // Store guest data before signup if applicable
-            var guestData = null;
-            if (gameState.currentUser && gameState.currentUser.isGuest) {
-                guestData = {
-                    fighters: gameState.fighters,
-                    diamonds: gameState.diamonds,
-                    fightCooldownEnd: gameState.fightCooldownEnd,
-                    unlockedSlots: gameState.unlockedSlots
-                };
-                console.log('Storing guest data for transfer:', guestData);
-            }
-            
-            fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email), {
-                method: 'GET',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-                }
-            })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(existingUsers) {
-                if (existingUsers.length > 0) {
-                    alert('An account with this email already exists. Please use a different email or login instead.');
-                    return Promise.reject('Email exists');
-                }
-                
-                return fetch(SUPABASE_URL + '/rest/v1/users?username=eq.' + encodeURIComponent(username), {
-                    method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-                    }
-                });
-            })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(existingUsernames) {
-                if (existingUsernames.length > 0) {
-                    alert('Username "' + username + '" is already taken. Please choose a different username.');
-                    return Promise.reject('Username exists');
-                }
-                
-                return hashPassword(password);
-            })
-            .then(function(hashedPassword) {
-                var newUser = {
-                    user_id: 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                    email: email,
-                    username: username,
-                    password_hash: hashedPassword,
-                    created_at: new Date().toISOString()
-                };
-                
-                return fetch(SUPABASE_URL + '/rest/v1/users', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-                    },
-                    body: JSON.stringify(newUser)
-                })
-                .then(function(response) {
-    if (response.ok) {
-        // If we have guest data, transfer it to the new account
-        if (guestData) {
-    gameState.currentUser = newUser;
-    gameState.currentUser.isGuest = false;
-    gameState.isLoggedIn = true;
-    gameState.fighters = guestData.fighters;
-    gameState.diamonds = guestData.diamonds;
-    gameState.fightCooldownEnd = guestData.fightCooldownEnd;
-    gameState.unlockedSlots = guestData.unlockedSlots;
+    var email = document.getElementById('signupEmail').value.trim();
+    var password = document.getElementById('signupPassword').value;
+    var username = document.getElementById('signupUsername').value.trim();
     
-    localStorage.setItem('randofight_session', JSON.stringify({
-        user_id: newUser.user_id,
-        email: newUser.email,
-        username: newUser.username,
-        loginTime: Date.now(),
-        isGuest: false
-    }));
-    
-    // Clear form fields
-    document.getElementById('signupEmail').value = '';
-    document.getElementById('signupPassword').value = '';
-    document.getElementById('signupUsername').value = '';
-    
-    alert('Account created successfully and your guest progress has been transferred to the cloud!');
-    
-    // Save guest data to the cloud, THEN reload
-    saveToSupabase();
-    
-    // Give it a moment to save, then reload
-    setTimeout(function() {
-        location.reload();
-    }, 1500);
-}
-            
-            // Show title screen - this will trigger the button fix
-            showTitleScreen();
-        } else {
-            alert('Account created successfully! Please login with your new credentials.');
-            showLoginForm();
-            
-            // Clear form fields
-            document.getElementById('signupEmail').value = '';
-            document.getElementById('signupPassword').value = '';
-            document.getElementById('signupUsername').value = '';
-        }
-    } else {
-        throw new Error('Signup failed: ' + response.status);
+    if (!email || !password || !username) {
+        alert('Please fill in all fields.');
+        return;
     }
-});
-            })
-            .catch(function(error) {
-                if (error !== 'Email exists' && error !== 'Username exists') {
-                    console.error('Signup error:', error);
-                    alert('Account creation failed. Please try again.');
-                }
-            });
+
+    if (password.length < 6) {
+        alert('Password must be at least 6 characters long.');
+        return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+
+    if (username.length < 3) {
+        alert('Username must be at least 3 characters long.');
+        return;
+    }
+
+    console.log('Attempting signup for:', email);
+
+    // Store guest data for transfer
+    var guestData = null;
+    if (gameState.currentUser && gameState.currentUser.isGuest) {
+        guestData = {
+            fighters: gameState.fighters,
+            diamonds: gameState.diamonds,
+            fightCooldownEnd: gameState.fightCooldownEnd,
+            unlockedSlots: gameState.unlockedSlots
+        };
+        console.log('Storing guest data for transfer:', guestData);
+    }
+
+    // Check if email already exists
+    fetch(SUPABASE_URL + '/rest/v1/users?email=eq.' + encodeURIComponent(email), {
+        method: 'GET',
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
         }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(existingUsers) {
+        if (existingUsers.length > 0) {
+            alert('An account with this email already exists. Please use a different email or login instead.');
+            return Promise.reject('Email exists');
+        }
+
+        // Check if username already exists
+        return fetch(SUPABASE_URL + '/rest/v1/users?username=eq.' + encodeURIComponent(username), {
+            method: 'GET',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+            }
+        });
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(existingUsernames) {
+        if (existingUsernames.length > 0) {
+            alert('Username "' + username + '" is already taken. Please choose a different username.');
+            return Promise.reject('Username exists');
+        }
+
+        return hashPassword(password);
+    })
+    .then(function(hashedPassword) {
+        var newUser = {
+            user_id: 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            email: email,
+            username: username,
+            password_hash: hashedPassword,
+            created_at: new Date().toISOString()
+        };
+
+        // Create user
+        return fetch(SUPABASE_URL + '/rest/v1/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify(newUser)
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Signup failed: ' + response.status);
+            }
+
+            // SUCCESSFUL SIGNUP
+            if (guestData) {
+                // Attach guest progress
+                gameState.currentUser = newUser;
+                gameState.currentUser.isGuest = false;
+                gameState.isLoggedIn = true;
+
+                gameState.fighters = guestData.fighters;
+                gameState.diamonds = guestData.diamonds;
+                gameState.fightCooldownEnd = guestData.fightCooldownEnd;
+                gameState.unlockedSlots = guestData.unlockedSlots;
+
+                localStorage.setItem('randofight_session', JSON.stringify({
+                    user_id: newUser.user_id,
+                    email: newUser.email,
+                    username: newUser.username,
+                    loginTime: Date.now(),
+                    isGuest: false
+                }));
+
+                // Clear form
+                document.getElementById('signupEmail').value = '';
+                document.getElementById('signupPassword').value = '';
+                document.getElementById('signupUsername').value = '';
+
+                alert('Account created successfully and your guest progress has been transferred to the cloud!');
+
+                // Save guest data then reload
+                saveToSupabase();
+
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
+
+            } else {
+                // Normal signup
+                alert('Account created successfully! Please login with your new credentials.');
+                showLoginForm();
+
+                document.getElementById('signupEmail').value = '';
+                document.getElementById('signupPassword').value = '';
+                document.getElementById('signupUsername').value = '';
+            }
+        });
+    })
+    .catch(function(error) {
+        if (error !== 'Email exists' && error !== 'Username exists') {
+            console.error('Signup error:', error);
+            alert('Account creation failed. Please try again.');
+        }
+    });
+}
 
         function playAsGuest() {
             console.log('Starting guest mode...');
