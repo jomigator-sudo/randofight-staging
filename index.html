@@ -2317,14 +2317,23 @@ function retryCloudSave(previousRetryCount) {
     
     updateLoadingProgress(20, 'Connecting to server...');
     
-    // First check localStorage for comparison
+    // Check localStorage version first
     var localData = localStorage.getItem('randofight_gamedata');
-    var localTimestamp = null;
+    var localVersion = 1; // Default to version 1 if not set
+    
     if (localData) {
         try {
             var parsed = JSON.parse(localData);
-            localTimestamp = parsed.lastSaved || 0;
-        } catch(e) {}
+            localVersion = parsed.gameVersion || 1;
+            
+            // If local data is old version, clear it
+            if (localVersion < GAME_VERSION) {
+                console.log('Clearing old local data (version ' + localVersion + ')');
+                localStorage.removeItem('randofight_gamedata');
+            }
+        } catch(e) {
+            console.error('Error parsing local data:', e);
+        }
     }
     
     updateLoadingProgress(40, 'Fetching your data...');
@@ -2344,53 +2353,49 @@ function retryCloudSave(previousRetryCount) {
         return response.json();
     })
     .then(function(data) {
-    console.log('Raw Supabase response:', data);
-    
-    updateLoadingProgress(80, 'Loading characters...');
-    
-    if (data && data.length > 0) {
-        var gameData = data[0];
-        var cloudTimestamp = new Date(gameData.updated_at).getTime();
+        console.log('Raw Supabase response:', data);
         
-        // Compare timestamps - use newer data
-        if (localTimestamp && localTimestamp > cloudTimestamp) {
-            console.log('Local data is newer, using local data and syncing to cloud');
-            loadGameData();
-            saveToSupabase();
-        } else {
+        updateLoadingProgress(80, 'Loading characters...');
+        
+        if (data && data.length > 0) {
+            var gameData = data[0];
+            
             console.log('Loading data from Supabase:', gameData);
             gameState.fighters = gameData.fighters || [];
             gameState.diamonds = gameData.diamonds || 0;
             gameState.fightCooldownEnd = gameData.fight_cooldown_end || 0;
             gameState.unlockedSlots = gameData.unlocked_slots || [true, false, false, false, false];
             
-            // Load daily tasks - IMPORTANT: Load before initializing
             if (gameData.daily_tasks) {
                 gameState.dailyTasks = gameData.daily_tasks;
                 console.log('Loaded daily tasks from cloud:', gameState.dailyTasks);
             }
             
-            // Also save to localStorage
-            saveGameData();
+            saveGameData(); // Save with new version number
             console.log('Game loaded from cloud successfully!');
+        } else {
+            console.log('No saved data found in Supabase');
+            loadGameData();
         }
-    } else {
-        console.log('No saved data found in Supabase - checking localStorage');
+        
+        initializeDailyTasks();
+        
+        updateLoadingProgress(100, 'Ready!');
+        
+        updateFighterSlots();
+        updateDiamondDisplay();
+        
+        setTimeout(hideLoadingScreen, 300);
+    })
+    .catch(function(error) {
+        console.error('Supabase load error:', error);
         loadGameData();
-    }
-    
-    // Initialize daily tasks (will create if missing or reset if new day)
-    initializeDailyTasks();
-    
-    updateLoadingProgress(100, 'Ready!');
-    
-    updateFighterSlots();
-    updateDiamondDisplay();
-    
-    // Hide loading screen after a brief delay
-    setTimeout(hideLoadingScreen, 300);
-})
-        }
+        updateFighterSlots();
+        updateDiamondDisplay();
+        updateLoadingProgress(100, 'Ready!');
+        setTimeout(hideLoadingScreen, 300);
+    });
+}
 
         function saveGameData() {
     try {
