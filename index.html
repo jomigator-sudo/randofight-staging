@@ -3802,8 +3802,8 @@ html += '<div class="leaderboard-entry"' + highlightStyle + '>' +
             
             var isFirstFighter = gameState.fighters.filter(function(f) { return f !== null && f !== undefined; }).length === 1;
             if (isFirstFighter && gameState.diamonds === 0) {
-                gameState.diamonds = 10;
-                alert('Welcome to RandoFight! You have received 10 free diamonds to get you started!');
+                gameState.diamonds = 20;
+                alert('Welcome to RandoFight! You have received 20 free diamonds to get you started!');
             }
             
             saveToSupabase();
