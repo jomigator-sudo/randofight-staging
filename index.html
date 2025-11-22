@@ -1669,6 +1669,7 @@ function showCreationScreen() {
         // If we have guest data, transfer it to the new account
         if (guestData) {
             gameState.currentUser = newUser;
+            gameState.currentUser.isGuest = false;
             gameState.isLoggedIn = true;
             gameState.fighters = guestData.fighters;
             gameState.diamonds = guestData.diamonds;
@@ -1683,6 +1684,7 @@ function showCreationScreen() {
                 email: newUser.email,
                 username: newUser.username,
                 loginTime: Date.now()
+                isGuest: false
             }));
             
             alert('Account created successfully and your guest progress has been transferred to the cloud!');
