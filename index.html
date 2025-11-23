@@ -3323,6 +3323,29 @@ function checkAndClaimWeeklyPrizes() {
         existingModal.remove();
     }
     
+    // Check if user is a guest
+    if (gameState.currentUser && gameState.currentUser.isGuest) {
+        var modalHTML = 
+            '<div id="weeklyTournamentModal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">' +
+                '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; padding: 20px; border-radius: 10px; border: 2px solid #ffd93d; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">' +
+                    '<h2 style="color: #ffd93d; text-align: center; margin-bottom: 20px;">🏆 Weekly Tournament</h2>' +
+                    '<div style="text-align: center; padding: 40px 20px;">' +
+                        '<div style="background: rgba(245, 158, 11, 0.2); border: 2px solid #f59e0b; border-radius: 10px; padding: 30px; max-width: 500px; margin: 0 auto;">' +
+                            '<h3 style="color: #f59e0b; margin-bottom: 20px;">⚠️ Account Required</h3>' +
+                            '<p style="color: #ccc; margin-bottom: 20px; font-size: 1.1em;">You\'re playing as a guest!</p>' +
+                            '<p style="color: #888; margin-bottom: 25px;">Create an account to compete in weekly tournaments and win diamond prizes. Your current progress will be saved!</p>' +
+                            '<button class="btn btn-primary" onclick="closeWeeklyTournament(); createAccountFromGuest();" style="padding: 12px 30px; font-size: 1.1em;">Create Account</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<button class="btn btn-secondary" onclick="closeWeeklyTournament()" style="width: 100%; margin-top: 20px;">Close</button>' +
+                '</div>' +
+            '</div>';
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        return;
+    }
+    
+    // Regular tournament display for logged-in users
     var modalHTML = 
         '<div id="weeklyTournamentModal" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">' +
             '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; padding: 20px; border-radius: 10px; border: 2px solid #ffd93d; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">' +
