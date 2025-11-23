@@ -1802,25 +1802,26 @@ function showCreationScreen() {
 }
 
         function showSignupFormWithData() {
-            showLoginScreen();
-            showSignupForm();
-            
-            // Add a notice about data transfer
-            var signupForm = document.getElementById('signupForm');
-            if (signupForm) {
-                // Remove any existing notices first
-                var existingNotice = signupForm.querySelector('[style*="background: rgba(34, 197, 94"]');
-                if (existingNotice) {
-                    existingNotice.remove();
-                }
-                
-                var notice = document.createElement('div');
-                notice.innerHTML = '<div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; border-radius: 5px; padding: 10px; margin-bottom: 15px;">' +
-                    '<p style="color: #22c55e; font-size: 0.9em; margin: 0;">📤 <strong>Data Transfer:</strong> Your current progress will be saved to your new account!</p>' +
-                '</div>';
-                signupForm.insertBefore(notice, signupForm.firstChild);
-            }
+    showLoginScreen();
+    showSignupForm();
+    
+    // Add a notice about data transfer
+    var signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        // Remove any existing notices first
+        var existingNotice = signupForm.querySelector('[data-notice="guest-transfer"]');
+        if (existingNotice) {
+            existingNotice.remove();
         }
+        
+        var notice = document.createElement('div');
+        notice.setAttribute('data-notice', 'guest-transfer'); // Add identifier
+        notice.innerHTML = '<div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; border-radius: 5px; padding: 10px; margin-bottom: 15px;">' +
+            '<p style="color: #22c55e; font-size: 0.9em; margin: 0;">📤 <strong>Data Transfer:</strong> Your current progress will be saved to your new account!</p>' +
+        '</div>';
+        signupForm.insertBefore(notice, signupForm.firstChild);
+    }
+}
 
         function sendPasswordReset() {
             var email = document.getElementById('resetEmail').value.trim();
