@@ -5056,7 +5056,7 @@ function generateBossOpponent(playerLevel) {
                     '<h3 style="color: #f59e0b; margin-bottom: 20px;">📊 Global Leaderboard</h3>' +
                     '<p style="color: #ccc; margin-bottom: 20px; font-size: 1.1em;">You\'re playing as a guest!</p>' +
                     '<p style="color: #888; margin-bottom: 25px;">Create an account to enter the leaderboards and compete with players worldwide. Your current progress will be saved!</p>' +
-                    '<button class="btn btn-primary" onclick="createAccountFromGuest()" style="padding: 12px 30px; font-size: 1.1em;">Create Account</button>' +
+                    '<button class="btn btn-primary" onclick="closeGlobalLeaderboard(); createAccountFromGuest();" style="padding: 12px 30px; font-size: 1.1em;">Create Account</button>' +
                 '</div>' +
             '</div>';
         return;
