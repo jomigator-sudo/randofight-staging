@@ -1796,9 +1796,15 @@ function showCreationScreen() {
                 initPayPalButtons();
             }, 100);
         }
-
+        
+function returnToCharacterSelect() {
+    sessionStorage.removeItem('returnToCharacterSelect'); // Clear flag
+    showTitleScreen();
+}
+        
         function createAccountFromGuest() {
-            showSignupFormWithData();
+    sessionStorage.setItem('returnToCharacterSelect', 'true'); // Set flag
+    showSignupFormWithData();
 }
 
         function showSignupFormWithData() {
@@ -1815,11 +1821,28 @@ function showCreationScreen() {
         }
         
         var notice = document.createElement('div');
-        notice.setAttribute('data-notice', 'guest-transfer'); // Add identifier
+        notice.setAttribute('data-notice', 'guest-transfer');
         notice.innerHTML = '<div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; border-radius: 5px; padding: 10px; margin-bottom: 15px;">' +
             '<p style="color: #22c55e; font-size: 0.9em; margin: 0;">📤 <strong>Data Transfer:</strong> Your current progress will be saved to your new account!</p>' +
         '</div>';
         signupForm.insertBefore(notice, signupForm.firstChild);
+        
+        // Check if we should show back button
+        if (sessionStorage.getItem('returnToCharacterSelect') === 'true') {
+            // Remove existing back button if any
+            var existingBackBtn = signupForm.querySelector('[data-button="back-to-select"]');
+            if (existingBackBtn) {
+                existingBackBtn.remove();
+            }
+            
+            // Add back button at the bottom
+            var backButtonDiv = document.createElement('div');
+            backButtonDiv.setAttribute('data-button', 'back-to-select');
+            backButtonDiv.style.textAlign = 'center';
+            backButtonDiv.style.marginTop = '15px';
+            backButtonDiv.innerHTML = '<button class="btn btn-secondary" onclick="returnToCharacterSelect()" style="width: 100%;">← Back to Character Select</button>';
+            signupForm.appendChild(backButtonDiv);
+        }
     }
 }
 
