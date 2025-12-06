@@ -1699,6 +1699,7 @@ function showCreationScreen() {
                 saveToSupabase();
 
                 setTimeout(function() {
+                    sessionStorage.removeItem('returnToCharacterSelect'); // Clear flag
                     location.reload();
                 }, 1500);
 
